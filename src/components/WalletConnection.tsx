@@ -36,7 +36,7 @@ interface WalletConnectionProps {
 }
 
 function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: WalletConnectionProps) {
-    const NFTS_PER_PAGE = 6;
+    const NFTS_PER_PAGE = 24;
     const [wallets, setWallets] = useState<Wallet[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -47,6 +47,261 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
     const [assetsError, setAssetsError] = useState<string | null>(null);
     const [currentNftPage, setCurrentNftPage] = useState(1);
     const [copiedWalletId, setCopiedWalletId] = useState<number | null>(null);
+    const [failedNftThumbnails, setFailedNftThumbnails] = useState<Record<string, boolean>>({});
+    const [resolvedNftThumbnails, setResolvedNftThumbnails] = useState<Record<string, string | null>>({});
+
+    const ipfsGateways = useMemo(
+        () => [
+            'https://ipfs.io/ipfs/',
+            'https://gateway.pinata.cloud/ipfs/',
+            'https://cloudflare-ipfs.com/ipfs/',
+        ],
+        []
+    );
+
+    const nftDebugEnabled = useMemo(() => {
+        if (typeof window === 'undefined') {
+            return false;
+        }
+        const query = new URLSearchParams(window.location.search);
+        return import.meta.env.DEV || query.get('nftDebug') === '1';
+    }, []);
+
+    const debugNft = useCallback((message: string, payload?: unknown) => {
+        if (!nftDebugEnabled) {
+            return;
+        }
+        if (payload === undefined) {
+            console.log(`[NFT DEBUG] ${message}`);
+            return;
+        }
+        console.log(`[NFT DEBUG] ${message}`, payload);
+    }, [nftDebugEnabled]);
+
+    const getProxiedUrl = useCallback((url: string, mode: 'json' | 'binary' = 'binary'): string => {
+        const encodedUrl = encodeURIComponent(url);
+        const debugParam = nftDebugEnabled ? '&debug=1' : '';
+        return `/api/user/nft-resource-proxy?mode=${mode}&url=${encodedUrl}${debugParam}`;
+    }, [nftDebugEnabled]);
+
+    const decodeHexUri = (value: string): string => {
+        const trimmed = value.trim();
+        const isHexEncoded = /^[0-9a-fA-F]+$/.test(trimmed) && trimmed.length % 2 === 0;
+
+        if (!isHexEncoded) {
+            return trimmed;
+        }
+
+        try {
+            const bytes = new Uint8Array(trimmed.length / 2);
+            for (let i = 0; i < trimmed.length; i += 2) {
+                bytes[i / 2] = parseInt(trimmed.slice(i, i + 2), 16);
+            }
+            return new TextDecoder().decode(bytes).replace(/\0+$/, '').trim();
+        } catch {
+            return trimmed;
+        }
+    };
+
+    const getIpfsPath = (uri: string): string | null => {
+        if (uri.startsWith('ipfs://ipfs/')) {
+            return uri.slice('ipfs://ipfs/'.length);
+        }
+        if (uri.startsWith('ipfs://')) {
+            return uri.slice('ipfs://'.length);
+        }
+        return null;
+    };
+
+    const encodePathSegment = (segment: string): string => {
+        try {
+            return encodeURIComponent(decodeURIComponent(segment));
+        } catch {
+            return encodeURIComponent(segment);
+        }
+    };
+
+    const encodePathPreservingSlashes = (path: string): string =>
+        path
+            .split('/')
+            .map((segment) => encodePathSegment(segment))
+            .join('/');
+
+    const normalizeHttpUrl = (urlValue: string): string => {
+        try {
+            const preSanitized = urlValue.trim().replace(/ /g, '%20').replace(/#/g, '%23');
+            const parsed = new URL(preSanitized);
+            parsed.pathname = encodePathPreservingSlashes(parsed.pathname);
+            return parsed.toString();
+        } catch {
+            return urlValue.trim();
+        }
+    };
+
+    const getStorageUrlCandidates = (uri: string): string[] => {
+        const ipfsPath = getIpfsPath(uri);
+        if (ipfsPath) {
+            const encodedIpfsPath = encodePathPreservingSlashes(ipfsPath);
+            return ipfsGateways.map((gateway) => `${gateway}${encodedIpfsPath}`);
+        }
+        if (uri.startsWith('ar://')) {
+            const arPath = encodePathPreservingSlashes(uri.slice('ar://'.length));
+            return [`https://arweave.net/${arPath}`];
+        }
+        if (isHttpUrl(uri)) {
+            return [normalizeHttpUrl(uri)];
+        }
+        return [uri.trim()];
+    };
+
+    const isHttpUrl = (value: string): boolean => /^https?:\/\//i.test(value);
+    const isJsonUrl = (value: string): boolean => /\.json($|\?)/i.test(value);
+
+    const getDirectNftThumbnailCandidates = (uri: string | null): string[] => {
+        if (!uri) {
+            return [];
+        }
+
+        const decoded = decodeHexUri(uri);
+        if (!decoded) {
+            return [];
+        }
+
+        if (decoded.startsWith('data:image/')) {
+            return [decoded];
+        }
+
+        const candidates = getStorageUrlCandidates(decoded).filter((candidate) => {
+            if (!isHttpUrl(candidate)) {
+                return false;
+            }
+            return !isJsonUrl(candidate);
+        });
+
+        return Array.from(new Set(candidates));
+    };
+
+    const getMetadataUrlCandidates = (uri: string | null): string[] => {
+        if (!uri) {
+            return [];
+        }
+
+        const decoded = decodeHexUri(uri);
+        if (!decoded) {
+            return [];
+        }
+
+        const candidates = getStorageUrlCandidates(decoded).filter((candidate) => {
+            if (!isHttpUrl(candidate)) {
+                return false;
+            }
+            return isJsonUrl(candidate);
+        });
+
+        return Array.from(new Set(candidates));
+    };
+
+    const pickImageFromMetadata = (metadata: unknown): string | null => {
+        if (!metadata || typeof metadata !== 'object') {
+            return null;
+        }
+
+        const metadataRecord = metadata as Record<string, unknown>;
+        const possibleImageValues = [
+            metadataRecord.image,
+            metadataRecord.image_url,
+            metadataRecord.thumbnail,
+            metadataRecord.thumbnail_url,
+            metadataRecord.cover_image,
+            metadataRecord.content,
+            (metadataRecord.properties as Record<string, unknown> | undefined)?.image,
+        ];
+
+        for (const value of possibleImageValues) {
+            if (typeof value !== 'string' || !value.trim()) {
+                continue;
+            }
+
+            const candidates = getStorageUrlCandidates(value.trim());
+            const imageCandidate = candidates.find((candidate) =>
+                candidate.startsWith('data:image/') || (isHttpUrl(candidate) && !isJsonUrl(candidate))
+            );
+
+            if (imageCandidate) {
+                return imageCandidate;
+            }
+        }
+
+        return null;
+    };
+
+    const resolveThumbnailFromMetadata = useCallback(async (uri: string | null): Promise<string | null> => {
+        const metadataUrls = getMetadataUrlCandidates(uri);
+        debugNft('Metadata URL candidates', { uri, metadataUrls });
+
+        for (const metadataUrl of metadataUrls) {
+            try {
+                const response = await fetch(getProxiedUrl(metadataUrl, 'json'), { method: 'GET' });
+                debugNft('Metadata fetch response', {
+                    metadataUrl,
+                    ok: response.ok,
+                    status: response.status,
+                });
+                if (!response.ok) {
+                    continue;
+                }
+
+                const metadata = (await response.json()) as unknown;
+                const resolvedImage = pickImageFromMetadata(metadata);
+                debugNft('Resolved image from metadata', {
+                    metadataUrl,
+                    resolvedImage,
+                });
+                if (resolvedImage) {
+                    return resolvedImage;
+                }
+            } catch (error) {
+                debugNft('Metadata fetch failed', {
+                    metadataUrl,
+                    error: error instanceof Error ? error.message : String(error),
+                });
+                continue;
+            }
+        }
+
+        debugNft('No image resolved from metadata', { uri });
+        return null;
+    }, [debugNft, getProxiedUrl]);
+
+    const getNftThumbnailUrl = (tokenId: string, uri: string | null): string | null => {
+        const resolved = resolvedNftThumbnails[tokenId];
+        if (resolved !== undefined) {
+            return resolved;
+        }
+
+        const directCandidates = getDirectNftThumbnailCandidates(uri);
+        return directCandidates[0] || null;
+    };
+
+    const getNftThumbnailSrc = (url: string | null): string | null => {
+        if (!url) {
+            return null;
+        }
+
+        if (url.startsWith('data:image/')) {
+            return url;
+        }
+
+        if (url.startsWith('/api/user/nft-resource-proxy?')) {
+            return url;
+        }
+
+        if (isHttpUrl(url)) {
+            return getProxiedUrl(url, 'binary');
+        }
+
+        return null;
+    };
 
     const tryDisconnectCurrentWallet = useCallback(
         async (currentWallet?: Wallet | null) => {
@@ -282,12 +537,16 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
             setConnectedWalletAssets(null);
             setAssetsError(null);
             setIsAssetsLoading(false);
+            setResolvedNftThumbnails({});
+            setFailedNftThumbnails({});
             return;
         }
 
         try {
             setIsAssetsLoading(true);
             setAssetsError(null);
+            setResolvedNftThumbnails({});
+            setFailedNftThumbnails({});
             const summary = await getWalletAssetSummary(
                 auth0Id,
                 connectedWallet.wallet_address,
@@ -310,6 +569,14 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
     useEffect(() => {
         setCurrentNftPage(1);
     }, [connectedWallet?.id, connectedWalletAssets?.wallet_address]);
+
+    useEffect(() => {
+        setFailedNftThumbnails({});
+    }, [connectedWalletAssets?.wallet_address, currentNftPage]);
+
+    useEffect(() => {
+        setResolvedNftThumbnails({});
+    }, [connectedWalletAssets?.wallet_address]);
 
     const getConnectionChannel = (walletType: string) => {
         if (walletType === 'xaman') {
@@ -337,6 +604,70 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
         const end = start + NFTS_PER_PAGE;
         return connectedWalletAssets.nfts.slice(start, end);
     }, [NFTS_PER_PAGE, connectedWalletAssets?.nfts, currentNftPage]);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const resolveCurrentPageThumbnails = async () => {
+            const updates: Record<string, string | null> = {};
+
+            await Promise.all(
+                paginatedNfts.map(async (nft) => {
+                    if (resolvedNftThumbnails[nft.token_id] !== undefined) {
+                        debugNft('Thumbnail already resolved in cache', {
+                            tokenId: nft.token_id,
+                            resolved: resolvedNftThumbnails[nft.token_id],
+                        });
+                        return;
+                    }
+
+                    const directCandidates = getDirectNftThumbnailCandidates(nft.uri);
+                    const metadataCandidates = getMetadataUrlCandidates(nft.uri);
+                    debugNft('Resolving NFT thumbnail', {
+                        tokenId: nft.token_id,
+                        uri: nft.uri,
+                        directCandidates,
+                        metadataCandidates,
+                    });
+
+                    if (directCandidates.length > 0) {
+                        updates[nft.token_id] = directCandidates[0];
+                        debugNft('Using direct thumbnail candidate', {
+                            tokenId: nft.token_id,
+                            thumbnail: directCandidates[0],
+                        });
+                        return;
+                    }
+
+                    const metadataImage = await resolveThumbnailFromMetadata(nft.uri);
+                    updates[nft.token_id] = metadataImage;
+                    debugNft('Using metadata-derived thumbnail', {
+                        tokenId: nft.token_id,
+                        thumbnail: metadataImage,
+                    });
+                })
+            );
+
+            if (!cancelled && Object.keys(updates).length > 0) {
+                setResolvedNftThumbnails((current) => ({
+                    ...current,
+                    ...updates,
+                }));
+            }
+        };
+
+        if (paginatedNfts.length > 0) {
+            debugNft('Resolving thumbnails for current page', {
+                page: currentNftPage,
+                nftCount: paginatedNfts.length,
+            });
+            void resolveCurrentPageThumbnails();
+        }
+
+        return () => {
+            cancelled = true;
+        };
+    }, [currentNftPage, debugNft, paginatedNfts, resolveThumbnailFromMetadata, resolvedNftThumbnails]);
 
     return (
         <div className="w-full p-6 bg-black/30 rounded-lg mt-4">
@@ -531,19 +862,56 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
 
                         {connectedWalletAssets.nft_count > 0 && (
                             <div className="rounded-md border border-white/10 bg-black/20 p-3">
-                                <div className="space-y-1 text-xs text-white/70">
+                                <div className="flex flex-wrap gap-3">
                                     {paginatedNfts.map((nft) => (
-                                        <p key={nft.token_id}>
-                                            NFT: {nft.token_id.slice(0, 14)}...{nft.token_id.slice(-8)}
-                                        </p>
+                                        <div key={nft.token_id} className="rounded bg-white/[0.03] p-2">
+                                            {(() => {
+                                                const thumbnailUrl = getNftThumbnailUrl(nft.token_id, nft.uri);
+                                                const thumbnailSrc = getNftThumbnailSrc(thumbnailUrl);
+                                                const thumbnailFailed = failedNftThumbnails[nft.token_id];
+
+                                                if (nftDebugEnabled) {
+                                                    console.log('[NFT DEBUG] Render thumbnail', {
+                                                        tokenId: nft.token_id,
+                                                        uri: nft.uri,
+                                                        thumbnailUrl,
+                                                        thumbnailSrc,
+                                                        thumbnailFailed,
+                                                    });
+                                                }
+
+                                                if (!thumbnailSrc || thumbnailFailed) {
+                                                    return (
+                                                        <div className="h-[200px] w-[200px] rounded border border-white/10 bg-white/5" />
+                                                    );
+                                                }
+
+                                                return (
+                                                    <img
+                                                        src={thumbnailSrc}
+                                                        alt="NFT thumbnail"
+                                                        className="h-[200px] w-[200px] rounded border border-white/10 object-cover"
+                                                        loading="lazy"
+                                                        onError={(event) => {
+                                                            debugNft('Image load error', {
+                                                                tokenId: nft.token_id,
+                                                                src: event.currentTarget.currentSrc || event.currentTarget.src,
+                                                                originalUri: nft.uri,
+                                                            });
+                                                            setFailedNftThumbnails((current) => ({
+                                                                ...current,
+                                                                [nft.token_id]: true,
+                                                            }));
+                                                        }}
+                                                    />
+                                                );
+                                            })()}
+                                        </div>
                                     ))}
                                 </div>
 
                                 {totalNftPages > 1 && (
-                                    <div className="mt-3 flex items-center justify-between text-xs text-white/70">
-                                        <span>
-                                            Page {currentNftPage} of {totalNftPages}
-                                        </span>
+                                    <div className="mt-3 flex justify-end text-xs text-white/70">
                                         <div className="flex items-center gap-2">
                                             <Button
                                                 onClick={() => setCurrentNftPage((page) => Math.max(1, page - 1))}

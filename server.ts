@@ -87,6 +87,7 @@ async function setupRoutes() {
     const syncModule = await import('./api/user/sync.ts');
     const walletsModule = await import('./api/user/wallets.ts');
     const walletAssetsModule = await import('./api/user/wallet-assets.ts');
+    const nftResourceProxyModule = await import('./api/user/nft-resource-proxy.ts');
     const walletsIdModule = await import('./api/user/wallets/[walletId].ts');
     const walletsDisconnectModule =
       await import('./api/user/wallets/disconnect.ts');
@@ -97,6 +98,10 @@ async function setupRoutes() {
     console.log(
       'WalletAssets handler loaded:',
       typeof walletAssetsModule.default
+    );
+    console.log(
+      'NftResourceProxy handler loaded:',
+      typeof nftResourceProxyModule.default
     );
     console.log('WalletsId handler loaded:', typeof walletsIdModule.default);
     console.log(
@@ -111,6 +116,10 @@ async function setupRoutes() {
     app.all(
       '/api/user/wallet-assets',
       vercelToExpress(walletAssetsModule.default)
+    );
+    app.all(
+      '/api/user/nft-resource-proxy',
+      vercelToExpress(nftResourceProxyModule.default)
     );
     // PUT /api/user/wallets/disconnect - must come BEFORE :walletId pattern
     app.all(
@@ -145,6 +154,9 @@ setupRoutes()
       console.log(`   - POST http://localhost:${PORT}/api/user/sync`);
       console.log(`   - GET/POST http://localhost:${PORT}/api/user/wallets`);
       console.log(`   - GET http://localhost:${PORT}/api/user/wallet-assets`);
+      console.log(
+        `   - GET http://localhost:${PORT}/api/user/nft-resource-proxy`
+      );
       console.log(
         `   - PUT/DELETE http://localhost:${PORT}/api/user/wallets/:walletId`
       );
