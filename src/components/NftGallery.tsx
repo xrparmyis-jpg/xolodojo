@@ -975,8 +975,12 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                         ) : (
                             <>
                                 <p className="text-white/90">Choose your pin location on the map, then submit to save.</p>
-                                <p className="text-white/70">
-                                    Ready to pin <span className="font-medium text-white">{pinTargetTitle}</span> from <span className="font-medium text-white">{pinTargetCollectionName}</span>.
+                                <NftPinLocationMap
+                                    onLocationChange={setPinLocation}
+                                    className="mt-2"
+                                />
+                                <p className="text-xs text-white/60">
+                                    Current pin: {pinLocation ? `${pinLocation.lat.toFixed(5)}, ${pinLocation.lng.toFixed(5)}` : 'Not set'}
                                 </p>
                                 <div className="flex justify-end gap-3 pt-1">
                                     <Button
@@ -987,13 +991,6 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                                         {isPinActionLoading ? 'Saving pin' : 'Submit Pin'}
                                     </Button>
                                 </div>
-                                <NftPinLocationMap
-                                    onLocationChange={setPinLocation}
-                                    className="mt-2"
-                                />
-                                <p className="text-xs text-white/60">
-                                    Current pin: {pinLocation ? `${pinLocation.lat.toFixed(5)}, ${pinLocation.lng.toFixed(5)}` : 'Not set'}
-                                </p>
                             </>
                         )}
                     </div>

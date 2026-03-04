@@ -198,24 +198,7 @@ export default function NftPinLocationMap({ onLocationChange, initialLocation = 
 
     return (
         <div className={className || 'relative'}>
-            <div ref={mapContainerRef} className="h-[420px] w-full overflow-hidden rounded-lg border border-white/20" />
-
-            {searchResults.length > 0 && (
-                <div className="absolute bottom-16 left-3 right-3 z-20 max-h-52 overflow-auto rounded-md border border-white/20 bg-black/80 backdrop-blur-sm">
-                    {searchResults.map((result) => (
-                        <button
-                            type="button"
-                            key={result.id}
-                            onClick={() => handleSelectSearchResult(result)}
-                            className="block w-full border-b border-white/10 px-3 py-2 text-left text-xs text-white/90 last:border-b-0 hover:bg-white/10"
-                        >
-                            {result.place_name}
-                        </button>
-                    ))}
-                </div>
-            )}
-
-            <div className="absolute bottom-3 left-3 right-3 z-20 rounded-md border border-white/20 bg-black/65 px-3 py-2 text-xs text-white/85 backdrop-blur-sm">
+            <div className="mb-2 rounded-md border border-white/20 bg-black/65 px-3 py-2 text-xs text-white/85 backdrop-blur-sm">
                 <div className="flex items-center gap-3">
                     <input
                         type="text"
@@ -239,10 +222,28 @@ export default function NftPinLocationMap({ onLocationChange, initialLocation = 
                         <FontAwesomeIcon icon={faLocationArrow} className="text-xs" />
                     </button>
                 </div>
+
+                {searchResults.length > 0 && (
+                    <div className="mt-2 max-h-52 overflow-auto rounded-md border border-white/20 bg-black/80 backdrop-blur-sm">
+                        {searchResults.map((result) => (
+                            <button
+                                type="button"
+                                key={result.id}
+                                onClick={() => handleSelectSearchResult(result)}
+                                className="block w-full border-b border-white/10 px-3 py-2 text-left text-xs text-white/90 last:border-b-0 hover:bg-white/10"
+                            >
+                                {result.place_name}
+                            </button>
+                        ))}
+                    </div>
+                )}
+
                 <p className="mt-1 text-[11px] text-white/60">
                     {selectedLocationLabel || 'Click map or use geolocate (left controls) to drop a pin.'}
                 </p>
             </div>
+
+            <div ref={mapContainerRef} className="h-[420px] w-full overflow-hidden rounded-lg border border-white/20" />
         </div>
     );
 }
