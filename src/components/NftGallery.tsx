@@ -4,6 +4,7 @@ import { faCheck, faCopy, faSpinner, faThumbtack } from '@fortawesome/free-solid
 import Button from './Button';
 import Modal from './Modal';
 import ConfirmModal from './ConfirmModal';
+import NftPinLocationMap from './NftPinLocationMap';
 import { useToast } from './ToastProvider';
 import type { WalletAssetSummary } from '../services/walletAssetService';
 import { getPinnedNfts, pinNft, unpinNft } from '../services/pinnedNftService';
@@ -34,6 +35,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
     const [pendingUnpinTokenId, setPendingUnpinTokenId] = useState<string | null>(null);
     const [isPinActionLoading, setIsPinActionLoading] = useState(false);
     const [isSelectedNftImageLoaded, setIsSelectedNftImageLoaded] = useState(false);
+    const [pinLocation, setPinLocation] = useState<{ lng: number; lat: number } | null>(null);
     const { showToast } = useToast();
     const metadataResultCacheRef = useRef<Partial<Record<string, { url: string | null; isCollectionFallback: boolean; title: string | null; collectionName: string | null } | null>>>({});
     const metadataRequestCacheRef = useRef<Partial<Record<string, Promise<{ url: string | null; isCollectionFallback: boolean; title: string | null; collectionName: string | null } | null>>>>({});
@@ -614,11 +616,13 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
     const openPinModalForNft = (tokenId: string) => {
         setPinTargetTokenId(tokenId);
         setPinFlowStep(hasAnyPinned ? 'submit' : 'instructions');
+        setPinLocation(null);
     };
 
     const closePinModal = () => {
         setPinTargetTokenId(null);
         setPinFlowStep('instructions');
+        setPinLocation(null);
     };
 
     const handleSubmitPin = async () => {
@@ -631,6 +635,13 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
             return;
         }
 
+        if (!pinLocation) {
+            showToast('error', 'Please place your location pin on the map first.');
+            return;
+        }
+
+        const pinTargetThumbnailUrl = getNftThumbnailUrl(pinTargetNft.token_id, pinTargetNft.uri);
+
         try {
             setIsPinActionLoading(true);
             const nextPinned = await pinNft(
@@ -640,6 +651,9 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                     wallet_address: walletAddress,
                     issuer: pinTargetNft.issuer,
                     uri: pinTargetNft.uri,
+                    latitude: pinLocation.lat,
+                    longitude: pinLocation.lng,
+                    image_url: pinTargetThumbnailUrl,
                     title: pinTargetTitle,
                     collection_name: pinTargetCollectionName,
                 },
@@ -960,21 +974,26 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                             </>
                         ) : (
                             <>
-                                <p className="text-white/90">
-                                    You are on the page after continue.
-                                </p>
+                                <p className="text-white/90">Choose your pin location on the map, then submit to save.</p>
                                 <p className="text-white/70">
                                     Ready to pin <span className="font-medium text-white">{pinTargetTitle}</span> from <span className="font-medium text-white">{pinTargetCollectionName}</span>.
                                 </p>
-                                <div className="flex justify-end gap-3">
+                                <div className="flex justify-end gap-3 pt-1">
                                     <Button
                                         onClick={() => void handleSubmitPin()}
-                                        disabled={isPinActionLoading}
+                                        disabled={isPinActionLoading || !pinLocation}
                                         className="bg-green-600 hover:bg-green-700 active:bg-green-800"
                                     >
-                                        {isPinActionLoading ? 'Saving pin' : 'Add Pin'}
+                                        {isPinActionLoading ? 'Saving pin' : 'Submit Pin'}
                                     </Button>
                                 </div>
+                                <NftPinLocationMap
+                                    onLocationChange={setPinLocation}
+                                    className="mt-2"
+                                />
+                                <p className="text-xs text-white/60">
+                                    Current pin: {pinLocation ? `${pinLocation.lat.toFixed(5)}, ${pinLocation.lng.toFixed(5)}` : 'Not set'}
+                                </p>
                             </>
                         )}
                     </div>

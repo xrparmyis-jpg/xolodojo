@@ -5,6 +5,9 @@ export interface PinnedNftItem {
   wallet_address: string;
   issuer: string | null;
   uri: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  image_url?: string | null;
   title?: string | null;
   collection_name?: string | null;
   pinned_at: string;
@@ -52,6 +55,9 @@ export async function pinNft(
     wallet_address: string;
     issuer?: string | null;
     uri?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
+    image_url?: string | null;
     title?: string | null;
     collection_name?: string | null;
   },

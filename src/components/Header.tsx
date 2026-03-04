@@ -41,7 +41,7 @@ function Header() {
 
       <header
         id="header-sticky"
-        className={`${isSticky ? 'fixed' : 'absolute'} p-0 top-0 left-0 right-0 z-50 w-full ${isSticky ? 'bg-[rgba(24,24,24,0.8)] backdrop-blur-md border-b border-[#36e9e424]' : ''} border-0 transition-opacity duration-300 ease-out`}
+        className={`${isSticky ? 'fixed' : 'absolute'} p-0 top-0 left-0 right-0 z-[1000] w-full ${isSticky ? 'bg-[rgba(24,24,24,0.8)] backdrop-blur-md border-b border-[#36e9e424]' : ''} border-0 transition-opacity duration-300 ease-out`}
       >
         <div className="transition-all w-full px-4 sm:px-8 md:px-12 lg:px-16 xl:px-24 2xl:px-28">
           <div className="mega-menu-wrapper">
