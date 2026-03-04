@@ -2,6 +2,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 export interface PinnedNftItem {
   token_id: string;
+  wallet_address: string;
   issuer: string | null;
   uri: string | null;
   title?: string | null;
@@ -16,10 +17,14 @@ interface PinnedNftsResponse {
 
 export async function getPinnedNfts(
   auth0Id: string,
+  walletAddress?: string,
   accessToken?: string
 ): Promise<PinnedNftItem[]> {
+  const walletQuery = walletAddress
+    ? `&wallet_address=${encodeURIComponent(walletAddress)}`
+    : '';
   const response = await fetch(
-    `${API_BASE_URL}/user/pinned-nfts?auth0_id=${encodeURIComponent(auth0Id)}`,
+    `${API_BASE_URL}/user/pinned-nfts?auth0_id=${encodeURIComponent(auth0Id)}${walletQuery}`,
     {
       method: 'GET',
       headers: {
@@ -44,6 +49,7 @@ export async function pinNft(
   auth0Id: string,
   nft: {
     token_id: string;
+    wallet_address: string;
     issuer?: string | null;
     uri?: string | null;
     title?: string | null;
@@ -77,6 +83,7 @@ export async function pinNft(
 export async function unpinNft(
   auth0Id: string,
   tokenId: string,
+  walletAddress: string,
   accessToken?: string
 ): Promise<PinnedNftItem[]> {
   const response = await fetch(`${API_BASE_URL}/user/pinned-nfts`, {
@@ -88,6 +95,7 @@ export async function unpinNft(
     body: JSON.stringify({
       auth0_id: auth0Id,
       token_id: tokenId,
+      wallet_address: walletAddress,
     }),
   });
 

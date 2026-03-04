@@ -444,7 +444,12 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
 
         const loadPinned = async () => {
             try {
-                const pinned = await getPinnedNfts(auth0Id, accessToken);
+                if (!walletAddress) {
+                    setPinnedTokenIds([]);
+                    return;
+                }
+
+                const pinned = await getPinnedNfts(auth0Id, walletAddress, accessToken);
                 if (!cancelled) {
                     setPinnedTokenIds(pinned.map((item) => item.token_id));
                 }
@@ -463,7 +468,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
         return () => {
             cancelled = true;
         };
-    }, [accessToken, auth0Id, debugNft]);
+    }, [accessToken, auth0Id, debugNft, walletAddress]);
 
     useEffect(() => {
         let cancelled = false;
@@ -621,12 +626,18 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
             return;
         }
 
+        if (!walletAddress) {
+            showToast('error', 'No connected wallet found for pinning.');
+            return;
+        }
+
         try {
             setIsPinActionLoading(true);
             const nextPinned = await pinNft(
                 auth0Id,
                 {
                     token_id: pinTargetNft.token_id,
+                    wallet_address: walletAddress,
                     issuer: pinTargetNft.issuer,
                     uri: pinTargetNft.uri,
                     title: pinTargetTitle,
@@ -653,9 +664,14 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
             return;
         }
 
+        if (!walletAddress) {
+            showToast('error', 'No connected wallet found for unpinning.');
+            return;
+        }
+
         try {
             setIsPinActionLoading(true);
-            const nextPinned = await unpinNft(auth0Id, pendingUnpinTokenId, accessToken);
+            const nextPinned = await unpinNft(auth0Id, pendingUnpinTokenId, walletAddress, accessToken);
             setPinnedTokenIds(nextPinned.map((item) => item.token_id));
             setPendingUnpinTokenId(null);
             showToast('success', 'NFT unpinned successfully.');

@@ -47,7 +47,7 @@ function Vision() {
                         <div className="flex flex-col">
                             <div>
                                 <h3 className="mb-4 text-2xl font-bold text-[#28aae4] md:text-3xl">Global Connection Opportunities</h3>
-                                <ul className="list-disc space-y-3 pl-6 opacity-0 animate-[fadeInUp_0.6s_ease-out_0.5s_forwards] marker:text-[#28aae4]">
+                                <ul className="list-items opacity-0 animate-[fadeInUp_0.6s_ease-out_0.5s_forwards]">
                                     <li>
                                         Staying in a Xolo Host's Dwelling — Immerse yourself in local life with overnight stays in the homes of Xolo hosts around the XoloGlobe, building deep cultural connections.
                                     </li>

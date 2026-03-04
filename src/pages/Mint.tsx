@@ -31,9 +31,13 @@ function Mint() {
 
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="max-w-4xl mx-auto [&_p]:text-[#decee9] [&_ul]:text-[#decee9] [&_li]:text-[#decee9] [&_li>span]:text-[#decee9]">
-                        <h2 className="text-2xl md:text-3xl font-bold mb-3 text-[#28aae4]">
-                            The Xoloitzquintle Mint
-                        </h2>
+                        <div className="section-title text-center">
+                            <PageTitle title="The Xoloitzquintle Collection" animate delay={0} iconType="star" iconCount={1} centered />
+                            <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 opacity-0 animate-[fadeInUp_0.6s_ease-out_0.3s_forwards]">
+                                The Xoloitzquintle Mint <br />
+                                <span>Art, Culture, &amp; XRPL</span>
+                            </h2>
+                        </div>
                         <p className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.5s_forwards] mb-4">
                             Claim Your Sacred Guide from the collection of 10,001 Unique XRPL NFTs hand-drawn with deep Mesoamerican roots, featuring 7 distinct traits + 217 sub-traits by RedShadow.
                             Built on the eco-friendly XRP Ledger: fast transactions, low fees, no gas wars.
@@ -49,13 +53,13 @@ function Mint() {
                             Prepare to Mint – 4 Simple Steps
                         </h3>
                         <div className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.4s_forwards]">
-                            <ul className="list-disc space-y-3 pl-6 marker:text-[#28aae4]">
+                            <ul className="list-items">
                                 <li>
                                     <span>
                                         <strong className="text-[#f7eab7]">Set Up Your XRPL Wallet</strong>
                                         Download a trusted, XRPL-compatible wallet:
                                     </span>
-                                    <ul className="mt-2 ml-4 list-disc space-y-2 marker:text-[#28aae4]">
+                                    <ul className="list-items mt-2 ml-4">
                                         <li>
                                             Xaman (recommended for ease)
                                         </li>
@@ -73,7 +77,7 @@ function Mint() {
                                         The XRP Ledger requires a base reserve (around 10–20 XRP depending on features) plus extra for fees and trust lines.
                                         Send at least 20 XRP to your wallet to cover:
                                     </p>
-                                    <ul className="mt-2 ml-4 list-disc space-y-2 marker:text-[#28aae4]">
+                                    <ul className="list-items mt-2 ml-4">
                                         <li>
                                             Wallet activation/reserve
                                         </li>
@@ -90,7 +94,7 @@ function Mint() {
                                     <span>
                                         <strong className="text-[#f7eab7]">Connect to xrp.cafe</strong>
                                     </span>
-                                    <ul className="mt-2 ml-4 list-disc space-y-2 marker:text-[#28aae4]">
+                                    <ul className="list-items mt-2 ml-4">
                                         <li>
                                             Go to https://xrp.cafe
                                         </li>
@@ -106,7 +110,7 @@ function Mint() {
                                     <span>
                                         <strong className="text-[#f7eab7]">Mint Your Xolo When Live</strong>
                                     </span>
-                                    <ul className="mt-2 ml-4 list-disc space-y-2 marker:text-[#28aae4]">
+                                    <ul className="list-items mt-2 ml-4">
                                         <li>
                                             On launch: Navigate to the Xoloitzquintle collection page.
                                         </li>

@@ -60,7 +60,7 @@ function XoloGlobe() {
                                         How It Works
                                     </h3>
 
-                                    <ul className="list-disc space-y-3 pl-6 marker:text-[#28aae4]">
+                                    <ul className="list-items">
                                         <li>
                                             <span><strong className="text-[#f7eab7]">Connect Your Wallet</strong> — Click "Connect Wallet," select your XRPL wallet (Xaman Wallet, Xoge's MadLabs, etc.), and sign. We verify your Xolo NFT ownership instantly on the XRP Ledger.</span>
                                         </li>
@@ -79,7 +79,7 @@ function XoloGlobe() {
                                     <h4 className="text-lg md:text-xl font-semibold text-[#891387] mb-3">
                                         Why the Xolo Globe Matters
                                     </h4>
-                                    <ul className="list-disc space-y-3 pl-6 marker:text-[#28aae4]">
+                                    <ul className="list-items">
                                         <li>
                                             <span>Keeps our community genuine and safe through token-gating</span>
                                         </li>

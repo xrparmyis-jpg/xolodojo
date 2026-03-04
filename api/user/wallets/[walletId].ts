@@ -23,6 +23,63 @@ function getPool(): mysql.Pool {
   return pool;
 }
 
+function parsePreferences(preferences: unknown): Record<string, unknown> {
+  if (!preferences) {
+    return {};
+  }
+
+  if (typeof preferences === 'string') {
+    try {
+      const parsed = JSON.parse(preferences) as unknown;
+      return parsed && typeof parsed === 'object'
+        ? (parsed as Record<string, unknown>)
+        : {};
+    } catch {
+      return {};
+    }
+  }
+
+  if (typeof preferences === 'object') {
+    return preferences as Record<string, unknown>;
+  }
+
+  return {};
+}
+
+function normalizeWalletAddress(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function removePinnedNftsForWallet(
+  preferences: Record<string, unknown>,
+  walletAddress: string
+): Record<string, unknown> {
+  const pinned = preferences.pinned_nfts;
+  if (!Array.isArray(pinned)) {
+    return preferences;
+  }
+
+  const normalizedWalletAddress = normalizeWalletAddress(walletAddress);
+  const nextPinned = pinned.filter(item => {
+    if (!item || typeof item !== 'object') {
+      return false;
+    }
+
+    const record = item as Record<string, unknown>;
+    const itemWalletAddress =
+      typeof record.wallet_address === 'string'
+        ? normalizeWalletAddress(record.wallet_address)
+        : '';
+
+    return itemWalletAddress.length > 0 && itemWalletAddress !== normalizedWalletAddress;
+  });
+
+  return {
+    ...preferences,
+    pinned_nfts: nextPinned,
+  };
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const pool = getPool();
   // walletId may be passed via query or as part of path; VercelRequest sometimes puts params in query
@@ -128,6 +185,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       const userId = userResult[0].id;
+
+      const [walletLookup] = (await pool.execute(
+        'SELECT wallet_address FROM user_wallets WHERE id = ? AND user_id = ?',
+        [walletId, userId]
+      )) as [any[], any];
+
+      if (!Array.isArray(walletLookup) || walletLookup.length === 0) {
+        return res.status(404).json({ error: 'Wallet not found' });
+      }
+
+      const walletAddressToDelete = walletLookup[0].wallet_address as string;
+
+      const [profileResult] = (await pool.execute(
+        'SELECT preferences FROM user_profiles WHERE user_id = ?',
+        [userId]
+      )) as [any[], any];
+
+      if (Array.isArray(profileResult) && profileResult.length > 0) {
+        const currentPreferences = parsePreferences(profileResult[0].preferences);
+        const nextPreferences = removePinnedNftsForWallet(
+          currentPreferences,
+          walletAddressToDelete
+        );
+
+        await pool.execute(
+          'UPDATE user_profiles SET preferences = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?',
+          [JSON.stringify(nextPreferences), userId]
+        );
+      }
 
       // Delete wallet (verify it belongs to user)
       const [result] = (await pool.execute(
