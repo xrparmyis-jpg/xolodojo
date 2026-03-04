@@ -28,6 +28,9 @@ interface PinnedNftItem {
   wallet_address: string;
   issuer: string | null;
   uri: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  image_url?: string | null;
   title?: string | null;
   collection_name?: string | null;
   pinned_at: string;
@@ -35,6 +38,21 @@ interface PinnedNftItem {
 
 function normalizeWalletAddress(value: string): string {
   return value.trim().toLowerCase();
+}
+
+function parseOptionalNumber(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+
+  return null;
 }
 
 function parsePreferences(preferences: unknown): Record<string, unknown> {
@@ -81,6 +99,10 @@ function parsePinnedNfts(preferences: Record<string, unknown>): PinnedNftItem[] 
         issuer:
           typeof record.issuer === 'string' ? record.issuer : null,
         uri: typeof record.uri === 'string' ? record.uri : null,
+        latitude: parseOptionalNumber(record.latitude),
+        longitude: parseOptionalNumber(record.longitude),
+        image_url:
+          typeof record.image_url === 'string' ? record.image_url : null,
         title: typeof record.title === 'string' ? record.title : null,
         collection_name:
           typeof record.collection_name === 'string'
@@ -198,6 +220,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             title?: string | null;
             collection_name?: string | null;
             wallet_address?: string | null;
+            latitude?: number | null;
+            longitude?: number | null;
+            image_url?: string | null;
           }
         | undefined;
 
@@ -223,6 +248,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           item.wallet_address === pinWalletAddress
       );
       const nowIso = new Date().toISOString();
+      const latitude = parseOptionalNumber(nft?.latitude);
+      const longitude = parseOptionalNumber(nft?.longitude);
       const nextPinnedNfts = existing
         ? pinnedNfts.map(item =>
             item.token_id === tokenId &&
@@ -231,6 +258,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                   ...item,
                   issuer: nft?.issuer ?? item.issuer,
                   uri: nft?.uri ?? item.uri,
+                  latitude,
+                  longitude,
+                  image_url: nft?.image_url ?? item.image_url ?? null,
                   title: nft?.title ?? item.title,
                   collection_name: nft?.collection_name ?? item.collection_name,
                 }
@@ -243,6 +273,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               wallet_address: pinWalletAddress,
               issuer: nft?.issuer ?? null,
               uri: nft?.uri ?? null,
+              latitude,
+              longitude,
+              image_url: nft?.image_url ?? null,
               title: nft?.title ?? null,
               collection_name: nft?.collection_name ?? null,
               pinned_at: nowIso,
