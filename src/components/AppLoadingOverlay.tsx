@@ -5,6 +5,7 @@ interface AppLoadingOverlayProps {
 }
 
 const loadingLetters = "XOLOITZQINTLE".split("");
+const blindColumns = Array.from({ length: 10 }, (_, index) => index);
 
 function AppLoadingOverlay({ isVisible }: AppLoadingOverlayProps) {
     const shouldReduceMotion = useReducedMotion();
@@ -22,23 +23,57 @@ function AppLoadingOverlay({ isVisible }: AppLoadingOverlayProps) {
             transition: { duration: shouldReduceMotion ? 0.1 : 0.18, ease: "easeOut" },
         },
         exit: {
+            opacity: shouldReduceMotion ? 0 : [1, 1, 0],
+            scale: 1,
+            transition: shouldReduceMotion
+                ? { duration: 0.1, ease: "easeInOut" }
+                : { duration: 0.42, times: [0, 0.9, 1], ease: "easeInOut" },
+        },
+    };
+
+    const blindsContainerVariants: Variants = {
+        hidden: {},
+        visible: {},
+        exit: {},
+    };
+
+    const blindPanelVariants: Variants = {
+        hidden: {
+            x: 0,
+        },
+        visible: {
+            x: 0,
+        },
+        exit: {
+            x: shouldReduceMotion ? 0 : "-106%",
+            transition: {
+                duration: shouldReduceMotion ? 0.01 : 0.45,
+                ease: [0.2, 0.9, 0.22, 1],
+            },
+        },
+    };
+
+    const contentVariants: Variants = {
+        hidden: { opacity: 0 },
+        visible: { opacity: 1 },
+        exit: {
             opacity: 0,
-            scale: shouldReduceMotion ? 1 : 0.99,
-            transition: { duration: shouldReduceMotion ? 0.1 : 0.18, ease: "easeInOut" },
+            scale: shouldReduceMotion ? 1 : 0.98,
+            transition: { duration: shouldReduceMotion ? 0.08 : 0.12, ease: "easeOut" },
         },
     };
 
     const letterVariants: Variants = {
         hidden: {
             opacity: 0,
-            y: shouldReduceMotion ? 0 : 20,
+            y: shouldReduceMotion ? 0 : 18,
             scale: shouldReduceMotion ? 1 : 0.96,
             filter: shouldReduceMotion ? "none" : "blur(1.8px)",
             color: shouldReduceMotion ? "#28aae4" : "#666666",
         },
         visible: {
-            opacity: 1,
-            y: shouldReduceMotion ? 0 : [0, 2.8, 0],
+            opacity: shouldReduceMotion ? 1 : [0, 1],
+            y: shouldReduceMotion ? 0 : [18, -1.5, 0],
             scale: shouldReduceMotion ? 1 : [1, 1.1, 0.985, 1],
             color: shouldReduceMotion ? "#28aae4" : ["#666666", "#d3d3d3", "#28aae4"],
             filter: shouldReduceMotion
@@ -51,26 +86,27 @@ function AppLoadingOverlay({ isVisible }: AppLoadingOverlayProps) {
                 }
                 : {
                     y: {
-                        duration: 0.24,
-                        times: [0, 0.78, 1],
+                        duration: 0.2,
+                        times: [0, 0.82, 1],
                         ease: [0.22, 1, 0.36, 1],
                     },
                     scale: {
-                        duration: 0.24,
+                        duration: 0.2,
                         times: [0, 0.5, 0.82, 1],
                         ease: [0.22, 1, 0.36, 1],
                     },
                     opacity: {
-                        duration: 0.16,
+                        duration: 0.18,
+                        times: [0, 1],
                         ease: "easeOut",
                     },
                     color: {
-                        duration: 0.22,
+                        duration: 0.2,
                         times: [0, 0.58, 1],
                         ease: "easeOut",
                     },
                     filter: {
-                        duration: 0.24,
+                        duration: 0.2,
                         times: [0, 0.72, 1],
                         ease: "easeOut",
                     },
@@ -82,7 +118,7 @@ function AppLoadingOverlay({ isVisible }: AppLoadingOverlayProps) {
         hidden: {},
         visible: {
             transition: {
-                staggerChildren: shouldReduceMotion ? 0 : 0.026,
+                staggerChildren: shouldReduceMotion ? 0 : 0.022,
                 delayChildren: shouldReduceMotion ? 0 : 0.01,
             },
         },
@@ -97,10 +133,36 @@ function AppLoadingOverlay({ isVisible }: AppLoadingOverlayProps) {
                     animate="visible"
                     exit="exit"
                     variants={overlayVariants}
-                    className="fixed inset-0 z-[9999] flex items-center justify-center"
-                    style={{ backgroundColor: "var(--bg)" }}
+                    className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden"
                 >
-                    <div className="relative z-10 flex flex-col items-center gap-4 px-4 text-center">
+                    {!shouldReduceMotion && (
+                        <motion.div
+                            variants={blindsContainerVariants}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                            className="pointer-events-none absolute inset-0 grid grid-cols-10"
+                            aria-hidden="true"
+                        >
+                            {blindColumns.map((column) => (
+                                <div
+                                    key={`blind-${column}`}
+                                    className="relative h-full overflow-hidden"
+                                >
+                                    <motion.div
+                                        variants={blindPanelVariants}
+                                        className="absolute inset-0 will-change-transform"
+                                        style={{ backgroundColor: "var(--bg)" }}
+                                    />
+                                </div>
+                            ))}
+                        </motion.div>
+                    )}
+
+                    <motion.div
+                        variants={contentVariants}
+                        className="relative z-10 flex flex-col items-center gap-4 px-4 text-center"
+                    >
                         <motion.div
                             initial={{ rotate: 0 }}
                             animate={{ rotate: 360 }}
@@ -137,7 +199,7 @@ function AppLoadingOverlay({ isVisible }: AppLoadingOverlayProps) {
                         >
                             Loading
                         </motion.p>
-                    </div>
+                    </motion.div>
                 </motion.div>
             ) : null}
         </AnimatePresence>

@@ -1,57 +1,53 @@
 import { Link } from "react-router-dom";
 import { faArrowRightLong } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { motion } from "framer-motion";
 
 function NotFound() {
   return (
-    <>
-      <section className="error-section section-padding fix">
-        <div className="container">
-          <div className="row justify-content-center">
-            <div className="col-lg-9">
-              <div className="error-items">
-                <div
-                  className="error-image wow fadeInUp"
-                  style={{ visibility: "visible", animationName: "fadeInUp" }}
-                >
-                  <img src="/404.png" alt="img" />
-                </div>
-                <h2
-                  className="wow fadeInUp"
-                  data-wow-delay=".3s"
-                  style={{
-                    visibility: "visible",
-                    animationDelay: "0.3s",
-                    animationName: "fadeInUp",
-                  }}
-                >
-                  Page not found
-                </h2>
-                <p
-                  className="wow fadeInUp"
-                  data-wow-delay=".5s"
-                  style={{
-                    visibility: "visible",
-                    animationDelay: "0.5s",
-                    animationName: "fadeInUp",
-                  }}
-                >
-                  Sorry, we couldn&apos;t find your page.
-                </p>
-                <Link
-                  className="theme-btn wow fadeInUp"
-                  data-wow-delay=".7s"
-                  to="/"
-                  style={{ visibility: "visible", animationName: "fadeInUp" }}
-                >
-                  Go Back Home <FontAwesomeIcon icon={faArrowRightLong} />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </>
+    <section className="mx-auto flex min-h-[70vh] w-full max-w-5xl items-center justify-center px-4 py-16 sm:px-6 lg:px-8">
+      <div className="flex w-full max-w-3xl flex-col items-center gap-6 rounded-lg border border-white/10 bg-black/20 px-6 py-10 text-center sm:px-10">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="w-full max-w-md"
+        >
+          <img src="/404.png" alt="Page not found" className="h-auto w-full" />
+        </motion.div>
+
+        <motion.h1
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
+          className="text-3xl font-bold text-white sm:text-4xl"
+        >
+          Page not found
+        </motion.h1>
+
+        <motion.p
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
+          className="max-w-xl text-base text-white/75 sm:text-lg"
+        >
+          Sorry, we couldn&apos;t find your page.
+        </motion.p>
+
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.45, ease: "easeOut" }}
+        >
+          <Link
+            className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 active:bg-blue-800"
+            to="/"
+          >
+            Go Back Home <FontAwesomeIcon icon={faArrowRightLong} />
+          </Link>
+        </motion.div>
+      </div>
+    </section>
   );
 }
 
