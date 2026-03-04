@@ -27,9 +27,9 @@ export default function NftPinLocationMap({ onLocationChange, initialLocation = 
     const mapRef = useRef<Map | null>(null);
     const markerRef = useRef<mapboxgl.Marker | null>(null);
     const geolocateControlRef = useRef<mapboxgl.GeolocateControl | null>(null);
+    const suppressResultsForQueryRef = useRef<string | null>(null);
     const [searchText, setSearchText] = useState('');
     const [searchResults, setSearchResults] = useState<SearchFeature[]>([]);
-    const [selectedLocationLabel, setSelectedLocationLabel] = useState<string>('');
     const [hasMapToken, setHasMapToken] = useState(true);
 
     const accessToken = useMemo(() => import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || '', []);
@@ -85,7 +85,7 @@ export default function NftPinLocationMap({ onLocationChange, initialLocation = 
     const handleSelectSearchResult = (result: SearchFeature) => {
         const [lng, lat] = result.center;
         setMarkerAt(lng, lat, true);
-        setSelectedLocationLabel(result.place_name);
+        suppressResultsForQueryRef.current = result.place_name.trim().toLowerCase();
         setSearchText(result.place_name);
         setSearchResults([]);
     };
@@ -162,7 +162,14 @@ export default function NftPinLocationMap({ onLocationChange, initialLocation = 
     }, [accessToken]);
 
     useEffect(() => {
-        if (!searchText.trim() || !accessToken) {
+        const normalizedQuery = searchText.trim().toLowerCase();
+
+        if (!normalizedQuery || !accessToken) {
+            setSearchResults([]);
+            return;
+        }
+
+        if (suppressResultsForQueryRef.current === normalizedQuery) {
             setSearchResults([]);
             return;
         }
@@ -203,7 +210,16 @@ export default function NftPinLocationMap({ onLocationChange, initialLocation = 
                     <input
                         type="text"
                         value={searchText}
-                        onChange={(event) => setSearchText(event.target.value)}
+                        onChange={(event) => {
+                            const nextValue = event.target.value;
+                            if (
+                                suppressResultsForQueryRef.current &&
+                                nextValue.trim().toLowerCase() !== suppressResultsForQueryRef.current
+                            ) {
+                                suppressResultsForQueryRef.current = null;
+                            }
+                            setSearchText(nextValue);
+                        }}
                         onKeyDown={(event) => {
                             if (event.key === 'Enter') {
                                 event.preventDefault();
@@ -237,10 +253,6 @@ export default function NftPinLocationMap({ onLocationChange, initialLocation = 
                         ))}
                     </div>
                 )}
-
-                <p className="mt-1 text-[11px] text-white/60">
-                    {selectedLocationLabel || 'Click map or use geolocate (left controls) to drop a pin.'}
-                </p>
             </div>
 
             <div ref={mapContainerRef} className="h-[420px] w-full overflow-hidden rounded-lg border border-white/20" />
