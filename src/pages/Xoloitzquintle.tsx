@@ -12,16 +12,12 @@ function Xoloitzquintle() {
             >
                 <div className="container mx-auto max-w-7xl px-4">
                     <div className="flex flex-col items-center text-center">
-                        <div className="mb-8">
-                            <PageTitle title="The Xoloitzquintle" />
-                        </div>
                         <div className="mb-10">
                             <img src="/04a.png" alt="" className="max-h-56 w-auto rounded-md object-contain md:max-h-80" />
                         </div>
                     </div>
                 </div>
             </section>
-
             <section ref={sectionRef} className="relative overflow-hidden py-8 lg:py-12 bg-(--bg)">
                 <SectionParallaxBlobs
                     bgShapeOffset={bgShapeOffset}
@@ -31,10 +27,13 @@ function Xoloitzquintle() {
 
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="max-w-4xl mx-auto [&_p]:text-[#decee9] [&_ul]:text-[#decee9] [&_li]:text-[#decee9] [&_li>span]:text-[#decee9]">
-                        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-8">
-                            Mythic Journey of the Xolo: Gods, Guardians, and Eternal Bonds
-                        </h2>
-
+          <div className="section-title text-center">
+            <PageTitle title="The Xoloitzquintle Collection" animate delay={0} iconType="star" iconCount={1} centered />
+            <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 opacity-0 animate-[fadeInUp_0.6s_ease-out_0.3s_forwards]">
+              Mythic Journey of the Xolo: <br />
+              <span> Gods, Guardians, &amp; Eternal Bonds</span>
+            </h2>
+          </div>
                         <div className="space-y-6">
                             <p className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.3s_forwards]">
                                 Picture this: the Aztec cosmos is basically a chaotic family reunion that never ends. At the center? The ultimate twin duo—Quetzalcoatl, the chill, feathered-serpent genius of wind, wisdom, creation, and "let's make everything better," and his rowdy, dog-headed brother Xolotl, the lightning-fast trickster god of fire, transformation, deformities, and "hold my conch shell while I pull off the impossible."

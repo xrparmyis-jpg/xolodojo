@@ -12,25 +12,27 @@ function Vision() {
             >
                 <div className="container mx-auto max-w-7xl px-4">
                     <div className="flex flex-col items-center text-center">
-                        <div className="mb-8">
-                            <PageTitle title="The Vision" />
-                        </div>
                         <div className="mb-10">
                             <img src="/04a.png" alt="" className="max-h-56 w-auto rounded-md object-contain md:max-h-80" />
                         </div>
                     </div>
                 </div>
             </section>
-
             <section ref={sectionRef} className="relative overflow-hidden py-8 lg:py-12 bg-[var(--bg)]">
                 <SectionParallaxBlobs
                     bgShapeOffset={bgShapeOffset}
                     colorBgOffset={colorBgOffset}
                     colorBg2Offset={colorBg2Offset}
                 />
-
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="max-w-4xl mx-auto [&_p]:text-[#decee9] [&_ul]:text-[#decee9] [&_li]:text-[#decee9] [&_li>span]:text-[#decee9]">
+                                  <div className="section-title text-center">
+                                    <PageTitle title="The Xoloitzquintle Collection" animate delay={0} iconType="star" iconCount={1} centered />
+                                    <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 opacity-0 animate-[fadeInUp_0.6s_ease-out_0.3s_forwards]">
+                                      A Sacred Legacy of <br />
+                                      <span>Art, Culture, &amp; XRPL</span>
+                                    </h2>
+                                  </div>
                         <p className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.3s_forwards] mb-6">
                             Our vision is to build a vibrant, global network of Xolo NFT holders united through digital
                             innovation and real-world networking. Central to this is XoloGlobe, our token-gated interactive
