@@ -35,7 +35,7 @@ export default function Modal({
             role="presentation"
         >
             <div
-                className={`relative mx-4 w-full rounded-xl border border-white/10 bg-neutral-900 p-6 shadow-xl ${maxWidthClassName}`}
+                className={`relative mx-4 w-full max-h-[90vh] overflow-y-auto rounded-xl border border-white/10 bg-neutral-900 p-6 shadow-xl ${maxWidthClassName}`}
                 onClick={(event) => event.stopPropagation()}
                 role="dialog"
                 aria-modal="true"
