@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -75,7 +76,7 @@ function Footer() {
   return (
     <footer
       ref={footerRef}
-      className="relative overflow-hidden py-4 lg:py-8 bg-[var(--bg)]"
+      className="border-t border-[#36e9e424] relative overflow-hidden py-4 lg:py-8 bg-[var(--bg)]"
     >
       {/* Green blob - left side */}
       <div
@@ -106,20 +107,20 @@ function Footer() {
             XRPL Resources
           </h3>
           <div className="w-full max-w-5xl opacity-0 animate-[fadeInUp_0.6s_ease-out_0.4s_forwards]">
-            <div className="grid grid-cols-3 lg:grid-cols-5 gap-4 justify-items-center">
-              <a href="https://xrp.cafe/" className="text-white whitespace-nowrap transition-all duration-300 ease-in-out no-underline hover:no-underline">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-4 justify-items-center">
+              <a href="https://xrp.cafe/" className="text-white text-sm sm:text-base whitespace-nowrap transition-all duration-300 ease-in-out no-underline hover:no-underline">
                 Xrp.cafe Marketplace
               </a>
-              <a href="https://xaman.app/" className="text-white whitespace-nowrap transition-all duration-300 ease-in-out no-underline hover:no-underline">
+              <a href="https://xaman.app/" className="text-white text-sm sm:text-base whitespace-nowrap transition-all duration-300 ease-in-out no-underline hover:no-underline">
                 Xaman Wallet
               </a>
-              <a href="https://xrpscan.com/" className="text-white whitespace-nowrap transition-all duration-300 ease-in-out no-underline hover:no-underline">
+              <a href="https://xrpscan.com/" className="text-white text-sm sm:text-base whitespace-nowrap transition-all duration-300 ease-in-out no-underline hover:no-underline">
                 XRPSCAN Explorer
               </a>
-              <a href="https://www.xrptoolkit.com/" className="text-white whitespace-nowrap transition-all duration-300 ease-in-out no-underline hover:no-underline">
+              <a href="https://www.xrptoolkit.com/" className="text-white text-sm sm:text-base whitespace-nowrap transition-all duration-300 ease-in-out no-underline hover:no-underline">
                 XRP Toolkit
               </a>
-              <a href="https://xrpl.org/" className="text-white whitespace-nowrap transition-all duration-300 ease-in-out no-underline hover:no-underline">
+              <a href="https://xrpl.org/" className="text-white text-sm sm:text-base whitespace-nowrap transition-all duration-300 ease-in-out no-underline hover:no-underline">
                 Official XRPL Site
               </a>
             </div>
@@ -128,9 +129,31 @@ function Footer() {
 
         {/* Footer Bottom Section */}
         <div className={`flex flex-col md:flex-row items-center justify-between gap-5 md:gap-0 pt-6 md:pr-14 lg:pr-16 ${isVisible ? 'opacity-100' : 'opacity-0'} transition-opacity duration-700 ease-out delay-300`}>
-          <p className="text-[#cdcdcd] text-center text-sm md:text-left opacity-0 animate-[fadeInUp_0.6s_ease-out_0.7s_forwards]">
-            The Xoloitzquintle Collection © 2024. All Rights Reserved.
-          </p>
+          <div className="flex flex-col items-center md:items-start gap-2 opacity-0 animate-[fadeInUp_0.6s_ease-out_0.7s_forwards]">
+            <p className="text-[#cdcdcd] text-center text-sm md:text-left">
+              The Xoloitzquintle Collection © 2024. All Rights Reserved.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 md:justify-start">
+              <Link
+                to="/faq"
+                className="text-[#cdcdcd] text-sm no-underline hover:no-underline hover:text-[#b7e9f7] transition-all duration-300 ease-in-out"
+              >
+                FAQ
+              </Link>
+              <Link
+                to="/terms-and-conditions"
+                className="text-[#cdcdcd] text-sm no-underline hover:no-underline hover:text-[#b7e9f7] transition-all duration-300 ease-in-out"
+              >
+                Terms &amp; Conditions
+              </Link>
+              <Link
+                to="/privacy-policy"
+                className="text-[#cdcdcd] text-sm no-underline hover:no-underline hover:text-[#b7e9f7] transition-all duration-300 ease-in-out"
+              >
+                Privacy Policy
+              </Link>
+            </div>
+          </div>
           <div className="flex items-center gap-2 opacity-0 animate-[fadeInUp_0.6s_ease-out_0.8s_forwards]">
             <a href="#" className="inline-flex items-center justify-center w-11 h-11 rounded-full border border-[#cfd0d4] text-[#cdcdcd] hover:text-[#b7e9f7] hover:bg-black/40 transition-all duration-300 ease-in-out no-underline hover:no-underline">
               <FontAwesomeIcon icon={faXTwitter} />

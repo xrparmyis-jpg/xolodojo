@@ -46,7 +46,7 @@ function Header() {
         <div className="transition-all w-full px-4 sm:px-8 md:px-12 lg:px-16 xl:px-24 2xl:px-28">
           <div className="mega-menu-wrapper">
             <div className={`header-main flex items-center justify-between ${isSticky ? 'py-1' : 'py-4'} transition-all duration-100`}>
-              <div className="header-left flex items-center gap-10 lg:gap-20">
+              <div className="header-left flex items-center gap-4 lg:gap-8">
                 <div className="logo">
                   <Link className="header-logo no-underline hover:no-underline" to="/">
                     <img

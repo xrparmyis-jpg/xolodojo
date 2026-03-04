@@ -11,6 +11,7 @@ import {
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import NftGallery from './NftGallery';
+import { useToast } from './ToastProvider';
 import {
     authorizeXamanAccount,
     clearXamanSession,
@@ -39,13 +40,13 @@ interface WalletConnectionProps {
 function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: WalletConnectionProps) {
     const [wallets, setWallets] = useState<Wallet[]>([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [connectedWalletAssets, setConnectedWalletAssets] = useState<WalletAssetSummary | null>(null);
     const [isAssetsLoading, setIsAssetsLoading] = useState(false);
     const [assetsError, setAssetsError] = useState<string | null>(null);
     const [copiedWalletId, setCopiedWalletId] = useState<number | null>(null);
+    const { showToast } = useToast();
 
     const tryDisconnectCurrentWallet = useCallback(
         async (currentWallet?: Wallet | null) => {
@@ -73,11 +74,11 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
             }
         } catch (error) {
             console.error('Failed to load wallets:', error);
-            setMessage({ type: 'error', text: 'Failed to load wallets' });
+            showToast('error', 'Failed to load wallets');
         } finally {
             setIsLoading(false);
         }
-    }, [accessToken, auth0Id, onWalletsUpdated]);
+    }, [accessToken, auth0Id, onWalletsUpdated, showToast]);
 
     // Load wallets on mount
     useEffect(() => {
@@ -86,14 +87,10 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
 
     const handleConnectXaman = async (walletIdToConnect?: number) => {
         try {
-            setMessage(null);
             setIsLoading(true);
 
             if (!isXamanConfigured()) {
-                setMessage({
-                    type: 'error',
-                    text: 'Xaman is not configured. Set VITE_XAMAN_API_KEY and restart the app.',
-                });
+                showToast('error', 'Xaman is not configured. Set VITE_XAMAN_API_KEY and restart the app.');
                 return;
             }
 
@@ -103,15 +100,12 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
             if (walletIdToConnect != null) {
                 const targetWallet = wallets.find((wallet) => wallet.id === walletIdToConnect);
                 if (!targetWallet) {
-                    setMessage({ type: 'error', text: 'Wallet not found' });
+                    showToast('error', 'Wallet not found');
                     return;
                 }
 
                 if (targetWallet.wallet_address.toLowerCase() !== normalizedXrplAddress) {
-                    setMessage({
-                        type: 'error',
-                        text: 'Scanned Xaman account does not match the selected wallet address.',
-                    });
+                    showToast('error', 'Scanned Xaman account does not match the selected wallet address.');
                     return;
                 }
 
@@ -120,8 +114,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                 }
                 await connectWallet(auth0Id, targetWallet.id, accessToken);
                 await loadWallets();
-                setMessage({ type: 'success', text: 'Xaman wallet connected' });
-                setTimeout(() => setMessage(null), 3000);
+                showToast('success', 'Xaman wallet connected');
                 return;
             }
 
@@ -135,8 +128,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                 }
                 await connectWallet(auth0Id, existingWallet.id, accessToken);
                 await loadWallets();
-                setMessage({ type: 'success', text: 'Xaman wallet connected' });
-                setTimeout(() => setMessage(null), 3000);
+                showToast('success', 'Xaman wallet connected');
                 return;
             }
 
@@ -149,8 +141,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
             }
 
             await loadWallets();
-            setMessage({ type: 'success', text: 'Xaman wallet added and connected!' });
-            setTimeout(() => setMessage(null), 3000);
+            showToast('success', 'Xaman wallet added and connected!');
         } catch (error) {
             const err = error instanceof Error ? error : new Error(String(error));
             console.error('Failed to connect Xaman wallet:', err);
@@ -160,12 +151,9 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                 normalizedMessage.includes('invalid client') ||
                 normalizedMessage.includes('redirect')
             ) {
-                setMessage({
-                    type: 'error',
-                    text: `Xaman rejected the redirect URL. In apps.xumm.dev, add this exact Redirect URL: ${getXamanRedirectUrl()}`,
-                });
+                showToast('error', `Xaman rejected the redirect URL. In apps.xumm.dev, add this exact Redirect URL: ${getXamanRedirectUrl()}`);
             } else {
-                setMessage({ type: 'error', text: `Failed to connect Xaman: ${err.message}` });
+                showToast('error', `Failed to connect Xaman: ${err.message}`);
             }
         } finally {
             setIsLoading(false);
@@ -174,20 +162,18 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
 
     const handleDisconnect = async () => {
         try {
-            setMessage(null);
             setIsLoading(true);
             if (connectedWallet?.wallet_type === 'xaman') {
                 await clearXamanSession();
             }
             // Then disconnect at the database level
             await disconnectWallet(auth0Id, accessToken);
-            setMessage({ type: 'success', text: 'Wallet disconnected' });
+            showToast('success', 'Wallet disconnected');
             await loadWallets();
-            setTimeout(() => setMessage(null), 3000);
         } catch (error) {
             const err = error instanceof Error ? error : new Error(String(error));
             console.error('Failed to disconnect wallet:', err);
-            setMessage({ type: 'error', text: `Failed to disconnect: ${err.message}` });
+            showToast('error', `Failed to disconnect: ${err.message}`);
         } finally {
             setIsLoading(false);
         }
@@ -195,12 +181,11 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
 
     const handleConnectExisting = async (walletId: number) => {
         try {
-            setMessage(null);
             setIsLoading(true);
 
             const wallet = wallets.find((currentWallet) => currentWallet.id === walletId);
             if (!wallet) {
-                setMessage({ type: 'error', text: 'Wallet not found' });
+                showToast('error', 'Wallet not found');
                 return;
             }
 
@@ -209,14 +194,11 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                 return;
             }
 
-            setMessage({
-                type: 'error',
-                text: 'Only Xaman wallets can be connected. Re-add this wallet with Xaman.',
-            });
+            showToast('error', 'Only Xaman wallets can be connected. Re-add this wallet with Xaman.');
         } catch (error) {
             const err = error instanceof Error ? error : new Error(String(error));
             console.error('Failed to connect existing wallet:', err);
-            setMessage({ type: 'error', text: `Failed to connect wallet: ${err.message}` });
+            showToast('error', `Failed to connect wallet: ${err.message}`);
         } finally {
             setIsLoading(false);
         }
@@ -224,7 +206,6 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
 
     const handleDelete = async (walletId: number) => {
         try {
-            setMessage(null);
             setIsLoading(true);
 
             // Check if this is the connected wallet
@@ -239,13 +220,12 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
 
             // Now delete the wallet
             await deleteWallet(walletId, auth0Id, accessToken);
-            setMessage({ type: 'success', text: 'Wallet deleted successfully' });
+            showToast('success', 'Wallet deleted successfully');
             await loadWallets();
-            setTimeout(() => setMessage(null), 3000);
         } catch (error) {
             const err = error instanceof Error ? error : new Error(String(error));
             console.error('Failed to delete wallet:', err);
-            setMessage({ type: 'error', text: `Failed to delete wallet: ${err.message}` });
+            showToast('error', `Failed to delete wallet: ${err.message}`);
         } finally {
             setIsLoading(false);
         }
@@ -269,8 +249,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
             }, 1500);
         } catch (error) {
             console.error('Failed to copy wallet address:', error);
-            setMessage({ type: 'error', text: 'Failed to copy wallet address' });
-            setTimeout(() => setMessage(null), 3000);
+            showToast('error', 'Failed to copy wallet address');
         }
     };
 
@@ -440,17 +419,6 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                 <p className="text-white/50 text-center py-4 mb-4">No wallets added yet.</p>
             )}
 
-            {message && (
-                <div
-                    className={`mb-4 p-3 rounded-lg ${message.type === 'success'
-                        ? 'bg-green-900/50 text-green-200'
-                        : 'bg-red-900/50 text-red-200'
-                        }`}
-                >
-                    {message.text}
-                </div>
-            )}
-
             <ConfirmModal
                 isOpen={showDeleteModal}
                 title="Remove wallet?"
@@ -467,7 +435,6 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
             {/* Add/Connect Wallet Button */}
             <Button
                 onClick={() => {
-                    setMessage(null);
                     void handleConnectXaman();
                 }}
                 disabled={isLoading}
@@ -514,6 +481,8 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                             nfts={connectedWalletAssets.nfts}
                             walletAddress={connectedWalletAssets.wallet_address}
                             isLoading={isLoading}
+                            auth0Id={auth0Id}
+                            accessToken={accessToken}
                         />
                     </div>
                 ) : (

@@ -87,6 +87,7 @@ async function setupRoutes() {
     const syncModule = await import('./api/user/sync.ts');
     const walletsModule = await import('./api/user/wallets.ts');
     const walletAssetsModule = await import('./api/user/wallet-assets.ts');
+    const pinnedNftsModule = await import('./api/user/pinned-nfts.ts');
     const nftResourceProxyModule = await import('./api/user/nft-resource-proxy.ts');
     const walletsIdModule = await import('./api/user/wallets/[walletId].ts');
     const walletsDisconnectModule =
@@ -99,6 +100,7 @@ async function setupRoutes() {
       'WalletAssets handler loaded:',
       typeof walletAssetsModule.default
     );
+    console.log('PinnedNfts handler loaded:', typeof pinnedNftsModule.default);
     console.log(
       'NftResourceProxy handler loaded:',
       typeof nftResourceProxyModule.default
@@ -117,6 +119,7 @@ async function setupRoutes() {
       '/api/user/wallet-assets',
       vercelToExpress(walletAssetsModule.default)
     );
+    app.all('/api/user/pinned-nfts', vercelToExpress(pinnedNftsModule.default));
     app.all(
       '/api/user/nft-resource-proxy',
       vercelToExpress(nftResourceProxyModule.default)
@@ -154,6 +157,7 @@ setupRoutes()
       console.log(`   - POST http://localhost:${PORT}/api/user/sync`);
       console.log(`   - GET/POST http://localhost:${PORT}/api/user/wallets`);
       console.log(`   - GET http://localhost:${PORT}/api/user/wallet-assets`);
+      console.log(`   - GET/POST/DELETE http://localhost:${PORT}/api/user/pinned-nfts`);
       console.log(
         `   - GET http://localhost:${PORT}/api/user/nft-resource-proxy`
       );

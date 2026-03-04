@@ -1,27 +1,40 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck, faCopy } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faCopy, faSpinner, faThumbtack } from '@fortawesome/free-solid-svg-icons';
 import Button from './Button';
 import Modal from './Modal';
+import ConfirmModal from './ConfirmModal';
+import { useToast } from './ToastProvider';
 import type { WalletAssetSummary } from '../services/walletAssetService';
+import { getPinnedNfts, pinNft, unpinNft } from '../services/pinnedNftService';
 
 interface NftGalleryProps {
     nftCount: number;
     nfts: WalletAssetSummary['nfts'];
     walletAddress?: string;
     isLoading: boolean;
+    auth0Id: string;
+    accessToken?: string;
 }
 
-export default function NftGallery({ nftCount, nfts, walletAddress, isLoading }: NftGalleryProps) {
+export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, auth0Id, accessToken }: NftGalleryProps) {
     const NFTS_PER_PAGE = 12;
     const [currentNftPage, setCurrentNftPage] = useState(1);
     const [failedNftThumbnails, setFailedNftThumbnails] = useState<Record<string, boolean>>({});
+    const [loadedNftThumbnails, setLoadedNftThumbnails] = useState<Record<string, boolean>>({});
     const [resolvedNftThumbnails, setResolvedNftThumbnails] = useState<Record<string, string | null>>({});
     const [resolvedNftTitles, setResolvedNftTitles] = useState<Record<string, string | null>>({});
     const [resolvedNftCollections, setResolvedNftCollections] = useState<Record<string, string | null>>({});
     const [collectionFallbackTokens, setCollectionFallbackTokens] = useState<Record<string, boolean>>({});
     const [selectedNftTokenId, setSelectedNftTokenId] = useState<string | null>(null);
     const [copiedFieldKey, setCopiedFieldKey] = useState<string | null>(null);
+    const [pinnedTokenIds, setPinnedTokenIds] = useState<string[]>([]);
+    const [pinTargetTokenId, setPinTargetTokenId] = useState<string | null>(null);
+    const [pinFlowStep, setPinFlowStep] = useState<'instructions' | 'submit'>('instructions');
+    const [pendingUnpinTokenId, setPendingUnpinTokenId] = useState<string | null>(null);
+    const [isPinActionLoading, setIsPinActionLoading] = useState(false);
+    const [isSelectedNftImageLoaded, setIsSelectedNftImageLoaded] = useState(false);
+    const { showToast } = useToast();
     const metadataResultCacheRef = useRef<Partial<Record<string, { url: string | null; isCollectionFallback: boolean; title: string | null; collectionName: string | null } | null>>>({});
     const metadataRequestCacheRef = useRef<Partial<Record<string, Promise<{ url: string | null; isCollectionFallback: boolean; title: string | null; collectionName: string | null } | null>>>>({});
 
@@ -400,6 +413,10 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading }:
     }, [walletAddress, currentNftPage]);
 
     useEffect(() => {
+        setLoadedNftThumbnails({});
+    }, [walletAddress, currentNftPage]);
+
+    useEffect(() => {
         setResolvedNftThumbnails({});
     }, [walletAddress]);
 
@@ -421,6 +438,32 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading }:
         setSelectedNftTokenId(null);
         setCopiedFieldKey(null);
     }, [walletAddress]);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const loadPinned = async () => {
+            try {
+                const pinned = await getPinnedNfts(auth0Id, accessToken);
+                if (!cancelled) {
+                    setPinnedTokenIds(pinned.map((item) => item.token_id));
+                }
+            } catch (error) {
+                debugNft('Failed to load pinned NFTs', {
+                    error: error instanceof Error ? error.message : String(error),
+                });
+                if (!cancelled) {
+                    setPinnedTokenIds([]);
+                }
+            }
+        };
+
+        void loadPinned();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [accessToken, auth0Id, debugNft]);
 
     useEffect(() => {
         let cancelled = false;
@@ -541,6 +584,92 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading }:
 
     const selectedNftThumbnailSrc = getNftThumbnailSrc(selectedNftThumbnailUrl);
 
+    useEffect(() => {
+        setIsSelectedNftImageLoaded(false);
+    }, [selectedNftTokenId, selectedNftThumbnailSrc]);
+
+    const pinTargetNft = useMemo(
+        () => nfts.find((nft) => nft.token_id === pinTargetTokenId) || null,
+        [nfts, pinTargetTokenId]
+    );
+
+    const pinTargetTitle = pinTargetNft
+        ? resolvedNftTitles[pinTargetNft.token_id]
+        || `NFT ${pinTargetNft.token_id.slice(0, 8)}...`
+        : '';
+
+    const pinTargetCollectionName = pinTargetNft
+        ? resolvedNftCollections[pinTargetNft.token_id]
+        || deriveCollectionNameFromTitle(pinTargetTitle)
+        || 'Unknown Collection'
+        : '';
+
+    const hasAnyPinned = pinnedTokenIds.length > 0;
+
+    const openPinModalForNft = (tokenId: string) => {
+        setPinTargetTokenId(tokenId);
+        setPinFlowStep(hasAnyPinned ? 'submit' : 'instructions');
+    };
+
+    const closePinModal = () => {
+        setPinTargetTokenId(null);
+        setPinFlowStep('instructions');
+    };
+
+    const handleSubmitPin = async () => {
+        if (!pinTargetNft) {
+            return;
+        }
+
+        try {
+            setIsPinActionLoading(true);
+            const nextPinned = await pinNft(
+                auth0Id,
+                {
+                    token_id: pinTargetNft.token_id,
+                    issuer: pinTargetNft.issuer,
+                    uri: pinTargetNft.uri,
+                    title: pinTargetTitle,
+                    collection_name: pinTargetCollectionName,
+                },
+                accessToken
+            );
+            setPinnedTokenIds(nextPinned.map((item) => item.token_id));
+            showToast('success', 'NFT pinned successfully.');
+            closePinModal();
+        } catch (error) {
+            debugNft('Failed to pin NFT', {
+                tokenId: pinTargetNft.token_id,
+                error: error instanceof Error ? error.message : String(error),
+            });
+            showToast('error', `Failed to pin NFT: ${error instanceof Error ? error.message : String(error)}`);
+        } finally {
+            setIsPinActionLoading(false);
+        }
+    };
+
+    const handleConfirmUnpin = async () => {
+        if (!pendingUnpinTokenId) {
+            return;
+        }
+
+        try {
+            setIsPinActionLoading(true);
+            const nextPinned = await unpinNft(auth0Id, pendingUnpinTokenId, accessToken);
+            setPinnedTokenIds(nextPinned.map((item) => item.token_id));
+            setPendingUnpinTokenId(null);
+            showToast('success', 'NFT unpinned successfully.');
+        } catch (error) {
+            debugNft('Failed to unpin NFT', {
+                tokenId: pendingUnpinTokenId,
+                error: error instanceof Error ? error.message : String(error),
+            });
+            showToast('error', `Failed to unpin NFT: ${error instanceof Error ? error.message : String(error)}`);
+        } finally {
+            setIsPinActionLoading(false);
+        }
+    };
+
     const handleCopyValue = async (fieldKey: string, value: string | null) => {
         if (!value) {
             return;
@@ -570,56 +699,107 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading }:
         <div className="rounded-md border border-white/10 bg-black/20 p-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 justify-items-center">
                 {paginatedNfts.map((nft) => (
-                    <button
+                    <div
                         key={nft.token_id}
-                        type="button"
-                        onClick={() => setSelectedNftTokenId(nft.token_id)}
-                        className="cursor-pointer w-full max-w-[200px] rounded bg-white/[0.03] p-2 text-left transition-colors hover:bg-white/[0.06]"
+                        className="relative w-full max-w-[200px] rounded bg-white/[0.03] p-2 text-left transition-colors hover:bg-white/[0.06]"
                     >
-                        {(() => {
-                            const thumbnailUrl = getNftThumbnailUrl(nft.token_id, nft.uri);
-                            const thumbnailSrc = getNftThumbnailSrc(thumbnailUrl);
-                            const thumbnailFailed = failedNftThumbnails[nft.token_id];
-                            const isCollectionFallback = collectionFallbackTokens[nft.token_id] === true;
+                        <button
+                            type="button"
+                            onClick={() => setSelectedNftTokenId(nft.token_id)}
+                            className="cursor-pointer w-full"
+                        >
+                            {(() => {
+                                const thumbnailUrl = getNftThumbnailUrl(nft.token_id, nft.uri);
+                                const thumbnailSrc = getNftThumbnailSrc(thumbnailUrl);
+                                const thumbnailFailed = failedNftThumbnails[nft.token_id];
+                                const isCollectionFallback = collectionFallbackTokens[nft.token_id] === true;
 
-                            if (nftDebugEnabled) {
-                                console.log('[NFT DEBUG] Render thumbnail', {
-                                    tokenId: nft.token_id,
-                                    uri: nft.uri,
-                                    thumbnailUrl,
-                                    thumbnailSrc,
-                                    thumbnailFailed,
-                                });
-                            }
+                                if (nftDebugEnabled) {
+                                    console.log('[NFT DEBUG] Render thumbnail', {
+                                        tokenId: nft.token_id,
+                                        uri: nft.uri,
+                                        thumbnailUrl,
+                                        thumbnailSrc,
+                                        thumbnailFailed,
+                                    });
+                                }
 
-                            if (!thumbnailSrc || thumbnailFailed) {
+                                if (!thumbnailSrc || thumbnailFailed) {
+                                    return (
+                                        <div className="h-auto w-full aspect-square max-h-[200px] rounded border border-white/10 bg-white/5" />
+                                    );
+                                }
+
+                                const isThumbnailLoaded = loadedNftThumbnails[nft.token_id] === true;
+
                                 return (
-                                    <div className="h-auto w-full aspect-square max-h-[200px] rounded border border-white/10 bg-white/5" />
+                                    <div
+                                        className={`relative h-auto w-full aspect-square max-h-[200px] overflow-hidden rounded border ${isCollectionFallback ? 'border-red-600' : 'border-white/10'}`}
+                                    >
+                                        {!isThumbnailLoaded && (
+                                            <div className="absolute inset-0 flex items-center justify-center bg-white/5">
+                                                <FontAwesomeIcon icon={faSpinner} className="text-white/60 animate-spin" />
+                                            </div>
+                                        )}
+                                        <img
+                                            src={thumbnailSrc}
+                                            alt="NFT thumbnail"
+                                            className={`h-full w-full object-cover transition-opacity duration-200 ${isThumbnailLoaded ? 'opacity-100' : 'opacity-0'}`}
+                                            loading="lazy"
+                                            decoding="async"
+                                            onLoad={() => {
+                                                setLoadedNftThumbnails((current) => ({
+                                                    ...current,
+                                                    [nft.token_id]: true,
+                                                }));
+                                            }}
+                                            onError={(event) => {
+                                                debugNft('Image load error', {
+                                                    tokenId: nft.token_id,
+                                                    src: event.currentTarget.currentSrc || event.currentTarget.src,
+                                                    originalUri: nft.uri,
+                                                });
+                                                setFailedNftThumbnails((current) => ({
+                                                    ...current,
+                                                    [nft.token_id]: true,
+                                                }));
+                                                setLoadedNftThumbnails((current) => ({
+                                                    ...current,
+                                                    [nft.token_id]: false,
+                                                }));
+                                            }}
+                                        />
+                                    </div>
                                 );
-                            }
+                            })()}
+                        </button>
+
+                        {(() => {
+                            const isPinned = pinnedTokenIds.includes(nft.token_id);
 
                             return (
-                                <img
-                                    src={thumbnailSrc}
-                                    alt="NFT thumbnail"
-                                    className={`h-auto w-full aspect-square max-h-[200px] rounded border object-cover ${isCollectionFallback ? 'border-red-600' : 'border-white/10'}`}
-                                    loading="lazy"
-                                    decoding="async"
-                                    onError={(event) => {
-                                        debugNft('Image load error', {
-                                            tokenId: nft.token_id,
-                                            src: event.currentTarget.currentSrc || event.currentTarget.src,
-                                            originalUri: nft.uri,
-                                        });
-                                        setFailedNftThumbnails((current) => ({
-                                            ...current,
-                                            [nft.token_id]: true,
-                                        }));
+                                <button
+                                    type="button"
+                                    onClick={(event) => {
+                                        event.preventDefault();
+                                        event.stopPropagation();
+
+                                        if (isPinned) {
+                                            setPendingUnpinTokenId(nft.token_id);
+                                            return;
+                                        }
+
+                                        openPinModalForNft(nft.token_id);
                                     }}
-                                />
+                                    title={isPinned ? 'Remove NFT pin' : 'Pin NFT'}
+                                    className={`cursor-pointer absolute bottom-4 right-3 inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/20 transition-colors hover:text-sky-500 hover:bg-black/55 ${isPinned ? 'bg-black/45 text-sky-500' : 'bg-black/35 text-white/55'}`.trim()}
+                                >
+                                    <FontAwesomeIcon icon={faThumbtack} className="text-sm" />
+                                    <span className="sr-only">{isPinned ? 'Remove NFT pin' : 'Pin NFT'}</span>
+                                </button>
                             );
                         })()}
-                    </button>
+                    </div>
                 ))}
             </div>
 
@@ -659,13 +839,22 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading }:
                     <div className="space-y-4">
                         <div className="mx-auto h-[500px] w-[500px] max-w-full overflow-hidden rounded-lg border border-white/10">
                             {selectedNftThumbnailSrc ? (
-                                <img
-                                    src={selectedNftThumbnailSrc}
-                                    alt={selectedNftTitle}
-                                    className="h-full w-full object-cover"
-                                    loading="lazy"
-                                    decoding="async"
-                                />
+                                <div className="relative h-full w-full bg-white/5">
+                                    {!isSelectedNftImageLoaded && (
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <FontAwesomeIcon icon={faSpinner} className="text-white/60 animate-spin" />
+                                        </div>
+                                    )}
+                                    <img
+                                        src={selectedNftThumbnailSrc}
+                                        alt={selectedNftTitle}
+                                        className={`h-full w-full object-cover transition-opacity duration-200 ${isSelectedNftImageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                                        loading="lazy"
+                                        decoding="async"
+                                        onLoad={() => setIsSelectedNftImageLoaded(true)}
+                                        onError={() => setIsSelectedNftImageLoaded(false)}
+                                    />
+                                </div>
                             ) : (
                                 <div className="h-full w-full bg-white/5" />
                             )}
@@ -723,6 +912,68 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading }:
                     </div>
                 )}
             </Modal>
+
+            <Modal
+                isOpen={pinTargetNft != null}
+                title="Pin NFT"
+                onClose={closePinModal}
+                closeOnOverlayClick
+                showCloseButton
+                maxWidthClassName="max-w-xl"
+            >
+                {pinTargetNft && (
+                    <div className="space-y-4 text-sm text-white/85">
+                        {pinFlowStep === 'instructions' ? (
+                            <>
+                                <p className="text-white/90">
+                                    Before pinning your first NFT, here is how this works.
+                                </p>
+                                <ul className="list-disc l-8 space-y-1 text-white/70">
+                                    <li>You may pin as many NFTs as you want.</li>
+                                    <li>Use the map to find your location to be used in the XoloGlobe map.</li>
+                                    <li>You may unpin an NFT at anytime.</li>
+                                </ul>
+                                <div className="flex justify-end">
+                                    <Button
+                                        onClick={() => setPinFlowStep('submit')}
+                                        className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800"
+                                    >
+                                        Continue
+                                    </Button>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <p className="text-white/90">
+                                    You are on the page after continue.
+                                </p>
+                                <p className="text-white/70">
+                                    Ready to pin <span className="font-medium text-white">{pinTargetTitle}</span> from <span className="font-medium text-white">{pinTargetCollectionName}</span>.
+                                </p>
+                                <div className="flex justify-end gap-3">
+                                    <Button
+                                        onClick={() => void handleSubmitPin()}
+                                        disabled={isPinActionLoading}
+                                        className="bg-green-600 hover:bg-green-700 active:bg-green-800"
+                                    >
+                                        {isPinActionLoading ? 'Saving pin' : 'Add Pin'}
+                                    </Button>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                )}
+            </Modal>
+
+            <ConfirmModal
+                isOpen={pendingUnpinTokenId != null}
+                title="Remove pinned NFT?"
+                message="This will remove this NFT from the XoloGlobe map. You may pin it again later at any time."
+                confirmLabel="Remove"
+                loading={isPinActionLoading}
+                onCancel={() => setPendingUnpinTokenId(null)}
+                onConfirm={() => void handleConfirmUnpin()}
+            />
         </div>
     );
 }

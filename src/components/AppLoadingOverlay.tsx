@@ -5,7 +5,8 @@ interface AppLoadingOverlayProps {
 }
 
 const loadingLetters = "XOLOITZQINTLE".split("");
-const blindColumns = Array.from({ length: 10 }, (_, index) => index);
+const mobileBlindColumns = Array.from({ length: 6 }, (_, index) => index);
+const desktopBlindColumns = Array.from({ length: 10 }, (_, index) => index);
 
 function AppLoadingOverlay({ isVisible }: AppLoadingOverlayProps) {
     const shouldReduceMotion = useReducedMotion();
@@ -136,27 +137,51 @@ function AppLoadingOverlay({ isVisible }: AppLoadingOverlayProps) {
                     className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden"
                 >
                     {!shouldReduceMotion && (
-                        <motion.div
-                            variants={blindsContainerVariants}
-                            initial="hidden"
-                            animate="visible"
-                            exit="exit"
-                            className="pointer-events-none absolute inset-0 grid grid-cols-10"
-                            aria-hidden="true"
-                        >
-                            {blindColumns.map((column) => (
-                                <div
-                                    key={`blind-${column}`}
-                                    className="relative h-full overflow-hidden"
-                                >
-                                    <motion.div
-                                        variants={blindPanelVariants}
-                                        className="absolute inset-0 will-change-transform"
-                                        style={{ backgroundColor: "var(--bg)" }}
-                                    />
-                                </div>
-                            ))}
-                        </motion.div>
+                        <>
+                            <motion.div
+                                variants={blindsContainerVariants}
+                                initial="hidden"
+                                animate="visible"
+                                exit="exit"
+                                className="pointer-events-none absolute inset-0 grid grid-cols-6 md:hidden"
+                                aria-hidden="true"
+                            >
+                                {mobileBlindColumns.map((column) => (
+                                    <div
+                                        key={`blind-mobile-${column}`}
+                                        className="relative h-full overflow-hidden"
+                                    >
+                                        <motion.div
+                                            variants={blindPanelVariants}
+                                            className="absolute inset-0 will-change-transform"
+                                            style={{ backgroundColor: "var(--bg)" }}
+                                        />
+                                    </div>
+                                ))}
+                            </motion.div>
+
+                            <motion.div
+                                variants={blindsContainerVariants}
+                                initial="hidden"
+                                animate="visible"
+                                exit="exit"
+                                className="pointer-events-none absolute inset-0 hidden md:grid md:grid-cols-10"
+                                aria-hidden="true"
+                            >
+                                {desktopBlindColumns.map((column) => (
+                                    <div
+                                        key={`blind-desktop-${column}`}
+                                        className="relative h-full overflow-hidden"
+                                    >
+                                        <motion.div
+                                            variants={blindPanelVariants}
+                                            className="absolute inset-0 will-change-transform"
+                                            style={{ backgroundColor: "var(--bg)" }}
+                                        />
+                                    </div>
+                                ))}
+                            </motion.div>
+                        </>
                     )}
 
                     <motion.div

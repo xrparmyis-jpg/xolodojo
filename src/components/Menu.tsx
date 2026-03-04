@@ -58,7 +58,6 @@ function Menu({
         { path: '/team', label: 'Team' },
         { path: '/xologlobe', label: 'XoloGlobe' },
         { path: '/mint', label: 'Mint' },
-        { path: '/faq', label: 'FAQ' },
     ];
 
     if (variant === 'mobile-toggle') {

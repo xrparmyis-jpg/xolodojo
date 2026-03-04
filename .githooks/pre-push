@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+
+printf "\nRunning pre-push checks...\n"
+npm run preflight
+status=$?
+
+if [ $status -ne 0 ]; then
+  printf "\nPre-push checks failed. Push aborted.\n"
+  exit $status
+fi
+
+printf "\nPre-push checks passed. Continuing push.\n"

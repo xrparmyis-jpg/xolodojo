@@ -5,6 +5,7 @@ import "./App.css";
 import AppLoadingOverlay from "./components/AppLoadingOverlay";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import { ToastProvider } from "./components/ToastProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useUserSync } from "./hooks/useUserSync";
 import Home from "./pages/Home";
@@ -12,6 +13,8 @@ import About from "./pages/About";
 import FAQ from "./pages/FAQ";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/404";
+import TermsAndConditions from "./pages/TermsAndConditions";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Xoloitzquintle from "./pages/Xoloitzquintle";
 import Vision from "./pages/Vision";
 import Team from "./pages/Team";
@@ -75,35 +78,43 @@ function AppContent() {
   }, [isAuthenticated, isLoading, navigate]);
 
   return (
-    <>
+    <div className="min-h-screen flex flex-col">
       <AppLoadingOverlay isVisible={isInitialLoading} />
       <Header />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/xoloitzquintle" element={<Xoloitzquintle />} />
-        <Route path="/vision" element={<Vision />} />
-        <Route path="/team" element={<Team />} />
-        <Route path="/xologlobe" element={<XoloGlobe />} />
-        <Route path="/mint" element={<Mint />} />
-        <Route path="/faq" element={<FAQ />} />
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <main className="flex-1">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/xoloitzquintle" element={<Xoloitzquintle />} />
+          <Route path="/vision" element={<Vision />} />
+          <Route path="/team" element={<Team />} />
+          <Route path="/xologlobe" element={<XoloGlobe />} />
+          <Route path="/mint" element={<Mint />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </main>
       <Footer />
-    </>
+    </div>
   );
 }
 
 function App() {
-  return <AppContent />;
+  return (
+    <ToastProvider>
+      <AppContent />
+    </ToastProvider>
+  );
 }
 
 export default App;

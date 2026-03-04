@@ -8,8 +8,15 @@
     "dev:api": "tsx watch server.ts",
     "dev:full": "concurrently \"npm run dev:api\" \"npm run dev\"",
     "dev:vercel": "vercel dev",
+    "hooks:install": "git config core.hooksPath .githooks",
+    "hooks:status": "git config --get core.hooksPath",
+    "typecheck": "tsc -b --pretty false",
+    "vercel:check": "npm run typecheck",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "lint:strict": "eslint . --max-warnings=0",
+    "preflight": "npm run vercel:check",
+    "preflight:strict": "npm run lint:strict && npm run build",
     "preview": "vite preview"
   },
   "dependencies": {

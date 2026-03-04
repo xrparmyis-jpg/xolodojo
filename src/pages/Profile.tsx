@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
-import PageTitle from '../components/PageTitle';
+//import PageTitle from '../components/PageTitle';
 import { WalletConnection } from '../components/WalletConnection';
 import { getUserProfile } from '../services/profileService';
 
@@ -84,7 +84,7 @@ function Profile() {
     return (
         <section className="service-section fix section-padding">
             <div className="container mx-auto px-4 max-w-7xl">
-                <div className="flex flex-wrap -mx-4">
+                {/* <div className="flex flex-wrap -mx-4">
                     <div className="w-full px-4">
                         <div className="section-title text-center">
                             <PageTitle title="User Profile" animate={true} />
@@ -93,7 +93,7 @@ function Profile() {
                             </h2>
                         </div>
                     </div>
-                </div>
+                </div> */}
 
                 <div className="flex flex-wrap -mx-4 justify-center">
                     <div className="w-full lg:w-5/6 xl:w-4/5 px-4">

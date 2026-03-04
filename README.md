@@ -23,6 +23,12 @@ Visit http://localhost:5173
 - `npm run dev` - Frontend only (port 5173)
 - `npm run dev:api` - API server only (port 3000)
 
+## Pre-push checks
+
+- `npm run preflight` - Fast deploy-safety check (TypeScript build checks)
+- `npm run preflight:strict` - Strict lint + build
+- `npm run hooks:install` - Install repo-managed Git hooks (`pre-push` runs `npm run preflight`)
+
 ## Tech Stack
 
 - **Frontend:** React + Vite + Tailwind CSS
