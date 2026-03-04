@@ -146,16 +146,16 @@ function Profile() {
                                     <h3 className="mb-2 text-white">
                                         {user.name || 'User'}
                                     </h3>
-                                    {user.email && (
+                                    {/* {user.email && (
                                         <p className="text-white/70 mb-4">
                                             {user.email}
                                         </p>
-                                    )}
+                                    )} */}
                                 </div>
 
                                 {/* Test Field: Bio */}
-                                <div className="w-full p-6 bg-black/30 rounded-lg mt-4">
-                                    <h4 className="text-white text-lg mb-4">
+                                <div className="hidden w-full p-6 bg-black/30 rounded-lg mt-4">
+                                    {/* <h4 className="text-white text-lg mb-4">
                                         Bio (Test Field)
                                     </h4>
 
@@ -188,10 +188,10 @@ function Profile() {
                                                 Last updated: {new Date(dbUser.updated_at).toLocaleString()}
                                             </p>
                                         </div>
-                                    )}
+                                    )} */}
 
                                     {/* Buttons below the form */}
-                                    <div className="flex justify-end gap-3 mt-4">
+                                    {/* <div className="flex justify-end gap-3 mt-4">
                                         {!isEditing ? (
                                             <Button onClick={() => setIsEditing(true)}>
                                                 Edit
@@ -218,7 +218,7 @@ function Profile() {
                                                 </Button>
                                             </>
                                         )}
-                                    </div>
+                                    </div> */}
                                 </div>
 
                                 {/* Wallet Connection Section */}

@@ -27,6 +27,16 @@ function isLikelyXrplAddress(address: string) {
   return /^r[1-9A-HJ-NP-Za-km-z]{24,34}$/.test(address);
 }
 
+function getConfiguredCollectionAddress(): string | null {
+  const configuredAddress =
+    process.env.NFT_COLLECTION_CONTRACT_ADDRESS ||
+    process.env.VITE_NFT_COLLECTION_CONTRACT_ADDRESS ||
+    '';
+
+  const normalized = configuredAddress.trim();
+  return normalized ? normalized.toLowerCase() : null;
+}
+
 async function callXrpl<T>(method: string, params: Record<string, unknown>) {
   const xrplUrl =
     process.env.XRPL_RPC_URL ||
@@ -136,14 +146,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const balanceDrops = accountInfo.account_data?.Balance || '0';
     const xrpBalance = (Number(balanceDrops) / 1_000_000).toFixed(6);
     const nfts = accountNfts.account_nfts || [];
+    const configuredCollectionAddress = getConfiguredCollectionAddress();
+    const filteredNfts = configuredCollectionAddress
+      ? nfts.filter(
+          nft =>
+            typeof nft.Issuer === 'string' &&
+            nft.Issuer.toLowerCase() === configuredCollectionAddress
+        )
+      : nfts;
 
     return res.status(200).json({
       success: true,
       wallet_address: walletAddress,
       is_xrpl: true,
       xrp_balance: xrpBalance,
-      nft_count: nfts.length,
-      nfts: nfts.map(nft => ({
+      nft_count: filteredNfts.length,
+      nfts: filteredNfts.map(nft => ({
         token_id: nft.NFTokenID,
         issuer: nft.Issuer || null,
         taxon: nft.NFTokenTaxon ?? null,

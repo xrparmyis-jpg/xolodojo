@@ -39,7 +39,7 @@ function AppContent() {
 
     const timeoutId = window.setTimeout(() => {
       setIsInitialLoading(false);
-    }, 1800);
+    }, 780);
 
     return () => window.clearTimeout(timeoutId);
   }, []);
