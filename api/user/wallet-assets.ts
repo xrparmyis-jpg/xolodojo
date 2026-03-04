@@ -1,7 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import mysql from 'mysql2/promise';
+import { readFile } from 'node:fs/promises';
 
 let pool: mysql.Pool | null = null;
+let cachedCollectionAddress: string | null | undefined;
 
 function getPool(): mysql.Pool {
   if (!pool) {
@@ -27,14 +29,49 @@ function isLikelyXrplAddress(address: string) {
   return /^r[1-9A-HJ-NP-Za-km-z]{24,34}$/.test(address);
 }
 
-function getConfiguredCollectionAddress(): string | null {
-  const configuredAddress =
-    process.env.NFT_COLLECTION_CONTRACT_ADDRESS ||
-    process.env.VITE_NFT_COLLECTION_CONTRACT_ADDRESS ||
-    '';
+function normalizeCollectionAddress(value: string | null | undefined): string | null {
+  if (!value) {
+    return null;
+  }
 
-  const normalized = configuredAddress.trim();
+  const normalized = value.trim().replace(/^['"]|['"]$/g, '').trim();
   return normalized ? normalized.toLowerCase() : null;
+}
+
+async function getConfiguredCollectionAddress(): Promise<string | null> {
+  if (cachedCollectionAddress !== undefined) {
+    return cachedCollectionAddress;
+  }
+
+  const envAddress = normalizeCollectionAddress(
+    process.env.NFT_COLLECTION_CONTRACT_ADDRESS ||
+      process.env.VITE_NFT_COLLECTION_CONTRACT_ADDRESS
+  );
+
+  if (envAddress) {
+    cachedCollectionAddress = envAddress;
+    return cachedCollectionAddress;
+  }
+
+  try {
+    const envLocalPath = new URL('../../.env.local', import.meta.url);
+    const envLocalContent = await readFile(envLocalPath, 'utf8');
+    const line = envLocalContent
+      .split(/\r?\n/)
+      .find(item => item.trim().startsWith('NFT_COLLECTION_CONTRACT_ADDRESS='));
+
+    if (!line) {
+      cachedCollectionAddress = null;
+      return cachedCollectionAddress;
+    }
+
+    const [, value = ''] = line.split('=', 2);
+    cachedCollectionAddress = normalizeCollectionAddress(value);
+    return cachedCollectionAddress;
+  } catch {
+    cachedCollectionAddress = null;
+    return cachedCollectionAddress;
+  }
 }
 
 async function callXrpl<T>(method: string, params: Record<string, unknown>) {
@@ -146,14 +183,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const balanceDrops = accountInfo.account_data?.Balance || '0';
     const xrpBalance = (Number(balanceDrops) / 1_000_000).toFixed(6);
     const nfts = accountNfts.account_nfts || [];
-    const configuredCollectionAddress = getConfiguredCollectionAddress();
+    const configuredCollectionAddress = await getConfiguredCollectionAddress();
     const filteredNfts = configuredCollectionAddress
       ? nfts.filter(
           nft =>
             typeof nft.Issuer === 'string' &&
             nft.Issuer.toLowerCase() === configuredCollectionAddress
         )
-      : nfts;
+      : [];
 
     return res.status(200).json({
       success: true,
