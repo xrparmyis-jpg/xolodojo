@@ -160,11 +160,11 @@ export default function XoloGlobePinnedMap({ className }: XoloGlobePinnedMapProp
 
         map.once('style.load', () => {
             map.setFog({
-                color: 'rgb(18, 20, 30)',
-                'high-color': 'rgb(38, 42, 56)',
-                'horizon-blend': 0.06,
-                'space-color': 'rgb(7, 8, 14)',
-                'star-intensity': 0.45,
+                color: 'rgb(165, 205, 255)',
+                'high-color': 'rgb(100, 166, 235)',
+                'horizon-blend': 0.14,
+                'space-color': 'rgb(8, 14, 32)',
+                'star-intensity': 0.35,
             });
             if (mode === 'street') {
                 applyLightPreset(lightPreset);
@@ -197,11 +197,11 @@ export default function XoloGlobePinnedMap({ className }: XoloGlobePinnedMapProp
 
         map.on('style.load', () => {
             map.setFog({
-                color: 'rgb(18, 20, 30)',
-                'high-color': 'rgb(38, 42, 56)',
-                'horizon-blend': 0.06,
-                'space-color': 'rgb(7, 8, 14)',
-                'star-intensity': 0.45,
+                color: 'rgb(165, 205, 255)',
+                'high-color': 'rgb(100, 166, 235)',
+                'horizon-blend': 0.14,
+                'space-color': 'rgb(8, 14, 32)',
+                'star-intensity': 0.35,
             });
             applyLightPreset(lightPreset);
         });
