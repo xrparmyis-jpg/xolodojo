@@ -170,7 +170,6 @@ function Team() {
             >
                 <div className="container mx-auto max-w-7xl px-4">
                     <div className="flex flex-col items-center text-center my-8">
-                        <PageTitle title="The Team" />
                         <div className="mt-10 grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-10">
                             {owners.map((owner) => (
                                 <OwnerCard key={owner.id} owner={owner} />
@@ -193,9 +192,13 @@ function Team() {
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="max-w-4xl mx-auto">
                         <div className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.3s_forwards] mb-8">
-                            <h2 className="text-2xl md:text-3xl font-bold text-[#28aae4] mb-4">
-                                Meet the Team
-                            </h2>
+                                  <div className="section-title text-center">
+                                    <PageTitle title="The Xoloitzquintle Collection" animate delay={0} iconType="star" iconCount={1} centered />
+                                    <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 opacity-0 animate-[fadeInUp_0.6s_ease-out_0.3s_forwards]">
+                                      A Sacred Legacy of <br />
+                                      <span>Art, Culture, &amp; XRPL</span>
+                                    </h2>
+                                  </div>
                             <p className="mb-7">
                                 United by culture, art, and crypto, we're forging XoloDojo and XoloGlobe: a token-gated global tribe for trust, travel, skill-sharing, and real-world adventures.
                             </p>

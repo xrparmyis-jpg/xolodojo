@@ -12,9 +12,7 @@ function Mint() {
             >
                 <div className="container mx-auto max-w-7xl px-4">
                     <div className="flex flex-col items-center text-center">
-                        <div className="mb-8">
-                            <PageTitle title="The Mint" />
-                        </div>
+
                         <div className="mb-10">
                             <img src="/04a.png" alt="" className="max-h-56 w-auto rounded-md object-contain md:max-h-80" />
                         </div>

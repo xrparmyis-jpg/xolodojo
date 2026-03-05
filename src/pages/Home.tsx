@@ -90,7 +90,7 @@ function Home() {
       <section className="service-section fix py-8 lg:py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="section-title text-center">
-            <PageTitle title="The Xoloitzquintle Collection" animate delay={0} iconType="star" iconCount={1} centered />
+            <PageTitle title="Welcome to the XoloDojo" animate delay={0} iconType="star" iconCount={1} centered />
             <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 opacity-0 animate-[fadeInUp_0.6s_ease-out_0.3s_forwards]">
               A Sacred Legacy of <br />
               <span>Art, Culture, &amp; XRPL</span>
@@ -106,7 +106,7 @@ function Home() {
                   <h3 className="h3-default">10,001 Unique NFT Masterpieces</h3>
                   <p>
                     A meaningful collection featuring 10,001 unique Xolo
-                    NFTs with a combination of 7 distinct traits, capturing
+                    NFTs with a combination of 11 distinct traits, capturing
                     the sacred canine's spirit.
                   </p>
                 </div>
@@ -121,7 +121,7 @@ function Home() {
                   <h3 className="h3-default">Built on the XRP Ledger (XRPL)</h3>
                   <p>
                     Hosted on the XRPL for its high speed payments, low-cost
-                    transactions, and eco-friendly design. The visionary artist
+                    transactions, and eco-friendly design. The artist RedShadow
                     bringing the 10,001 Xolo NFT's to life.
                   </p>
                 </div>
@@ -149,12 +149,11 @@ function Home() {
                 </div>
                 <div className="service-content text-center md:text-left">
                   <h3 className="h3-default">
-                    Upcoming Mint on xrp.cafe
+                    Upcoming Mint in the xrp.cafe
                   </h3>
                   <p>
-                    Prepare your Xaman wallet and 20 XRP minimum reserve
-                    for the meaningful minting experience on the premier XRPL
-                    NFT marketplace.
+                    Prepare your Xaman wallet with recommended 20 XRP minimum reserve
+                    for the Xoloitzquintle mint on the XRPL.
                   </p>
                 </div>
               </div>
@@ -244,8 +243,8 @@ function Home() {
                   </h3>
                   <p>
                     The collection's long-term vision is to build a decentralized
-                    platform for Xolo NFT holders to enable unique
-                    wallet-to-wallet travel experiences on the XRPL.
+                    platform for Xolo NFT holders to network and sharetravel experiences, fostering global connection through
+                  wallet-to-wallet networking and person to person experiences on the XRPL.
                   </p>
                 </div>
               </div>
