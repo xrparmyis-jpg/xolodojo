@@ -250,6 +250,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const nowIso = new Date().toISOString();
       const latitude = parseOptionalNumber(nft?.latitude);
       const longitude = parseOptionalNumber(nft?.longitude);
+
+      if (latitude == null || longitude == null) {
+        return res.status(400).json({ error: 'Missing valid nft.latitude or nft.longitude' });
+      }
+
+      if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+        return res.status(400).json({ error: 'Invalid nft latitude/longitude range' });
+      }
+
       const nextPinnedNfts = existing
         ? pinnedNfts.map(item =>
             item.token_id === tokenId &&

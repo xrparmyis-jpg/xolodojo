@@ -88,6 +88,7 @@ async function setupRoutes() {
     const walletsModule = await import('./api/user/wallets.ts');
     const walletAssetsModule = await import('./api/user/wallet-assets.ts');
     const pinnedNftsModule = await import('./api/user/pinned-nfts.ts');
+    const xoloGlobePinsModule = await import('./api/user/xologlobe-pins.ts');
     const nftResourceProxyModule = await import('./api/user/nft-resource-proxy.ts');
     const walletsIdModule = await import('./api/user/wallets/[walletId].ts');
     const walletsDisconnectModule =
@@ -101,6 +102,7 @@ async function setupRoutes() {
       typeof walletAssetsModule.default
     );
     console.log('PinnedNfts handler loaded:', typeof pinnedNftsModule.default);
+    console.log('XoloGlobePins handler loaded:', typeof xoloGlobePinsModule.default);
     console.log(
       'NftResourceProxy handler loaded:',
       typeof nftResourceProxyModule.default
@@ -120,6 +122,7 @@ async function setupRoutes() {
       vercelToExpress(walletAssetsModule.default)
     );
     app.all('/api/user/pinned-nfts', vercelToExpress(pinnedNftsModule.default));
+    app.all('/api/user/xologlobe-pins', vercelToExpress(xoloGlobePinsModule.default));
     app.all(
       '/api/user/nft-resource-proxy',
       vercelToExpress(nftResourceProxyModule.default)
@@ -158,6 +161,7 @@ setupRoutes()
       console.log(`   - GET/POST http://localhost:${PORT}/api/user/wallets`);
       console.log(`   - GET http://localhost:${PORT}/api/user/wallet-assets`);
       console.log(`   - GET/POST/DELETE http://localhost:${PORT}/api/user/pinned-nfts`);
+      console.log(`   - GET http://localhost:${PORT}/api/user/xologlobe-pins`);
       console.log(
         `   - GET http://localhost:${PORT}/api/user/nft-resource-proxy`
       );
