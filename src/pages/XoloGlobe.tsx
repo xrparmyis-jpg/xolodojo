@@ -1,3 +1,4 @@
+import DraggablePin from "../components/DraggablePin";
 import SectionParallaxBlobs from "../components/SectionParallaxBlobs";
 import XoloGlobePinnedMap from "../components/XoloGlobePinnedMap";
 import { useSectionParallaxOffsets } from "../hooks/useSectionParallaxOffsets";
@@ -13,6 +14,11 @@ function XoloGlobe() {
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <XoloGlobePinnedMap
                         className="relative mx-auto my-8 w-full max-w-7xl overflow-hidden rounded-lg h-90 sm:h-107.5 md:h-130 lg:h-155 xl:h-175"
+                    />
+
+                    <DraggablePin
+                        style="mapbox://styles/mapbox/standard-satellite"
+                        className="relative mx-auto mt-4 mb-8 w-full max-w-7xl overflow-hidden rounded-lg h-90 sm:h-107.5 md:h-130 lg:h-155 xl:h-175"
                     />
                 </div>
             </section>
