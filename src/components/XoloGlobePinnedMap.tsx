@@ -21,7 +21,7 @@ export default function XoloGlobePinnedMap({ className }: XoloGlobePinnedMapProp
     const [pins, setPins] = useState<XoloGlobePin[]>([]);
     const [isSpinning, setIsSpinning] = useState(true);
     const [lightPreset, setLightPreset] = useState<'day' | 'night'>('night');
-    const [mapStyleMode, setMapStyleMode] = useState<'street' | 'satellite'>('street');
+    const [mapStyleMode, setMapStyleMode] = useState<'street' | 'satellite'>('satellite');
     const [isLoading, setIsLoading] = useState(true);
     const [hasMapToken, setHasMapToken] = useState(true);
     const [loadError, setLoadError] = useState<string | null>(null);
@@ -160,11 +160,11 @@ export default function XoloGlobePinnedMap({ className }: XoloGlobePinnedMapProp
 
         map.once('style.load', () => {
             map.setFog({
-                color: 'rgb(23, 25, 35)',
-                'high-color': 'rgb(50, 56, 74)',
-                'horizon-blend': 0.08,
-                'space-color': 'rgb(6, 8, 16)',
-                'star-intensity': 0.85,
+                color: 'rgb(18, 20, 30)',
+                'high-color': 'rgb(38, 42, 56)',
+                'horizon-blend': 0.06,
+                'space-color': 'rgb(7, 8, 14)',
+                'star-intensity': 0.45,
             });
             if (mode === 'street') {
                 applyLightPreset(lightPreset);
@@ -187,7 +187,7 @@ export default function XoloGlobePinnedMap({ className }: XoloGlobePinnedMapProp
 
         const map = new mapboxgl.Map({
             container: mapContainerRef.current,
-            style: 'mapbox://styles/mapbox/standard',
+            style: 'mapbox://styles/mapbox/standard-satellite',
             attributionControl: false,
             center: [130, 35],
             zoom: 0.75,
@@ -197,32 +197,16 @@ export default function XoloGlobePinnedMap({ className }: XoloGlobePinnedMapProp
 
         map.on('style.load', () => {
             map.setFog({
-                color: 'rgb(23, 25, 35)',
-                'high-color': 'rgb(50, 56, 74)',
-                'horizon-blend': 0.08,
-                'space-color': 'rgb(6, 8, 16)',
-                'star-intensity': 0.85,
+                color: 'rgb(18, 20, 30)',
+                'high-color': 'rgb(38, 42, 56)',
+                'horizon-blend': 0.06,
+                'space-color': 'rgb(7, 8, 14)',
+                'star-intensity': 0.45,
             });
             applyLightPreset(lightPreset);
         });
 
         map.on('load', () => {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        map.easeTo({
-                            center: [position.coords.longitude, position.coords.latitude],
-                            zoom: Math.max(map.getZoom(), 1.8),
-                            duration: 1200,
-                            essential: true,
-                        });
-                    },
-                    () => {
-                    },
-                    { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 }
-                );
-            }
-
             if (spinningRef.current) {
                 spinGlobe();
             }
