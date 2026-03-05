@@ -979,9 +979,9 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                                     onLocationChange={setPinLocation}
                                     className="mt-2"
                                 />
-                                <p className="text-xs text-white/60">
+                                {/* <p className="text-xs text-white/60">
                                     Current pin: {pinLocation ? `${pinLocation.lat.toFixed(5)}, ${pinLocation.lng.toFixed(5)}` : 'Not set'}
-                                </p>
+                                </p> */}
                                 <div className="flex justify-end gap-3 pt-1">
                                     <Button
                                         onClick={() => void handleSubmitPin()}

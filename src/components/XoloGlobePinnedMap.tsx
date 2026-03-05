@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import type { Map } from 'mapbox-gl';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPause, faPlay, faPlus, faMinus, faSpinner, faSun, faMoon } from '@fortawesome/free-solid-svg-icons';
+import { faPause, faPlay, faPlus, faMinus, faSpinner, faSun, faMoon, faMap, faSatellite } from '@fortawesome/free-solid-svg-icons';
 import { getXoloGlobePins, type XoloGlobePin } from '../services/xoloGlobePinService';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || '';
@@ -112,7 +112,8 @@ export default function XoloGlobePinnedMap({ className }: XoloGlobePinnedMapProp
             const radial = Math.min(1, Math.sqrt((dx * dx) + (dy * dy)));
             const centerWeightedScale = 0.8 + (Math.pow(1 - radial, 1.35) * 0.42);
             const scale = Math.max(0.7, Math.min(1.5, zoomScale * centerWeightedScale));
-            visualElement.style.transform = `translateX(-50%) scale(${scale})`;
+            const lowerHemisphereCompensation = Math.max(0, dy) * 8;
+            visualElement.style.transform = `translateX(-50%) translateY(${lowerHemisphereCompensation}px) scale(${scale})`;
             visualElement.style.transformOrigin = '50% 100%';
         });
     };
@@ -199,7 +200,7 @@ export default function XoloGlobePinnedMap({ className }: XoloGlobePinnedMapProp
             style: 'mapbox://styles/mapbox/standard-satellite',
             attributionControl: false,
             center: [130, 35],
-            zoom: 0.75,
+            zoom: 1.15,
         });
 
         mapRef.current = map;
@@ -351,8 +352,9 @@ export default function XoloGlobePinnedMap({ className }: XoloGlobePinnedMapProp
 
                     map.easeTo({
                         center: [pin.longitude, pin.latitude],
-                        zoom: Math.max(map.getZoom(), 7.8),
-                        duration: 1250,
+                        zoom: Math.max(map.getZoom(), 6.4),
+                        duration: 1750,
+                        easing: (t) => 1 - Math.pow(1 - t, 3),
                         essential: true,
                     });
                 };
@@ -375,7 +377,10 @@ export default function XoloGlobePinnedMap({ className }: XoloGlobePinnedMapProp
                                 zoom: previousCamera.zoom,
                                 bearing: previousCamera.bearing,
                                 pitch: previousCamera.pitch,
-                                duration: 1350,
+                                duration: 1850,
+                                easing: (t) => t < 0.5
+                                    ? 4 * t * t * t
+                                    : 1 - Math.pow(-2 * t + 2, 3) / 2,
                                 essential: true,
                             });
                         }
@@ -384,7 +389,9 @@ export default function XoloGlobePinnedMap({ className }: XoloGlobePinnedMapProp
                             spinningRef.current = true;
                             setIsSpinning(true);
                             map.once('moveend', () => {
-                                spinGlobe();
+                                window.setTimeout(() => {
+                                    spinGlobe();
+                                }, 220);
                             });
                         }
 
@@ -428,76 +435,78 @@ export default function XoloGlobePinnedMap({ className }: XoloGlobePinnedMapProp
         <div className={className || 'relative'}>
             <div ref={mapContainerRef} className="h-full w-full overflow-hidden rounded-lg border border-[#36e9e424]" />
 
-            <div className="absolute left-3 top-1/2 z-20 -translate-y-1/2 overflow-hidden rounded border border-black/40 bg-black/60">
-                <button
-                    type="button"
-                    onClick={() => handleZoom('in')}
-                    className="cursor-pointer flex h-8 w-8 items-center justify-center border-b border-black/35 text-white transition-colors hover:bg-black/70 hover:text-yellow-300"
-                    title="Zoom in"
-                    aria-label="Zoom in"
-                >
-                    <FontAwesomeIcon icon={faPlus} className="text-xs" />
-                </button>
-
-                <button
-                    type="button"
-                    onClick={() => handleZoom('out')}
-                    className="cursor-pointer flex h-8 w-8 items-center justify-center border-b border-black/35 text-white transition-colors hover:bg-black/70 hover:text-yellow-300"
-                    title="Zoom out"
-                    aria-label="Zoom out"
-                >
-                    <FontAwesomeIcon icon={faMinus} className="text-xs" />
-                </button>
-
-                <button
-                    type="button"
-                    onClick={handleToggleSpin}
-                    className="cursor-pointer flex h-8 w-8 items-center justify-center border-b border-black/35 text-white transition-colors hover:bg-black/70 hover:text-yellow-300"
-                    title={isSpinning ? 'Pause globe rotation' : 'Start globe rotation'}
-                    aria-label={isSpinning ? 'Pause globe rotation' : 'Start globe rotation'}
-                >
-                    <FontAwesomeIcon icon={isSpinning ? faPause : faPlay} className="text-xs" />
-                </button>
-
+            <div className="absolute left-3 top-3 z-20 inline-flex overflow-hidden rounded-md border border-black/15 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
                 <button
                     type="button"
                     onClick={() => applyLightPreset('day')}
-                    className={`group cursor-pointer flex h-8 w-8 items-center justify-center border-b border-black/35 ${lightPreset === 'day' ? 'bg-black text-yellow-300' : 'bg-transparent text-white ring-1 ring-inset ring-black/45 hover:bg-white/15 hover:text-yellow-300'}`}
+                    className={`group flex h-8 w-8 cursor-pointer items-center justify-center border-r border-black/15 bg-white transition-colors ${lightPreset === 'day' ? 'text-yellow-600' : 'text-black hover:text-yellow-600'}`}
                     title="Day"
                     aria-label="Day"
                 >
-                    <FontAwesomeIcon icon={faSun} className="text-xs" />
+                    <FontAwesomeIcon icon={faSun} className="text-sm" />
                 </button>
 
                 <button
                     type="button"
                     onClick={() => applyLightPreset('night')}
-                    className={`group cursor-pointer flex h-8 w-8 items-center justify-center ${lightPreset === 'night' ? 'bg-black text-yellow-300' : 'bg-transparent text-white ring-1 ring-inset ring-black/45 hover:bg-white/15 hover:text-yellow-300'}`}
+                    className={`group flex h-8 w-8 cursor-pointer items-center justify-center bg-white transition-colors ${lightPreset === 'night' ? 'text-yellow-600' : 'text-black hover:text-yellow-600'}`}
                     title="Night"
                     aria-label="Night"
                 >
-                    <FontAwesomeIcon icon={faMoon} className="text-xs" />
+                    <FontAwesomeIcon icon={faMoon} className="text-sm" />
                 </button>
             </div>
 
-            <div className="absolute right-3 top-3 z-20 inline-flex overflow-hidden rounded border border-black/40 bg-black/55 text-[10px] leading-none text-white">
+            <div className="absolute left-3 top-1/2 z-20 -translate-y-1/2 overflow-hidden rounded-md border border-black/15 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
+                <button
+                    type="button"
+                    onClick={() => handleZoom('in')}
+                    className="flex h-8 w-8 cursor-pointer items-center justify-center border-b border-black/15 bg-white text-black/85 transition-colors hover:text-yellow-600"
+                    title="Zoom in"
+                    aria-label="Zoom in"
+                >
+                    <FontAwesomeIcon icon={faPlus} className="text-sm" />
+                </button>
+
+                <button
+                    type="button"
+                    onClick={() => handleZoom('out')}
+                    className="flex h-8 w-8 cursor-pointer items-center justify-center border-b border-black/15 bg-white text-black/85 transition-colors hover:text-yellow-600"
+                    title="Zoom out"
+                    aria-label="Zoom out"
+                >
+                    <FontAwesomeIcon icon={faMinus} className="text-sm" />
+                </button>
+
+                <button
+                    type="button"
+                    onClick={handleToggleSpin}
+                    className={`flex h-8 w-8 cursor-pointer items-center justify-center bg-white transition-colors ${isSpinning ? 'text-yellow-600' : 'text-black hover:text-yellow-600'}`}
+                    title={isSpinning ? 'Pause globe rotation' : 'Start globe rotation'}
+                    aria-label={isSpinning ? 'Pause globe rotation' : 'Start globe rotation'}
+                >
+                    <FontAwesomeIcon icon={isSpinning ? faPause : faPlay} className="text-xs" />
+                </button>
+            </div>
+
+            <div className="absolute right-3 top-3 z-20 inline-flex overflow-hidden rounded-md border border-black/15 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.35)] text-black">
                 <button
                     type="button"
                     onClick={() => handleStyleMode('street')}
-                    className={`cursor-pointer h-6 px-2 transition-colors ${mapStyleMode === 'street' ? 'bg-black/80 text-white' : 'bg-transparent text-white/85 hover:bg-black/60 hover:text-yellow-300'}`}
+                    className={`flex h-8 w-8 cursor-pointer items-center justify-center bg-white transition-colors ${mapStyleMode === 'street' ? 'text-yellow-600' : 'text-black/85 hover:text-yellow-600'}`}
                     title="Street"
                     aria-label="Street"
                 >
-                    Map
+                    <FontAwesomeIcon icon={faMap} className="text-xs" />
                 </button>
                 <button
                     type="button"
                     onClick={() => handleStyleMode('satellite')}
-                    className={`cursor-pointer h-6 border-l border-black/35 px-2 transition-colors ${mapStyleMode === 'satellite' ? 'bg-black/80 text-white' : 'bg-transparent text-white/85 hover:bg-black/60 hover:text-yellow-300'}`}
+                    className={`flex h-8 w-8 cursor-pointer items-center justify-center border-l border-black/15 bg-white transition-colors ${mapStyleMode === 'satellite' ? 'text-yellow-600' : 'text-black/85 hover:text-yellow-600'}`}
                     title="Satellite"
                     aria-label="Satellite"
                 >
-                    Sat
+                    <FontAwesomeIcon icon={faSatellite} className="text-xs" />
                 </button>
             </div>
 

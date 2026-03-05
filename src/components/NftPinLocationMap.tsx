@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import type { LngLatLike, Map } from 'mapbox-gl';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faLocationArrow } from '@fortawesome/free-solid-svg-icons';
+import { faLocationArrow, faSpinner } from '@fortawesome/free-solid-svg-icons';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || '';
 
@@ -31,6 +31,7 @@ export default function NftPinLocationMap({ onLocationChange, initialLocation = 
     const [searchText, setSearchText] = useState('');
     const [searchResults, setSearchResults] = useState<SearchFeature[]>([]);
     const [hasMapToken, setHasMapToken] = useState(true);
+    const [isLocatingUser, setIsLocatingUser] = useState(!initialLocation);
 
     const accessToken = useMemo(() => import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || '', []);
 
@@ -66,6 +67,7 @@ export default function NftPinLocationMap({ onLocationChange, initialLocation = 
     const tryCenterOnUser = () => {
         const map = mapRef.current;
         if (!map || !navigator.geolocation) {
+            setIsLocatingUser(false);
             return;
         }
 
@@ -73,9 +75,11 @@ export default function NftPinLocationMap({ onLocationChange, initialLocation = 
             (position) => {
                 const lng = position.coords.longitude;
                 const lat = position.coords.latitude;
+                setIsLocatingUser(false);
                 setMarkerAt(lng, lat, true);
             },
             () => {
+                setIsLocatingUser(false);
                 // Best effort only; no-op if user denies permission.
             },
             { enableHighAccuracy: true, timeout: 8000 }
@@ -126,9 +130,6 @@ export default function NftPinLocationMap({ onLocationChange, initialLocation = 
         const navControl = new mapboxgl.NavigationControl({ showCompass: false, visualizePitch: false });
         map.addControl(navControl, 'top-left');
 
-        const fullscreenControl = new mapboxgl.FullscreenControl();
-        map.addControl(fullscreenControl, 'top-left');
-
         const geolocateControl = new mapboxgl.GeolocateControl({
             positionOptions: { enableHighAccuracy: true },
             trackUserLocation: false,
@@ -136,7 +137,7 @@ export default function NftPinLocationMap({ onLocationChange, initialLocation = 
             showAccuracyCircle: true,
         });
         geolocateControlRef.current = geolocateControl;
-        map.addControl(geolocateControl, 'bottom-left');
+        map.addControl(geolocateControl, 'top-left');
 
         geolocateControl.on('geolocate', (event: GeolocationPosition) => {
             setMarkerAt(event.coords.longitude, event.coords.latitude, true);
@@ -147,10 +148,14 @@ export default function NftPinLocationMap({ onLocationChange, initialLocation = 
         });
 
         map.on('load', () => {
-            tryCenterOnUser();
             if (initialLocation) {
                 setMarkerAt(initialLocation.lng, initialLocation.lat, false);
+                setIsLocatingUser(false);
+                return;
             }
+
+            setIsLocatingUser(true);
+            tryCenterOnUser();
         });
 
         return () => {
@@ -257,6 +262,15 @@ export default function NftPinLocationMap({ onLocationChange, initialLocation = 
             </div>
 
             <div ref={mapContainerRef} className="h-[420px] w-full overflow-hidden rounded-lg border border-white/20" />
+
+            {isLocatingUser && (
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 top-[58px] flex items-center justify-center rounded-lg bg-black/35 backdrop-blur-[1px]">
+                    <div className="inline-flex items-center gap-2 rounded-md border border-white/25 bg-black/70 px-3 py-2 text-xs text-white">
+                        <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
+                        Locating you...
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
