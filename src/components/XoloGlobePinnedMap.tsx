@@ -18,6 +18,15 @@ export default function XoloGlobePinnedMap({ className }: XoloGlobePinnedMapProp
     const markerElementsRef = useRef<Array<{ marker: mapboxgl.Marker; visualElement: HTMLDivElement }>>([]);
     const spinningRef = useRef(true);
     const userInteractingRef = useRef(false);
+    const popupFocusActiveRef = useRef(false);
+    const spinningBeforePopupRef = useRef(false);
+    const popupRestoreTimerRef = useRef<number | null>(null);
+    const prePopupCameraRef = useRef<{
+        center: [number, number];
+        zoom: number;
+        bearing: number;
+        pitch: number;
+    } | null>(null);
     const [pins, setPins] = useState<XoloGlobePin[]>([]);
     const [isSpinning, setIsSpinning] = useState(true);
     const [lightPreset, setLightPreset] = useState<'day' | 'night'>('night');
@@ -311,9 +320,77 @@ export default function XoloGlobePinnedMap({ className }: XoloGlobePinnedMapProp
                 markerVisualElement.style.cursor = 'pointer';
                 markerElement.appendChild(markerVisualElement);
 
-                const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
+                const popup = new mapboxgl.Popup({ offset: 68, className: 'xolo-globe-popup' }).setHTML(
                     `<h2>${pin.title || `NFT ${pin.token_id.slice(0, 8)}...`}</h2>${pin.collection_name || 'Xolo NFT'}<br/>${pin.latitude.toFixed(5)}, ${pin.longitude.toFixed(5)}`
                 );
+
+                const focusOnPin = () => {
+                    if (popupRestoreTimerRef.current != null) {
+                        window.clearTimeout(popupRestoreTimerRef.current);
+                        popupRestoreTimerRef.current = null;
+                    }
+
+                    if (!popupFocusActiveRef.current) {
+                        const currentCenter = map.getCenter();
+                        prePopupCameraRef.current = {
+                            center: [currentCenter.lng, currentCenter.lat],
+                            zoom: map.getZoom(),
+                            bearing: map.getBearing(),
+                            pitch: map.getPitch(),
+                        };
+                    }
+
+                    popupFocusActiveRef.current = true;
+                    spinningBeforePopupRef.current = spinningRef.current;
+
+                    if (spinningRef.current) {
+                        spinningRef.current = false;
+                        setIsSpinning(false);
+                        map.stop();
+                    }
+
+                    map.easeTo({
+                        center: [pin.longitude, pin.latitude],
+                        zoom: Math.max(map.getZoom(), 7.8),
+                        duration: 1250,
+                        essential: true,
+                    });
+                };
+
+                popup.on('open', focusOnPin);
+
+                popup.on('close', () => {
+                    popupRestoreTimerRef.current = window.setTimeout(() => {
+                        if (document.querySelector('.mapboxgl-popup')) {
+                            return;
+                        }
+
+                        popupFocusActiveRef.current = false;
+                        const previousCamera = prePopupCameraRef.current;
+                        prePopupCameraRef.current = null;
+
+                        if (previousCamera) {
+                            map.easeTo({
+                                center: previousCamera.center,
+                                zoom: previousCamera.zoom,
+                                bearing: previousCamera.bearing,
+                                pitch: previousCamera.pitch,
+                                duration: 1350,
+                                essential: true,
+                            });
+                        }
+
+                        if (spinningBeforePopupRef.current) {
+                            spinningRef.current = true;
+                            setIsSpinning(true);
+                            map.once('moveend', () => {
+                                spinGlobe();
+                            });
+                        }
+
+                        spinningBeforePopupRef.current = false;
+                    }, 40);
+                });
 
                 const marker = new mapboxgl.Marker({
                     element: markerElement,

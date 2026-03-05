@@ -36,3 +36,27 @@ footer a:hover {
 .h3-default {
   @apply text-xl md:text-2xl font-bold mb-3;
 }
+
+.xolo-globe-popup .mapboxgl-popup-content {
+  padding: 10px 14px;
+  min-width: 170px;
+  font-size: 15px;
+  line-height: 1.35;
+  border: 1px solid #ffffff;
+}
+
+.xolo-globe-popup .mapboxgl-popup-close-button {
+  font-size: 18px;
+  color: rgba(88, 88, 88, 0.92);
+  right: 6px;
+  top: 1px;
+}
+
+.xolo-globe-popup .mapboxgl-popup-close-button:hover {
+  color: rgba(64, 64, 64, 1);
+}
+
+.xolo-globe-popup.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip {
+  border-top-color: #ffffff;
+  margin-top: -1px;
+}
