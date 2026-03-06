@@ -74,7 +74,7 @@ function GsapPageHeading({
 
             if (accentParts.length > 0) {
                 timeline.fromTo(
-                    ".accent-word",
+                    ".accent-item",
                     { autoAlpha: 0, y: 14, scale: 0.9, transformOrigin: "50% 50%" },
                     {
                         autoAlpha: 1,
@@ -84,6 +84,18 @@ function GsapPageHeading({
                         ease: "power3.out",
                         stagger: 0.08,
                         force3D: true,
+                    },
+                    "-=0.82"
+                );
+
+                timeline.fromTo(
+                    ".accent-word",
+                    { color: "#ffffff" },
+                    {
+                        color: "#b7e9f7",
+                        duration: 0.36,
+                        ease: "power3.out",
+                        stagger: 0.08,
                     },
                     "-=0.82"
                 );
@@ -115,8 +127,9 @@ function GsapPageHeading({
                         <br />
                         <span className="inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
                             {accentParts.map((part, index) => (
-                                <span key={`${part}-${index}`} className="accent-word inline-block opacity-0 text-[0.8em] md:text-[0.78em]">
-                                    {index < accentParts.length - 1 ? `${part},` : part}
+                                <span key={`${part}-${index}`} className="accent-item inline-flex items-baseline opacity-0 text-[0.8em] md:text-[0.78em]">
+                                    <span className="accent-word inline-block">{part}</span>
+                                    {index < accentParts.length - 1 ? <span className="accent-comma inline-block text-white">,</span> : null}
                                 </span>
                             ))}
                         </span>
