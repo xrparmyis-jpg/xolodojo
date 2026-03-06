@@ -11,15 +11,7 @@ function Mint() {
             <section
                 className="relative bg-[url('/Pattern.png')] bg-cover bg-center bg-no-repeat pt-16 pb-4 md:pt-30 border-b border-[#36e9e424]"
             >
-                <div className="container mx-auto max-w-7xl px-4">
-                    <div className="flex flex-col items-center text-center">
-                        <GsapHeroParallax
-                            imageSrc="/paralax-bg.png"
-                            alt="Xoloitzquintle Mint Hero"
-                            className="mb-10"
-                        />
-                    </div>
-                </div>
+
             </section>
 
             <section ref={sectionRef} className="relative overflow-hidden py-8 lg:py-12 bg-[var(--bg)]">
@@ -43,13 +35,24 @@ function Mint() {
                             Claim Your Sacred Guide from the collection of 10,001 Unique XRPL NFTs hand-drawn with deep Mesoamerican roots, featuring 7 distinct traits + 217 sub-traits by RedShadow.
                             Built on the eco-friendly XRP Ledger: fast transactions, low fees, no gas wars.
                         </p>
-                        <p className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.4s_forwards] mb-4">
+                        <p className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.5s_forwards] mb-4">
                             Mint Status: Coming Soon
-                            Launching on the premier XRPL marketplace: xrp.cafe
-                            Exact date, price, and any allowlist details TBA — stay tuned via @XoloDojo and xolodojo.io.
-                            Prepare now to own your loyal Xolo guardian and unlock the XoloGlobe: a token-gated world map for holders to connect, share locations, plan travel swaps, and build community IRL.
+                            Launching on the premier XRPL marketplace, the xrp.cafe.
+                            Exact date, price, and allowlist details TBA — stay tuned via @XoloDojo and xolodojo.io.
+                            Prepare now to own your loyal Xolo guardian and unlock the XoloGlobe: a token-gated world map for holders to connect, share locations, plan travel swaps, and build community IRL.  
                         </p>
-
+                        <p className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.6s_forwards] mb-4">
+                            One Mint, One NFT, One Pin at a time
+                        </p>
+                <div className="container mx-auto max-w-7xl px-4">
+                    <div className="flex flex-col items-center text-center">
+                        <GsapHeroParallax
+                            imageSrc="/paralax-bg.png"
+                            alt="Xoloitzquintle Mint Hero"
+                            className="mb-10"
+                        />
+                    </div>
+                </div>
                         <h3 className="text-2xl md:text-3xl font-bold mb-4 mt-8 text-[#28aae4]">
                             Prepare to Mint – 4 Simple Steps
                         </h3>
@@ -75,8 +78,7 @@ function Mint() {
                                         <strong className="text-[#f7eab7]">Fund with XRP (Minimum 20+ Recommended)</strong>
                                     </span>
                                     <p className="mt-2">
-                                        The XRP Ledger requires a base reserve (around 10–20 XRP depending on features) plus extra for fees and trust lines.
-                                        Send at least 20 XRP to your wallet to cover:
+                                        The XRP Ledger requires a base reserve of 1 XRP to interact with it, with nominal fees for transactions and minting. To ensure a smooth minting experience, we recommend having at least 20 XRP in your wallet to cover all costs and potential fluctuations.
                                     </p>
                                     <ul className="list-items mt-2 ml-4">
                                         <li>

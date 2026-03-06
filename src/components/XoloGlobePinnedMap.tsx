@@ -435,11 +435,11 @@ export default function XoloGlobePinnedMap({ className }: XoloGlobePinnedMapProp
         <div className={className || 'relative'}>
             <div ref={mapContainerRef} className="h-full w-full overflow-hidden rounded-lg border border-[#36e9e424]" />
 
-            <div className="absolute left-3 top-3 z-20 inline-flex overflow-hidden rounded-md border border-black/15 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
+            <div className="absolute left-3 top-3 z-20 inline-flex overflow-hidden rounded-md border border-black/15 bg-[#8989a312] shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
                 <button
                     type="button"
                     onClick={() => applyLightPreset('day')}
-                    className={`group flex h-8 w-8 cursor-pointer items-center justify-center border-r border-black/15 bg-white transition-colors ${lightPreset === 'day' ? 'text-yellow-600' : 'text-black hover:text-yellow-600'}`}
+                    className={`group flex h-8 w-8 cursor-pointer items-center justify-center border-r border-black/15 bg-[#8989a312] transition-colors ${lightPreset === 'day' ? 'text-[#C9E8E9]' : 'text-black hover:text-[#C9E8E9]'}`}
                     title="Day"
                     aria-label="Day"
                 >
@@ -449,7 +449,7 @@ export default function XoloGlobePinnedMap({ className }: XoloGlobePinnedMapProp
                 <button
                     type="button"
                     onClick={() => applyLightPreset('night')}
-                    className={`group flex h-8 w-8 cursor-pointer items-center justify-center bg-white transition-colors ${lightPreset === 'night' ? 'text-yellow-600' : 'text-black hover:text-yellow-600'}`}
+                    className={`group flex h-8 w-8 cursor-pointer items-center justify-center bg-[#8989a312] transition-colors ${lightPreset === 'night' ? 'text-[#C9E8E9]' : 'text-black hover:text-[#C9E8E9]'}`}
                     title="Night"
                     aria-label="Night"
                 >
@@ -457,11 +457,11 @@ export default function XoloGlobePinnedMap({ className }: XoloGlobePinnedMapProp
                 </button>
             </div>
 
-            <div className="absolute left-3 top-1/2 z-20 -translate-y-1/2 overflow-hidden rounded-md border border-black/15 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
+            <div className="absolute left-3 top-1/2 z-20 -translate-y-1/2 overflow-hidden rounded-md border border-black/15 bg-[#8989a312] shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
                 <button
                     type="button"
                     onClick={() => handleZoom('in')}
-                    className="flex h-8 w-8 cursor-pointer items-center justify-center border-b border-black/15 bg-white text-black/85 transition-colors hover:text-yellow-600"
+                    className="flex h-8 w-8 cursor-pointer items-center justify-center border-b border-black/15 bg-[#8989a312] text-black/85 transition-colors hover:text-[#C9E8E9]"
                     title="Zoom in"
                     aria-label="Zoom in"
                 >
@@ -471,7 +471,7 @@ export default function XoloGlobePinnedMap({ className }: XoloGlobePinnedMapProp
                 <button
                     type="button"
                     onClick={() => handleZoom('out')}
-                    className="flex h-8 w-8 cursor-pointer items-center justify-center border-b border-black/15 bg-white text-black/85 transition-colors hover:text-yellow-600"
+                    className="flex h-8 w-8 cursor-pointer items-center justify-center border-b border-black/15 bg-[#8989a312] text-black/85 transition-colors hover:text-[#C9E8E9]"
                     title="Zoom out"
                     aria-label="Zoom out"
                 >
@@ -481,7 +481,7 @@ export default function XoloGlobePinnedMap({ className }: XoloGlobePinnedMapProp
                 <button
                     type="button"
                     onClick={handleToggleSpin}
-                    className={`flex h-8 w-8 cursor-pointer items-center justify-center bg-white transition-colors ${isSpinning ? 'text-yellow-600' : 'text-black hover:text-yellow-600'}`}
+                    className={`flex h-8 w-8 cursor-pointer items-center justify-center bg-[#8989a312] transition-colors ${isSpinning ? 'text-[#C9E8E9]' : 'text-black hover:text-[#C9E8E9]'}`}
                     title={isSpinning ? 'Pause globe rotation' : 'Start globe rotation'}
                     aria-label={isSpinning ? 'Pause globe rotation' : 'Start globe rotation'}
                 >
@@ -489,11 +489,11 @@ export default function XoloGlobePinnedMap({ className }: XoloGlobePinnedMapProp
                 </button>
             </div>
 
-            <div className="absolute right-3 top-3 z-20 inline-flex overflow-hidden rounded-md border border-black/15 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.35)] text-black">
+            <div className="absolute right-3 top-3 z-20 inline-flex overflow-hidden rounded-md border border-black/15 bg-[#8989a312] shadow-[0_2px_8px_rgba(0,0,0,0.35)] text-black">
                 <button
                     type="button"
                     onClick={() => handleStyleMode('street')}
-                    className={`flex h-8 w-8 cursor-pointer items-center justify-center bg-white transition-colors ${mapStyleMode === 'street' ? 'text-yellow-600' : 'text-black/85 hover:text-yellow-600'}`}
+                    className={`flex h-8 w-8 cursor-pointer items-center justify-center bg-[#8989a312] transition-colors ${mapStyleMode === 'street' ? 'text-[#C9E8E9]' : 'text-black/85 hover:text-[#C9E8E9]'}`}
                     title="Street"
                     aria-label="Street"
                 >
@@ -502,7 +502,7 @@ export default function XoloGlobePinnedMap({ className }: XoloGlobePinnedMapProp
                 <button
                     type="button"
                     onClick={() => handleStyleMode('satellite')}
-                    className={`flex h-8 w-8 cursor-pointer items-center justify-center border-l border-black/15 bg-white transition-colors ${mapStyleMode === 'satellite' ? 'text-yellow-600' : 'text-black/85 hover:text-yellow-600'}`}
+                    className={`flex h-8 w-8 cursor-pointer items-center justify-center border-l border-black/15 bg-[#8989a312] transition-colors ${mapStyleMode === 'satellite' ? 'text-[#C9E8E9]' : 'text-black/85 hover:text-[#C9E8E9]'}`}
                     title="Satellite"
                     aria-label="Satellite"
                 >

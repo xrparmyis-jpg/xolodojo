@@ -1,4 +1,5 @@
-import PageTitle from "../components/PageTitle";
+import GsapHeroParallax from "../components/GsapHeroParallax";
+import GsapPageHeading from "../components/GsapPageHeading";
 import SectionParallaxBlobs from "../components/SectionParallaxBlobs";
 import { useSectionParallaxOffsets } from "../hooks/useSectionParallaxOffsets";
 
@@ -10,27 +11,23 @@ function Vision() {
             <section
                 className="relative bg-[url('/Pattern.png')] bg-cover bg-center bg-no-repeat pt-16 pb-4 md:pt-30 border-b border-[#36e9e424]"
             >
-                <div className="container mx-auto max-w-7xl px-4">
-                    <div className="flex flex-col items-center text-center">
-                        <div className="mb-8">
-                            <PageTitle title="The Vision" />
-                        </div>
-                        <div className="mb-10">
-                            <img src="/04a.png" alt="" className="max-h-56 w-auto rounded-md object-contain md:max-h-80" />
-                        </div>
-                    </div>
-                </div>
             </section>
-
             <section ref={sectionRef} className="relative overflow-hidden py-8 lg:py-12 bg-[var(--bg)]">
                 <SectionParallaxBlobs
                     bgShapeOffset={bgShapeOffset}
                     colorBgOffset={colorBgOffset}
                     colorBg2Offset={colorBg2Offset}
                 />
-
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="max-w-4xl mx-auto [&_p]:text-[#decee9] [&_ul]:text-[#decee9] [&_li]:text-[#decee9] [&_li>span]:text-[#decee9]">
+                        <GsapPageHeading
+                            eyebrow="The Xoloitzquintle Collection"
+                            heading="A Sacred Legacy of"
+                            accent="Art, Culture, & XRPL"
+                            iconType="star"
+                            iconCount={1}
+                            centered
+                        />
                         <p className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.3s_forwards] mb-6">
                             Our vision is to build a vibrant, global network of Xolo NFT holders united through digital
                             innovation and real-world networking. Central to this is XoloGlobe, our token-gated interactive
@@ -41,7 +38,15 @@ function Vision() {
                             Xoloitzquintle as a sacred protector, healer, and guide of souls, thereby enriching the XRPL
                             ecosystem for future generations.
                         </p>
-
+                        <div className="container mx-auto max-w-7xl px-4">
+                            <div className="flex flex-col items-center text-center">
+                                <GsapHeroParallax
+                                    imageSrc="/paralax-bg.png"
+                                    alt="Xoloitzquintle Mint Hero"
+                                    className="mb-10"
+                                />
+                            </div>
+                        </div>
                         <div className="flex flex-col">
                             <div>
                                 <h3 className="mb-4 text-2xl font-bold text-[#28aae4] md:text-3xl">Global Connection Opportunities</h3>
