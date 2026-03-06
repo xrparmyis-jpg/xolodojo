@@ -1,4 +1,5 @@
-import PageTitle from "../components/PageTitle";
+import GsapPageHeading from "../components/GsapPageHeading";
+import GsapHeroParallax from "../components/GsapHeroParallax";
 import SectionParallaxBlobs from "../components/SectionParallaxBlobs";
 import { useSectionParallaxOffsets } from "../hooks/useSectionParallaxOffsets";
 
@@ -12,12 +13,11 @@ function Mint() {
             >
                 <div className="container mx-auto max-w-7xl px-4">
                     <div className="flex flex-col items-center text-center">
-                        <div className="mb-8">
-                            <PageTitle title="The Mint" />
-                        </div>
-                        <div className="mb-10">
-                            <img src="/04a.png" alt="" className="max-h-56 w-auto rounded-md object-contain md:max-h-80" />
-                        </div>
+                        <GsapHeroParallax
+                            imageSrc="/paralax-bg.png"
+                            alt="Xoloitzquintle Mint Hero"
+                            className="mb-10"
+                        />
                     </div>
                 </div>
             </section>
@@ -31,13 +31,14 @@ function Mint() {
 
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="max-w-4xl mx-auto [&_p]:text-[#decee9] [&_ul]:text-[#decee9] [&_li]:text-[#decee9] [&_li>span]:text-[#decee9]">
-                        <div className="section-title text-center">
-                            <PageTitle title="The Xoloitzquintle Collection" animate delay={0} iconType="star" iconCount={1} centered />
-                            <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 opacity-0 animate-[fadeInUp_0.6s_ease-out_0.3s_forwards]">
-                                The Xoloitzquintle Mint <br />
-                                <span>Art, Culture, &amp; XRPL</span>
-                            </h2>
-                        </div>
+                        <GsapPageHeading
+                            eyebrow="The Xoloitzquintle Collection"
+                            heading="The Xoloitzquintle Mint"
+                            accent="Art, Culture, & XRPL"
+                            iconType="star"
+                            iconCount={1}
+                            centered
+                        />
                         <p className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.5s_forwards] mb-4">
                             Claim Your Sacred Guide from the collection of 10,001 Unique XRPL NFTs hand-drawn with deep Mesoamerican roots, featuring 7 distinct traits + 217 sub-traits by RedShadow.
                             Built on the eco-friendly XRP Ledger: fast transactions, low fees, no gas wars.
