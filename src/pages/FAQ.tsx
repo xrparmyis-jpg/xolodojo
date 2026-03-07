@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import PageTitle from '../components/PageTitle';
 import GsapPageSubHeading from '../components/GsapPageSubHeading';
 
 const faqItems = [

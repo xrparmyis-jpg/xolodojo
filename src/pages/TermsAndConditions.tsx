@@ -2,10 +2,10 @@ import GsapHeroParallax from "../components/GsapHeroParallax";
 import GsapPageContent from "../components/GsapPageContent";
 import GsapPageSubHeading from "../components/GsapPageSubHeading";
 //import SectionParallaxBlobs from "../components/SectionParallaxBlobs";
-import { useSectionParallaxOffsets } from "../hooks/useSectionParallaxOffsets";
+//import { useSectionParallaxOffsets } from "../hooks/useSectionParallaxOffsets";
 
 function TermsAndConditions() {
-  const { sectionRef, bgShapeOffset, colorBgOffset, colorBg2Offset } = useSectionParallaxOffsets();
+  //const { sectionRef, bgShapeOffset, colorBgOffset, colorBg2Offset } = useSectionParallaxOffsets();
 
   return (
     <>
@@ -13,7 +13,9 @@ function TermsAndConditions() {
         className="relative bg-[url('/Pattern.png')] bg-cover bg-center bg-no-repeat pt-16 pb-4 md:pt-30 border-b border-[#36e9e424]"
       >
       </section>
-      <section ref={sectionRef} className="relative overflow-hidden py-8 lg:py-12 bg-[var(--bg)]">
+      <section
+        //ref={sectionRef}
+        className="relative overflow-hidden py-8 lg:py-12 bg-[var(--bg)]">
         {/* <SectionParallaxBlobs
           bgShapeOffset={bgShapeOffset}
           colorBgOffset={colorBgOffset}
