@@ -32,27 +32,27 @@ function Mint() {
                             centered
                         />
                         <p className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.5s_forwards] mb-4">
-                            Claim Your Sacred Guide from the collection of 10,001 Unique XRPL NFTs hand-drawn with deep Mesoamerican roots, featuring 7 distinct traits + 217 sub-traits by RedShadow.
+                            Claim Your Sacred Guide from the collection of 10,001 Unique Xoloitzquintle XRPL NFTs. Featuring 11 Traits and 311 subtraits, each individually hand-drawn by crypto artist RedShadow.
                             Built on the eco-friendly XRP Ledger: fast transactions, low fees, no gas wars.
                         </p>
                         <p className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.5s_forwards] mb-4">
                             Mint Status: Coming Soon
                             Launching on the premier XRPL marketplace, the xrp.cafe.
                             Exact date, price, and allowlist details TBA — stay tuned via @XoloDojo and xolodojo.io.
-                            Prepare now to own your loyal Xolo guardian and unlock the XoloGlobe: a token-gated world map for holders to connect, share locations, plan travel swaps, and build community IRL.  
+                            Prepare now to own your loyal Xolo guardian and unlock the XoloGlobe: a token-gated world map for holders to connect, share locations, plan travel swaps, and build community IRL.
                         </p>
                         <p className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.6s_forwards] mb-4">
                             One Mint, One NFT, One Pin at a time
                         </p>
-                <div className="container mx-auto max-w-7xl px-4">
-                    <div className="flex flex-col items-center text-center">
-                        <GsapHeroParallax
-                            imageSrc="/paralax-bg.png"
-                            alt="Xoloitzquintle Mint Hero"
-                            className="mb-10"
-                        />
-                    </div>
-                </div>
+                        <div className="container mx-auto max-w-7xl px-4">
+                            <div className="flex flex-col items-center text-center">
+                                <GsapHeroParallax
+                                    imageSrc="/paralax-bg.png"
+                                    alt="Xoloitzquintle Mint Hero"
+                                    className="mb-10"
+                                />
+                            </div>
+                        </div>
                         <h3 className="text-2xl md:text-3xl font-bold mb-4 mt-8 text-[#28aae4]">
                             Prepare to Mint – 4 Simple Steps
                         </h3>
