@@ -1,4 +1,6 @@
 import GsapPageHeading from "../components/GsapPageHeading";
+import GsapPageContent from "../components/GsapPageContent";
+import GsapPageSubHeading from "../components/GsapPageSubHeading";
 import GsapHeroParallax from "../components/GsapHeroParallax";
 import SectionParallaxBlobs from "../components/SectionParallaxBlobs";
 import { useSectionParallaxOffsets } from "../hooks/useSectionParallaxOffsets";
@@ -31,32 +33,29 @@ function Mint() {
                             iconCount={1}
                             centered
                         />
-                        <p className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.5s_forwards] mb-4">
+                        <GsapPageContent as="p" className="mb-4">
                             Claim Your Sacred Guide from the collection of 10,001 Unique XRPL NFTs hand-drawn with deep Mesoamerican roots, featuring 7 distinct traits + 217 sub-traits by RedShadow.
                             Built on the eco-friendly XRP Ledger: fast transactions, low fees, no gas wars.
-                        </p>
-                        <p className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.5s_forwards] mb-4">
+                        </GsapPageContent>
+                        <GsapPageContent as="p" className="mb-4" delay={0.06}>
                             Mint Status: Coming Soon
                             Launching on the premier XRPL marketplace, the xrp.cafe.
                             Exact date, price, and allowlist details TBA — stay tuned via @XoloDojo and xolodojo.io.
-                            Prepare now to own your loyal Xolo guardian and unlock the XoloGlobe: a token-gated world map for holders to connect, share locations, plan travel swaps, and build community IRL.  
-                        </p>
-                        <p className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.6s_forwards] mb-4">
+                            Prepare now to own your loyal Xolo guardian and unlock the XoloGlobe: a token-gated world map for holders to connect, share locations, plan travel swaps, and build community IRL.
+                        </GsapPageContent>
+                        <GsapPageContent as="p" className="mb-4" delay={0.1}>
                             One Mint, One NFT, One Pin at a time
-                        </p>
-                <div className="container mx-auto max-w-7xl px-4">
-                    <div className="flex flex-col items-center text-center">
-                        <GsapHeroParallax
-                            imageSrc="/paralax-bg.png"
-                            alt="Xoloitzquintle Mint Hero"
-                            className="mb-10"
-                        />
-                    </div>
-                </div>
-                        <h3 className="text-2xl md:text-3xl font-bold mb-4 mt-8 text-[#28aae4]">
-                            Prepare to Mint – 4 Simple Steps
-                        </h3>
-                        <div className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.4s_forwards]">
+                        </GsapPageContent>
+                        <div className="container mx-auto max-w-7xl px-4">                            <div className="flex flex-col items-center text-center">
+                            <GsapHeroParallax
+                                imageSrc="/paralax-bg.png"
+                                alt="Xoloitzquintle Mint Hero"
+                                className="mb-10"
+                            />
+                        </div>
+                        </div>
+                        <GsapPageSubHeading heading="Prepare to Mint – 4 Simple Steps" />
+                        <GsapPageContent>
                             <ul className="list-items">
                                 <li>
                                     <span>
@@ -99,7 +98,7 @@ function Mint() {
                                     </span>
                                     <ul className="list-items mt-2 ml-4">
                                         <li>
-                                            Go to https://xrp.cafe
+                                            Go to <a href="https://xrp.cafe" target="_blank" rel="noopener noreferrer" className="text-[#b7e9f7] hover:text-white transition-all duration-300 ease-in-out no-underline hover:no-underline">XRP Cafe</a>
                                         </li>
                                         <li>
                                             Click "Connect Wallet" → Choose your XRPL wallet → Sign the secure request.
@@ -129,10 +128,10 @@ function Mint() {
                                     </ul>
                                 </li>
                             </ul>
-                        </div>
-                        <div className="mt-10 flex justify-center opacity-0 animate-[fadeInUp_0.6s_ease-out_0.3s_forwards]">
+                        </GsapPageContent>
+                        <GsapPageContent className="mt-10 flex justify-center" delay={0.06}>
                             <img src="/xrp-cafe-mint.png" alt="img" className="w-full max-w-md rounded-md" />
-                        </div>
+                        </GsapPageContent>
                     </div>
                 </div>
             </section>
