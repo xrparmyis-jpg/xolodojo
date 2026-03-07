@@ -1,4 +1,3 @@
-import PageTitle from "../components/PageTitle";
 import SectionParallaxBlobs from "../components/SectionParallaxBlobs";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
