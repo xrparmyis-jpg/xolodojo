@@ -91,13 +91,13 @@ function GsapPageSubHeading({ heading, className = "" }: GsapPageSubHeadingProps
     );
 
     return (
-        <div ref={containerRef} className={`mt-8 mb-4 flex items-center gap-2 ${className}`}>
+        <div ref={containerRef} className={`mb-4 flex w-full items-center justify-center gap-2 ${className}`}>
             <img
                 src="/has.png"
                 alt="subheading icon"
-                className="subheading-icon w-6 h-6 md:w-7 md:h-7 opacity-0"
+                className="subheading-icon w-5 h-5 md:w-6 md:h-6 opacity-0"
             />
-            <h3 ref={headingRef} className="text-2xl md:text-3xl font-bold leading-tight opacity-0">
+            <h3 ref={headingRef} className="text-2xl md:text-3xl font-bold leading-tight text-center opacity-0">
                 {headingLetters.map((letter, index) => (
                     <span key={`${letter}-${index}`} className="subheading-letter inline-block opacity-0" aria-hidden="true">
                         {letter === " " ? "\u00A0" : letter}

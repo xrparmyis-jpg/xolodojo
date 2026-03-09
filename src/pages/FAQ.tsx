@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import PageTitle from '../components/PageTitle';
+import GsapPageSubHeading from '../components/GsapPageSubHeading';
 
 const faqItems = [
   {
@@ -46,59 +46,59 @@ function FAQ() {
         <div className="container mx-auto max-w-7xl px-4">
           <div className="flex flex-col items-center text-center">
             <div className="mb-8">
-              <PageTitle title="FAQ" />
-            </div>
-            <div className="mb-10">
               <img src="/04a.png" alt="" className="max-h-56 w-auto rounded-md object-contain md:max-h-80" />
-            </div>
-          </div>
-          <div className="mx-auto max-w-4xl [&_p]:text-[#decee9]">
-            <h2 className="mb-6 text-2xl font-bold text-[#28aae4] md:text-3xl">
-              Frequently Asked Questions
-            </h2>
-            <div className="divide-y divide-white/20 overflow-hidden rounded-xl border border-[#decee9]/20 bg-black/70 mb-4">
-              {faqItems.map((item) => {
-                const isOpen = openId === item.id;
-                return (
-                  <div key={item.id} className="bg-black/20 first:rounded-t-xl last:rounded-b-xl overflow-hidden">
-                    <h3>
-                      <button
-                        type="button"
-                        onClick={() => setOpenId(isOpen ? null : item.id)}
-                        className="cursor-pointer flex w-full items-center justify-between gap-4 py-4 px-5 text-left text-base font-medium text-[#61f7fe] transition-colors hover:bg-black/50 md:text-lg"
-                        aria-expanded={isOpen}
-                        aria-controls={`${item.id}-body`}
-                        id={`${item.id}-head`}
-                      >
-                        {item.question}
-                        <span
-                          className={`shrink-0 text-xl text-white/80 transition-transform duration-100 ${isOpen ? 'rotate-180' : ''}`}
-                          aria-hidden
-                        >
-                          ▼
-                        </span>
-                      </button>
-                    </h3>
-                    <div
-                      id={`${item.id}-body`}
-                      role="region"
-                      aria-labelledby={`${item.id}-head`}
-                      hidden={!isOpen}
-                      className="overflow-hidden fade-in-up-visible"
-                    >
-                      <div className="border-t border-white/20 bg-white/5 px-5 pb-4 pt-2">
-                        <p className="text-sm leading-relaxed text-white/90 md:text-base">
-                          {item.answer}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
             </div>
           </div>
         </div>
       </section>
+
+      <section
+        //ref={sectionRef}
+        className="relative overflow-hidden py-8 lg:py-12 bg-(--bg)"
+      >
+        <div className="mx-auto max-w-4xl [&_p]:text-[#decee9]">
+          <GsapPageSubHeading heading="Frequently Asked Questions" />
+          <div className="mt-8 divide-y divide-white/20 overflow-hidden rounded-xl border border-[#decee9]/20 bg-black/70 mb-4">
+            {faqItems.map((item) => {
+              const isOpen = openId === item.id;
+              return (
+                <div key={item.id} className="bg-black/20 first:rounded-t-xl last:rounded-b-xl overflow-hidden">
+                  <h3>
+                    <button
+                      type="button"
+                      onClick={() => setOpenId(isOpen ? null : item.id)}
+                      className="cursor-pointer flex w-full items-center justify-between gap-4 py-4 px-5 text-left text-base font-medium text-[#61f7fe] transition-colors hover:bg-black/50 md:text-lg"
+                      aria-expanded={isOpen}
+                      aria-controls={`${item.id}-body`}
+                      id={`${item.id}-head`}
+                    >
+                      {item.question}
+                      <span
+                        className={`shrink-0 text-xl text-white/80 transition-transform duration-100 ${isOpen ? 'rotate-180' : ''}`}
+                        aria-hidden
+                      >
+                        ▼
+                      </span>
+                    </button>
+                  </h3>
+                  <div
+                    id={`${item.id}-body`}
+                    role="region"
+                    aria-labelledby={`${item.id}-head`}
+                    hidden={!isOpen}
+                    className="overflow-hidden fade-in-up-visible"
+                  >
+                    <div className="border-t border-white/20 bg-white/5 px-5 pb-4 pt-2">
+                      <p className="text-sm leading-relaxed text-white/90 md:text-base">
+                        {item.answer}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>  </section>
     </>
   );
 }

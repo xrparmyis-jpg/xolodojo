@@ -77,3 +77,51 @@ footer a:hover {
   font-size: 18px;
   font-weight: 700;
 }
+
+.mapbox-pin-controls .mapboxgl-ctrl-group {
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  border-radius: 0.375rem;
+  overflow: hidden;
+  background: rgba(30, 34, 52, 0.72);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.mapbox-pin-controls .mapboxgl-ctrl-group button {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+  background: rgba(30, 34, 52, 0.72);
+  color: rgba(0, 0, 0, 0.85);
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.mapbox-pin-controls .mapboxgl-ctrl-group .mapboxgl-ctrl-icon {
+  filter: brightness(0) saturate(100%) invert(72%) sepia(10%) saturate(318%) hue-rotate(175deg) brightness(96%) contrast(92%);
+  transition: filter 0.2s ease;
+}
+
+.mapbox-pin-controls .mapboxgl-ctrl-group button:last-child {
+  border-bottom: 0;
+}
+
+.mapbox-pin-controls .mapboxgl-ctrl-group button:hover,
+.mapbox-pin-controls .mapboxgl-ctrl-group button:focus-visible {
+  background: rgba(30, 34, 52, 0.82);
+  color: #c9e8e9;
+}
+
+.mapbox-pin-controls .mapboxgl-ctrl-group button:hover .mapboxgl-ctrl-icon,
+.mapbox-pin-controls .mapboxgl-ctrl-group button:focus-visible .mapboxgl-ctrl-icon,
+.mapbox-pin-controls .mapboxgl-ctrl-group button.mapboxgl-ctrl-geolocate-active .mapboxgl-ctrl-icon,
+.mapbox-pin-controls .mapboxgl-ctrl-group button.mapboxgl-ctrl-geolocate-waiting .mapboxgl-ctrl-icon,
+.mapbox-pin-controls .mapboxgl-ctrl-group button.mapboxgl-ctrl-geolocate-active-error .mapboxgl-ctrl-icon {
+  filter: brightness(0) saturate(100%) invert(89%) sepia(10%) saturate(568%) hue-rotate(138deg) brightness(101%) contrast(93%);
+}
+
+.mapbox-pin-controls .mapboxgl-ctrl-group button.mapboxgl-ctrl-geolocate-active,
+.mapbox-pin-controls .mapboxgl-ctrl-group button.mapboxgl-ctrl-geolocate-waiting,
+.mapbox-pin-controls .mapboxgl-ctrl-group button.mapboxgl-ctrl-geolocate-active-error {
+  color: #c9e8e9;
+}
+

@@ -1,4 +1,4 @@
-import SectionParallaxBlobs from "../components/SectionParallaxBlobs";
+//import SectionParallaxBlobs from "../components/SectionParallaxBlobs";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faDiscord,
@@ -8,8 +8,8 @@ import {
     faTelegram,
 } from "@fortawesome/free-brands-svg-icons";
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
-import { useSectionParallaxOffsets } from "../hooks/useSectionParallaxOffsets";
 import GsapPageHeading from "../components/GsapPageHeading";
+import GsapSocialLinks from "../components/GsapSocialLinks";
 
 interface Owner {
     id: number;
@@ -35,10 +35,10 @@ const owners: Owner[] = [
         email: "xrparmyis@gmail.com",
         socials: {
             twitter: "https://x.com/XoloDojo",
-            discord: "#",
-            tiktok: "#",
-            instagram: "#",
-            telegram: "#",
+            discord: "https://x.com/XoloDojo",
+            tiktok: "https://x.com/XoloDojo",
+            instagram: "https://x.com/XoloDojo",
+            telegram: "https://x.com/XoloDojo",
         },
     },
     {
@@ -88,7 +88,7 @@ function OwnerCard({ owner }: { owner: Owner }) {
             <p className="text-sm md:text-base mb-4">
                 {owner.title}
             </p>
-            <div className="flex items-center gap-2">
+            <GsapSocialLinks>
                 {isValidLink(owner.email) && (
                     <a
                         href={`mailto:${owner.email}`}
@@ -155,13 +155,13 @@ function OwnerCard({ owner }: { owner: Owner }) {
                         <FontAwesomeIcon icon={faTelegram} size="sm" />
                     </a>
                 )}
-            </div>
+            </GsapSocialLinks>
         </div>
     );
 }
 
 function Team() {
-    const { sectionRef, bgShapeOffset, colorBgOffset, colorBg2Offset } = useSectionParallaxOffsets();
+    //const { sectionRef, bgShapeOffset, colorBgOffset, colorBg2Offset } = useSectionParallaxOffsets();
 
     return (
         <div className="[&_p]:text-[#decee9] [&_ul]:text-[#decee9] [&_li]:text-[#decee9] [&_li>span]:text-[#decee9]">
@@ -178,7 +178,7 @@ function Team() {
                 />
                 <div className="container mx-auto max-w-7xl px-4">
                     <div className="flex flex-col items-center text-center my-8">
-                        <div className="mt-10 grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-10">
+                        <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-10">
                             {owners.map((owner) => (
                                 <OwnerCard key={owner.id} owner={owner} />
                             ))}
@@ -188,93 +188,81 @@ function Team() {
             </section>
 
             <section
-                ref={sectionRef}
+                //ref={sectionRef}
                 className="relative overflow-hidden py-8 lg:py-12 bg-(--bg)"
             >
-                <SectionParallaxBlobs
+                {/* <SectionParallaxBlobs
                     bgShapeOffset={bgShapeOffset}
                     colorBgOffset={colorBgOffset}
                     colorBg2Offset={colorBg2Offset}
-                />
+                /> */}
 
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="max-w-4xl mx-auto">
                         <div className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.3s_forwards] mb-8">
-                            <p className="mb-7">
+                            <p className="mb-4 text-center">
                                 United by culture, art, and crypto, we're forging XoloDojo and XoloGlobe: a token-gated global tribe for trust, travel, skill-sharing, and real-world adventures.
                             </p>
                         </div>
 
                         <div className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.5s_forwards] mt-8">
-                            <h3 className="text-2xl md:text-3xl font-bold text-[#28aae4]">
+                            <h3 className="text-2xl text-center md:text-left md:text-3xl font-bold text-[#28aae4]">
                                 Cryptonite
                             </h3>
-                            <h4 className="text-lg md:text-xl font-semibold text-[#642ff8] mb-4">
+                            <h4 className="text-lg text-center md:text-left md:text-xl font-semibold text-[#642ff8] mb-4">
                                 Founder & Visionary Explorer
                             </h4>
-                            <div className="grid grid-cols-1 md:grid-cols-[226px_1fr] gap-6 pt-4">
-                                <div className="shrink-0">
-                                    <img src="/xolo-nft-showcase-01.png" alt="Cryptonite" className="w-full max-w-56.5 rounded-sm" />
-                                </div>
-                                <div className="flex flex-col justify-start">
-                                    <p className="text-justify">
-                                        Cryptonite is a nomadic, blockchain-agnostic digital pirate who's been sailing the Cryptocurrenseas since 2016,
-                                        with footprints in 34 countries that have shaped a deep appreciation for diverse cultures and meaningful connections.
-                                        A proud XRP Army member marching forward with bullish conviction, he's the creator behind The Xoloitzquintle
-                                        Collection on the XRPL — fusing ancient Mesoamerican reverence for the sacred Xoloitzquintle with modern
-                                        innovation and genuine shared experiences. He's laying the foundation for XoloGlobe: a global, member-built
-                                        dojo for trust, travel, skill-sharing, and soul-guided adventures — all powered by XoloDojo.
-                                        Own a XoloNFT and join the voyage. If you ain't bullish, you're walking the plank.
-                                    </p>
-                                </div>
+                            <div>
+                                <img src="/xolo-nft-showcase-01.png" alt="Cryptonite" className="float-left mr-6 mb-3 mt-2 w-[148px] max-w-[45vw] rounded-md" />
+                                <p className="text-justify">
+                                    Cryptonite is a nomadic, blockchain-agnostic digital pirate who's been sailing the Cryptocurrenseas since 2016,
+                                    with footprints in 34 countries that have shaped a deep appreciation for diverse cultures and meaningful connections.
+                                    A proud XRP Army member marching forward with bullish conviction, he's the creator behind The Xoloitzquintle
+                                    Collection on the XRPL — fusing ancient Mesoamerican reverence for the sacred Xoloitzquintle with modern
+                                    innovation and genuine shared experiences. He's laying the foundation for XoloGlobe: a global, member-built
+                                    dojo for trust, travel, skill-sharing, and soul-guided adventures — all powered by XoloDojo.
+                                    Own a XoloNFT and join the voyage. If you ain't bullish, you're walking the plank.
+                                </p>
                             </div>
                         </div>
 
                         <div className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.7s_forwards] mt-8">
-                            <h3 className="text-2xl md:text-3xl font-bold text-[#28aae4]">
+                            <h3 className="text-2xl text-center md:text-left md:text-3xl font-bold text-[#28aae4]">
                                 RedShadow
                             </h3>
-                            <h4 className="text-lg md:text-xl font-semibold text-[#891387] mb-4">
+                            <h4 className="text-lg text-center md:text-left md:text-xl font-semibold text-[#891387] mb-4">
                                 Visionary Artist & Cultural Alchemist
                             </h4>
-                            <div className="grid grid-cols-1 md:grid-cols-[226px_1fr] gap-6 pt-4">
-                                <div className="shrink-0">
-                                    <img src="/xolo-nft-showcase-01.png" alt="RedShadow" className="w-full max-w-56.5 rounded-sm" />
-                                </div>
-                                <div className="flex flex-col justify-start">
-                                    <p className="text-justify">
-                                        RedShadow is the visionary artist breathing life into The Xoloitzquintle Collection. With a masterful eye for
-                                        detail and deep respect for Mesoamerican heritage, RedShadow crafts each of the 10,001 unique XoloNFTs as
-                                        sacred digital guardians — blending timeless cultural symbolism with striking, evocative designs that honor
-                                        the Xoloitzquintle's role as a spiritual companion and soul guide. Teaming with Cryptonite, RedShadow's
-                                        artistry forms the visual heart of XoloDojo and XoloGlobe, inviting holders into a world where ancient
-                                        legacy meets modern community and real-world reciprocity.
-                                    </p>
-                                </div>
+                            <div>
+                                <img src="/xolo-nft-showcase-01.png" alt="RedShadow" className="float-left mr-6 mb-3 mt-2 w-[148px] max-w-[45vw] rounded-md" />
+                                <p className="text-justify">
+                                    RedShadow is the visionary artist breathing life into The Xoloitzquintle Collection. With a masterful eye for
+                                    detail and deep respect for Mesoamerican heritage, RedShadow crafts each of the 10,001 unique XoloNFTs as
+                                    sacred digital guardians — blending timeless cultural symbolism with striking, evocative designs that honor
+                                    the Xoloitzquintle's role as a spiritual companion and soul guide. Teaming with Cryptonite, RedShadow's
+                                    artistry forms the visual heart of XoloDojo and XoloGlobe, inviting holders into a world where ancient
+                                    legacy meets modern community and real-world reciprocity.
+                                </p>
                             </div>
                         </div>
 
                         <div className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.9s_forwards] mt-8">
-                            <h3 className="text-2xl md:text-3xl font-bold text-[#28aae4]">
+                            <h3 className="text-2xl text-center md:text-left md:text-3xl font-bold text-[#28aae4]">
                                 Code
                             </h3>
-                            <h4 className="text-lg md:text-xl font-semibold text-[#a32ca1] mb-4">
+                            <h4 className="text-lg text-center md:text-left md:text-xl font-semibold text-[#a32ca1] mb-4">
                                 Lead Builder & Degen Architect
                             </h4>
-                            <div className="grid grid-cols-1 md:grid-cols-[226px_1fr] gap-6 pt-4">
-                                <div className="shrink-0">
-                                    <img src="/xolo-nft-showcase-01.png" alt="Code" className="w-full max-w-56.5 rounded-sm" />
-                                </div>
-                                <div className="flex flex-col justify-start">
-                                    <p className="text-justify">
-                                        Code is a battle-hardened degen from the golden Clubhouse days on Ethereum, a seasoned crypto trader with razor-sharp market instincts and hands-on building experience. Fluid in React.js and battle-tested in high-stakes web development, he's shipped name-brand websites (under NDA) for top players in the space. Now building with the Xolo pack on XRPL, Code delivers the technical backbone for XoloDojo and XoloGlobe—turning visionary ideas into seamless, secure, token-gated experiences. From smart community tools to immersive interfaces, he ensures the dojo runs smoothly, the globe connects flawlessly, and the pack thrives in Web3. Degen roots. Builder soul. Xolo loyalty.
-                                    </p>
-                                </div>
+                            <div>
+                                <img src="/xolo-nft-showcase-01.png" alt="Code" className="float-left mr-6 mb-3 mt-2 w-[148px] max-w-[45vw] rounded-md" />
+                                <p className="text-justify">
+                                    Code is a battle-hardened degen from the golden Clubhouse days on Ethereum, a seasoned crypto trader with razor-sharp market instincts and hands-on building experience. Fluid in React.js and battle-tested in high-stakes web development, he's shipped name-brand websites (under NDA) for top players in the space. Now building with the Xolo pack on XRPL, Code delivers the technical backbone for XoloDojo and XoloGlobe — turning visionary ideas into seamless, secure, token-gated experiences. From smart community tools to immersive interfaces, he ensures the dojo runs smoothly, the globe connects flawlessly, and the pack thrives in Web3. Degen roots. Builder soul. Xolo loyalty.
+                                </p>
                             </div>
                         </div>
 
                         <div className="opacity-0 animate-[fadeInUp_0.6s_ease-out_1.1s_forwards] mt-8 clear-both">
-                            <p className="mb-7">
+                            <p className="mb-4 text-center">
                                 Together, we're not just minting NFTs — we're summoning a global pack of guardians ready to explore, connect, and build the future.
                             </p>
                         </div>

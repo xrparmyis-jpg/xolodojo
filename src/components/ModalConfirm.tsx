@@ -38,14 +38,14 @@ export default function ModalConfirm({
                 <Button
                     onClick={onCancel}
                     disabled={loading}
-                    className="bg-gray-600 hover:bg-gray-700 active:bg-gray-800 text-sm"
+                    className="bg-gray-600 hover:bg-gray-700 active:bg-gray-800 text-sm font-semibold text-white/85 hover:text-white"
                 >
                     {cancelLabel}
                 </Button>
                 <Button
                     onClick={onConfirm}
                     disabled={loading}
-                    className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-sm"
+                    className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-sm font-semibold text-white/85 hover:text-white"
                 >
                     {confirmLabel}
                 </Button>

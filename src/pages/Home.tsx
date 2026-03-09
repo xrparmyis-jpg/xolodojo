@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import GsapPageHeading from "../components/GsapPageHeading";
+import { useSectionParallaxOffsets } from "../hooks/useSectionParallaxOffsets";
+import SectionParallaxBlobs from "../components/SectionParallaxBlobs";
 
 function Home() {
   const parallaxRef = useRef<HTMLDivElement>(null);
@@ -9,6 +11,8 @@ function Home() {
   const [parallaxOffset, setParallaxOffset] = useState(0);
   const [projectBlobOffset, setProjectBlobOffset] = useState(0);
   const lastScrollY = useRef(0);
+
+  const { sectionRef, bgShapeOffset, colorBgOffset, colorBg2Offset } = useSectionParallaxOffsets();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -67,7 +71,7 @@ function Home() {
   return (
     <>
       <section
-        className="hero-secton hero-1 bg-cover"
+        className="hero-secton hero-1 bg-cover border-b border-[#36e9e424]"
         style={{ backgroundImage: "url('/hero-bg-3.png')" }}
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -87,7 +91,13 @@ function Home() {
         ></div>
       </section>
 
-      <section className="service-section fix py-8 lg:py-12">
+      <section
+        ref={sectionRef} className="relative overflow-hidden fix py-4 lg:py-12">
+        <SectionParallaxBlobs
+          bgShapeOffset={bgShapeOffset}
+          colorBgOffset={colorBgOffset}
+          colorBg2Offset={colorBg2Offset}
+        />
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <GsapPageHeading
             eyebrow="Welcome to the XoloDojo"
@@ -165,7 +175,7 @@ function Home() {
 
       <section
         ref={projectSectionRef}
-        className="project-section fix py-8 section-bg bg-cover relative overflow-visible"
+        className="project-section fix py-8 section-bg bg-cover relative overflow-visible border-t border-[#36e9e424]"
         style={{ backgroundImage: "url('/line-shape.png')" }}
       >
         <div
@@ -257,7 +267,7 @@ function Home() {
       {/* Paralax Section Start */}
       <div
         ref={parallaxSectionRef}
-        className="paralax-section fix pt-0 overflow-hidden relative"
+        className="paralax-section fix pt-0 overflow-hidden relative border-t border-[#36e9e424]"
         style={{ height: '500px', minHeight: '500px' }}
       >
         <div

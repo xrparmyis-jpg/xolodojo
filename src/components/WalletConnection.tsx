@@ -9,6 +9,7 @@ import {
     faCopy,
     faLink,
     faLinkSlash,
+    faSpinner,
     faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 import Button from './Button';
@@ -447,15 +448,22 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
         [wallets]
     );
 
+    const isInteractionBlocked = isLoading || isAssetsLoading || isWalletConnectPending;
+    const loadingLabel = isAssetsLoading
+        ? 'Loading wallet summary...'
+        : isWalletConnectPending
+            ? 'Connecting wallet...'
+            : 'Loading...';
+    const shouldUseSummaryMinHeight = isAssetsLoading || ((connectedWalletAssets?.nft_count ?? 0) > 0);
+
     return (
-        <div className="w-full p-6 bg-black/30 rounded-lg mt-4">
+        <div className="relative w-full p-6 bg-black/30 rounded-lg mt-4">
             <div className="flex justify-between items-center mb-4">
                 <h4 className="text-white text-lg">
                     My Wallets {wallets.length > 0 && <span className="text-white/70 text-sm ml-2">({wallets.length})</span>}
                 </h4>
             </div>
 
-            {/* Wallets List */}
             {wallets.length > 0 ? (
                 <div className="space-y-3 mb-4">
                     {sortedWallets.map((wallet) => (
@@ -476,7 +484,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                                             type="button"
                                             onClick={() => void handleCopyWalletAddress(wallet.id, wallet.wallet_address)}
                                             title={copiedWalletId === wallet.id ? 'Copied' : 'Copy wallet address'}
-                                            className="inline-flex h-5 w-5 p-0.5 items-center justify-center rounded border border-white/35 bg-black/35 text-white/85 hover:bg-black/45 hover:text-white"
+                                            className="inline-flex h-5 w-5 p-0.5 items-center justify-center rounded border border-blue-600/35 bg-black/35 text-white/85 hover:bg-black/45 hover:text-white"
                                         >
                                             <FontAwesomeIcon
                                                 icon={copiedWalletId === wallet.id ? faCheck : faCopy}
@@ -496,7 +504,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                                         <div className="flex flex-wrap items-center gap-2">
                                             <span
                                                 className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${wallet.wallet_type === 'xaman'
-                                                    ? 'bg-purple-900/60 text-purple-200 border border-purple-500/40'
+                                                    ? 'bg-[#0030cf]/90 text-white/90 border border-white/40'
                                                     : wallet.wallet_type === 'walletconnect'
                                                         ? 'bg-emerald-900/60 text-emerald-200 border border-emerald-500/40'
                                                         : 'bg-blue-900/60 text-blue-200 border border-blue-500/40'
@@ -508,7 +516,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                                                         ? 'WalletConnect'
                                                         : wallet.wallet_type}
                                             </span>
-                                            <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-white/10 text-white/80 border border-white/20">
+                                            <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-green-600/70 text-white/80 border border-white/40">
                                                 {getConnectionChannel(wallet.wallet_type)}
                                             </span>
                                         </div>
@@ -521,7 +529,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                                                 onClick={() => handleDisconnect()}
                                                 disabled={isLoading}
                                                 title="Disconnect wallet"
-                                                className="w-9 h-9 p-0 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-xs"
+                                                className="w-8 h-8 p-0 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-md text-white/85 hover:text-white"
                                             >
                                                 <FontAwesomeIcon icon={faLinkSlash} className="cursor-pointer" />
                                                 <span className="sr-only">Disconnect wallet</span>
@@ -533,7 +541,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                                                 }}
                                                 title="Remove wallet from profile"
                                                 disabled={isLoading}
-                                                className="w-9 h-9 p-0 bg-red-600 hover:bg-red-700 active:bg-red-800 text-xs"
+                                                className="cursor-pointer inline-flex h-8 w-8 items-center justify-center rounded-md bg-red-600/60 text-white/85 hover:bg-red-600/40 hover:text-white"
                                             >
                                                 <FontAwesomeIcon icon={faXmark} className="cursor-pointer" />
                                                 <span className="sr-only">Remove wallet</span>
@@ -545,7 +553,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                                                 onClick={() => handleConnectExisting(wallet.id)}
                                                 disabled={isLoading}
                                                 title="Connect wallet"
-                                                className="w-9 h-9 p-0 bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+                                                className="w-8 h-8 p-0 bg-green-600 hover:bg-green-700 active:bg-green-800 disabled:opacity-50 disabled:cursor-not-allowed text-md text-white/85 hover:text-white"
                                             >
                                                 <FontAwesomeIcon icon={faLink} className="cursor-pointer" />
                                                 <span className="sr-only">Connect wallet</span>
@@ -557,7 +565,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                                                 }}
                                                 title="Remove wallet from profile"
                                                 disabled={isLoading}
-                                                className="w-9 h-9 p-0 bg-red-600 hover:bg-red-700 active:bg-red-800 text-xs"
+                                                className="cursor-pointer inline-flex h-8 w-8 items-center justify-center rounded-md bg-red-600/60 text-white/85 hover:bg-red-600/40 hover:text-white"
                                             >
                                                 <FontAwesomeIcon icon={faXmark} className="cursor-pointer" />
                                                 <span className="sr-only">Remove wallet</span>
@@ -621,7 +629,6 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                 document.body
             )}
 
-            {/* Add/Connect Wallet Button */}
             <Button
                 onClick={() => {
                     setShowAddWalletModal(true);
@@ -638,18 +645,17 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                 )}
             </Button>
 
-            <div className="mt-4 rounded-lg border border-white/10 bg-black/20 p-4">
+            <div className={`mt-4 rounded-lg border border-white/10 bg-black/20 p-4 ${shouldUseSummaryMinHeight ? 'min-h-[300px]' : ''}`}>
                 {!connectedWallet ? (
                     <p className="text-white/50 text-sm">No wallet currently connected.</p>
                 ) : isAssetsLoading ? (
-                    <p className="text-white/60 text-sm">Loading wallet summary...</p>
+                    <p className="hidden text-white/60 text-sm">Loading wallet summary...</p>
                 ) : assetsError ? (
                     <p className="text-red-300 text-sm">Wallet summary unavailable: {assetsError}</p>
                 ) : connectedWalletAssets ? (
                     <div className="space-y-3 text-sm text-white/85">
                         <div className="flex items-start justify-between gap-3">
                             <p>
-                                {/* XRP Balance: <span className="font-semibold text-white">{connectedWalletAssets.xrp_balance ?? 'N/A'}</span><br /> */}
                                 NFTs Found: <span className="font-semibold text-white">{connectedWalletAssets.nft_count}</span>
                             </p>
                             <button
@@ -657,7 +663,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                                 onClick={() => void refreshConnectedWalletAssets()}
                                 disabled={!connectedWallet || isAssetsLoading || isLoading}
                                 title="Refresh connected wallet summary"
-                                className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-white/20 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="inline-flex h-7 w-7 items-center justify-center cursor-pointer rounded-md border border-white/20 bg-white/15 text-white/70 hover:bg-white/10 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <FontAwesomeIcon
                                     icon={faArrowsRotate}
@@ -680,6 +686,15 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                     <p className="text-white/50 text-sm">No wallet summary available.</p>
                 )}
             </div>
+
+            {isInteractionBlocked && (
+                <div className="absolute inset-0 z-40 flex items-center justify-center rounded-lg bg-black/55 backdrop-blur-[1px]">
+                    <div className="inline-flex items-center gap-2 rounded-md border border-white/20 bg-black/75 px-3 py-2 text-sm text-white">
+                        <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
+                        <span>{loadingLabel}</span>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

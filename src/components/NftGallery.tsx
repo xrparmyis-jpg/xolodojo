@@ -31,7 +31,6 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
     const [copiedFieldKey, setCopiedFieldKey] = useState<string | null>(null);
     const [pinnedTokenIds, setPinnedTokenIds] = useState<string[]>([]);
     const [pinTargetTokenId, setPinTargetTokenId] = useState<string | null>(null);
-    const [pinFlowStep, setPinFlowStep] = useState<'instructions' | 'submit'>('instructions');
     const [pendingUnpinTokenId, setPendingUnpinTokenId] = useState<string | null>(null);
     const [isPinActionLoading, setIsPinActionLoading] = useState(false);
     const [isSelectedNftImageLoaded, setIsSelectedNftImageLoaded] = useState(false);
@@ -611,17 +610,13 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
         || 'Unknown Collection'
         : '';
 
-    const hasAnyPinned = pinnedTokenIds.length > 0;
-
     const openPinModalForNft = (tokenId: string) => {
         setPinTargetTokenId(tokenId);
-        setPinFlowStep(hasAnyPinned ? 'submit' : 'instructions');
         setPinLocation(null);
     };
 
     const closePinModal = () => {
         setPinTargetTokenId(null);
-        setPinFlowStep('instructions');
         setPinLocation(null);
     };
 
@@ -822,7 +817,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                                         openPinModalForNft(nft.token_id);
                                     }}
                                     title={isPinned ? 'Remove NFT pin' : 'Pin NFT'}
-                                    className={`cursor-pointer absolute bottom-4 right-3 inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/20 transition-colors hover:text-sky-500 hover:bg-black/55 ${isPinned ? 'bg-black/45 text-sky-500' : 'bg-black/35 text-white/55'}`.trim()}
+                                    className={`cursor-pointer absolute bottom-4 right-3 inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/20 transition-colors hover:border-green-400 hover:text-sky-600 hover:bg-green-600/55 ${isPinned ? 'bg-green-600/55 border-green-400 hover:text-white/55 hover:bg-black/35! text-sky-600 hover:border-white/20!' : 'bg-black/35 text-white/55'}`.trim()}
                                 >
                                     <FontAwesomeIcon icon={faThumbtack} className="text-sm" />
                                     <span className="sr-only">{isPinned ? 'Remove NFT pin' : 'Pin NFT'}</span>
@@ -953,42 +948,19 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
             >
                 {pinTargetNft && (
                     <div className="space-y-4 text-sm text-white/85">
-                        {pinFlowStep === 'instructions' ? (
-                            <>
-                                <p className="text-white/90">
-                                    Before pinning your first NFT, here is how this works.
-                                </p>
-                                <ul className="list-disc l-8 space-y-1 text-white/70">
-                                    <li>You may pin as many NFTs as you want.</li>
-                                    <li>Use the map to find your location to be used in the XoloGlobe map.</li>
-                                    <li>You may unpin an NFT at anytime.</li>
-                                </ul>
-                                <div className="flex justify-end">
-                                    <Button
-                                        onClick={() => setPinFlowStep('submit')}
-                                        className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800"
-                                    >
-                                        Continue
-                                    </Button>
-                                </div>
-                            </>
-                        ) : (
-                            <>
-                                <MapBoxPinLocation
-                                    onLocationChange={setPinLocation}
-                                    className="mt-2"
-                                />
-                                <div className="flex justify-end gap-3">
-                                    <Button
-                                        onClick={() => void handleSubmitPin()}
-                                        disabled={isPinActionLoading || !pinLocation}
-                                        className="bg-green-600 hover:bg-green-700 active:bg-green-800"
-                                    >
-                                        {isPinActionLoading ? 'Submitting' : 'Submit Pin'}
-                                    </Button>
-                                </div>
-                            </>
-                        )}
+                        <MapBoxPinLocation
+                            onLocationChange={setPinLocation}
+                            className="mt-2"
+                        />
+                        <div className="flex justify-end gap-3">
+                            <Button
+                                onClick={() => void handleSubmitPin()}
+                                disabled={isPinActionLoading || !pinLocation}
+                                className="text-white/85 font-semibold hover:text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-cyan-300 hover:shadow-lg dark:focus:ring-cyan-800 font-medium rounded-base text-sm px-4 py-2.5 text-center leading-5 transition-all duration-500 ease-out"
+                            >
+                                {isPinActionLoading ? 'Submitting' : 'Submit Pin'}
+                            </Button>
+                        </div>
                     </div>
                 )}
             </Modal>

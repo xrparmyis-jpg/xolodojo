@@ -137,7 +137,7 @@ export default function MapBoxPinLocation({ onLocationChange, initialLocation = 
             showAccuracyCircle: true,
         });
         geolocateControlRef.current = geolocateControl;
-        map.addControl(geolocateControl, 'top-left');
+        map.addControl(geolocateControl, 'top-right');
 
         geolocateControl.on('geolocate', (event: GeolocationPosition) => {
             setMarkerAt(event.coords.longitude, event.coords.latitude, true);
@@ -210,7 +210,7 @@ export default function MapBoxPinLocation({ onLocationChange, initialLocation = 
     }
 
     return (
-        <div className={className || 'relative'}>
+        <div className={`${className || 'relative'} mapbox-pin-controls`}>
             <div className="mb-2 text-xs text-white/85 backdrop-blur-sm">
                 <div className="flex items-center gap-2">
                     <input

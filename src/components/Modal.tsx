@@ -53,7 +53,7 @@ export default function Modal({
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="cursor-pointer inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/20 bg-red-600/40 text-white/80 hover:bg-red-600/60 hover:text-white"
+                                className="cursor-pointer inline-flex h-8 w-8 items-center justify-center rounded-md bg-red-600/60 text-white/85 hover:bg-red-600/40 hover:text-white"
                                 aria-label="Close modal"
                             >
                                 <FontAwesomeIcon icon={faXmark} />

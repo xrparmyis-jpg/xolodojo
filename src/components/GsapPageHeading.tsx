@@ -121,19 +121,18 @@ function GsapPageHeading({
                 </span>
             </div>
             <h2 ref={headingRef} className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 opacity-0">
-                {heading}
+                <span className="block">{heading}</span>
                 {accent ? (
-                    <>
-                        <br />
-                        <span className="inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
-                            {accentParts.map((part, index) => (
-                                <span key={`${part}-${index}`} className="accent-item inline-flex items-baseline opacity-0 text-[0.8em] md:text-[0.78em]">
-                                    <span className="accent-word inline-block">{part}</span>
-                                    {index < accentParts.length - 1 ? <span className="accent-comma inline-block text-white">,</span> : null}
-                                </span>
-                            ))}
-                        </span>
-                    </>
+                    <span
+                        className={`mt-1 inline-flex w-full flex-wrap items-center gap-x-2 gap-y-1 ${centered ? "justify-center" : "justify-start"}`}
+                    >
+                        {accentParts.map((part, index) => (
+                            <span key={`${part}-${index}`} className="accent-item inline-flex items-baseline opacity-0 text-[0.8em] md:text-[0.78em]">
+                                <span className="accent-word inline-block">{part}</span>
+                                {index < accentParts.length - 1 ? <span className="accent-comma inline-block text-white">,</span> : null}
+                            </span>
+                        ))}
+                    </span>
                 ) : null}
             </h2>
         </div>

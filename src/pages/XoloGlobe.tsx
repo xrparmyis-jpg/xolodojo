@@ -1,6 +1,7 @@
 import SectionParallaxBlobs from "../components/SectionParallaxBlobs";
 import MapBoxXoloGlobe from "../components/MapBoxXoloGlobe";
 import { useSectionParallaxOffsets } from "../hooks/useSectionParallaxOffsets";
+import GsapPageSubHeading from "../components/GsapPageSubHeading";
 
 function XoloGlobe() {
     const { sectionRef, bgShapeOffset, colorBgOffset, colorBg2Offset } = useSectionParallaxOffsets();
@@ -10,16 +11,16 @@ function XoloGlobe() {
             <section
                 className="relative bg-[url('/Pattern.png')] bg-cover bg-center bg-no-repeat pt-16 pb-4 md:pt-30 border-b border-[#36e9e424]"
             >
-                <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="container mx-auto mb-8 px-4 sm:px-6 lg:px-8">
                     <MapBoxXoloGlobe
-                        className="relative mx-auto my-8 w-full max-w-7xl overflow-hidden rounded-lg h-90 sm:h-107.5 md:h-130 lg:h-155 xl:h-175"
+                        className="relative mx-auto my-4 w-full max-w-7xl overflow-hidden rounded-lg h-90 sm:h-107.5 md:h-130 lg:h-155 xl:h-175"
                     />
                 </div>
             </section>
 
             <section
                 ref={sectionRef}
-                className="relative overflow-hidden py-8 lg:py-12 bg-[var(--bg)]"
+                className="relative overflow-hidden py-4 lg:py-12 bg-[var(--bg)]"
             >
                 <SectionParallaxBlobs
                     bgShapeOffset={bgShapeOffset}
@@ -30,9 +31,7 @@ function XoloGlobe() {
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="max-w-4xl mx-auto [&_p]:text-[#decee9] [&_ul]:text-[#decee9] [&_li]:text-[#decee9] [&_li>span]:text-[#decee9]">
                         <div className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.3s_forwards]">
-                            <h2 className="text-2xl md:text-3xl font-bold mb-4 text-[#28aae4]">
-                                The living map of our global community
-                            </h2>
+                            <GsapPageSubHeading heading="The living map of our global community" />
                             <p className="mb-7 text-justify text-white/90">
                                 Inside the Xolo Dojo, the XoloGlobe comes alive on
                                 an interactive, Mapbox-powered world map. Verified

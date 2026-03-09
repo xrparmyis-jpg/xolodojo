@@ -81,7 +81,7 @@ function Profile() {
     }
 
     return (
-        <section className="service-section fix section-padding">
+        <section className="fix pt-16 pb-4 md:pt-30 mb-4">
             <div className="container mx-auto px-4 max-w-7xl">
                 <div className="flex flex-wrap -mx-4 justify-center">
                     <div className="w-full lg:w-5/6 xl:w-4/5 px-4">

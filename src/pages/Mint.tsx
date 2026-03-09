@@ -50,7 +50,7 @@ function Mint() {
                             <GsapHeroParallax
                                 imageSrc="/paralax-bg.png"
                                 alt="Xoloitzquintle Mint Hero"
-                                className="mb-10"
+                                className="mb-8"
                             />
                         </div>
                         </div>
