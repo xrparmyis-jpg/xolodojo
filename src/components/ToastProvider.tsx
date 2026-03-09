@@ -24,13 +24,23 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const showToast = useCallback(
-        (type: ToastType, message: string, durationMs = 3000) => {
+        (type: ToastType, message: string, durationMs?: number) => {
             const id = Date.now() + Math.floor(Math.random() * 1000);
             setToasts((current) => [...current, { id, type, message }]);
 
+            const timeoutMs = typeof durationMs === 'number'
+                ? durationMs
+                : type === 'success'
+                    ? 3000
+                    : null;
+
+            if (timeoutMs == null) {
+                return;
+            }
+
             window.setTimeout(() => {
                 removeToast(id);
-            }, durationMs);
+            }, timeoutMs);
         },
         [removeToast]
     );

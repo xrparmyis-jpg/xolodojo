@@ -7,11 +7,10 @@ import {
   faReddit,
   faXTwitter,
 } from "@fortawesome/free-brands-svg-icons";
+import SectionBlobs from "./SectionBlobs";
 
 function Footer() {
   const footerRef = useRef<HTMLElement>(null);
-  const greenBlobRef = useRef<HTMLDivElement>(null);
-  const orangeBlobRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [greenBlobOffset, setGreenBlobOffset] = useState(0);
   const [orangeBlobOffset, setOrangeBlobOffset] = useState(0);
@@ -78,27 +77,10 @@ function Footer() {
       ref={footerRef}
       className="border-t border-[#36e9e424] relative overflow-hidden py-4 lg:py-8 bg-[var(--bg)]"
     >
-      {/* Green blob - left side */}
-      <div
-        ref={greenBlobRef}
-        className="absolute left-0 top-[5%] z-0 hidden pointer-events-none brightness-[1.2] xl:block will-change-transform transition-transform duration-100 ease-out"
-        style={{
-          transform: `translateY(${greenBlobOffset}px)`,
-        }}
-      >
-        <img src="/color-bg-shape.png" alt="Green blob" className="w-full h-full" />
-      </div>
-
-      {/* Orange blob - right side */}
-      <div
-        ref={orangeBlobRef}
-        className="absolute right-[30px] top-[-155px] z-0 hidden pointer-events-none animate-[rounded_5s_linear_infinite] brightness-[1.2] xl:block will-change-transform transition-transform duration-100 ease-out"
-        style={{
-          transform: `translateY(${orangeBlobOffset}px)`,
-        }}
-      >
-        <img src="/color-bg-shape-2.png" alt="Orange blob" className="w-full h-full" />
-      </div>
+      <SectionBlobs
+        greenBlobOffset={greenBlobOffset}
+        orangeBlobOffset={orangeBlobOffset}
+      />
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* XRPL Resources Section */}

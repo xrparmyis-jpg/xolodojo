@@ -1,4 +1,3 @@
-import PageTitle from "../components/PageTitle";
 import SectionParallaxBlobs from "../components/SectionParallaxBlobs";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -10,6 +9,7 @@ import {
 } from "@fortawesome/free-brands-svg-icons";
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import { useSectionParallaxOffsets } from "../hooks/useSectionParallaxOffsets";
+import GsapPageHeading from "../components/GsapPageHeading";
 
 interface Owner {
     id: number;
@@ -168,6 +168,14 @@ function Team() {
             <section
                 className="relative bg-[url('/Pattern.png')] bg-cover bg-center bg-no-repeat pt-16 pb-4 md:pt-30 border-b border-[#36e9e424]"
             >
+                <GsapPageHeading
+                    eyebrow="Welcome to the XoloDojo"
+                    heading="A Sacred Legacy of"
+                    accent="Art, Culture, & XRPL"
+                    iconType="star"
+                    iconCount={1}
+                    centered
+                />
                 <div className="container mx-auto max-w-7xl px-4">
                     <div className="flex flex-col items-center text-center my-8">
                         <div className="mt-10 grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-10">
@@ -192,13 +200,6 @@ function Team() {
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="max-w-4xl mx-auto">
                         <div className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.3s_forwards] mb-8">
-                                  <div className="section-title text-center">
-                                    <PageTitle title="The Xoloitzquintle Collection" animate delay={0} iconType="star" iconCount={1} centered />
-                                    <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 opacity-0 animate-[fadeInUp_0.6s_ease-out_0.3s_forwards]">
-                                      A Sacred Legacy of <br />
-                                      <span>Art, Culture, &amp; XRPL</span>
-                                    </h2>
-                                  </div>
                             <p className="mb-7">
                                 United by culture, art, and crypto, we're forging XoloDojo and XoloGlobe: a token-gated global tribe for trust, travel, skill-sharing, and real-world adventures.
                             </p>

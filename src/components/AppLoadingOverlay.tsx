@@ -4,7 +4,7 @@ interface AppLoadingOverlayProps {
     isVisible: boolean;
 }
 
-const loadingLetters = "XOLOITZQINTLE".split("");
+const loadingLetters = "XOLOITZQUINTLE".split("");
 const mobileBlindColumns = Array.from({ length: 6 }, (_, index) => index);
 const desktopBlindColumns = Array.from({ length: 10 }, (_, index) => index);
 

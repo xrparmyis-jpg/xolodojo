@@ -18,6 +18,19 @@ interface WalletResponse {
   message?: string;
 }
 
+interface ApiErrorBody {
+  error?: string;
+  details?: string;
+}
+
+function toApiErrorMessage(status: number, body: ApiErrorBody): string {
+  const baseMessage = body.error || `HTTP error! status: ${status}`;
+  if (body.details) {
+    return `${baseMessage} (${body.details})`;
+  }
+  return baseMessage;
+}
+
 /**
  * Get all wallets for a user
  */
@@ -38,10 +51,10 @@ export async function getUserWallets(
     );
 
     if (!response.ok) {
-      const error = await response
+      const error = (await response
         .json()
-        .catch(() => ({ error: 'Unknown error' }));
-      throw new Error(error.error || `HTTP error! status: ${response.status}`);
+        .catch(() => ({ error: 'Unknown error' }))) as ApiErrorBody;
+      throw new Error(toApiErrorMessage(response.status, error));
     }
 
     const data: { success: boolean; wallets: Wallet[] } = await response.json();
@@ -76,10 +89,10 @@ export async function addWallet(
     });
 
     if (!response.ok) {
-      const error = await response
+      const error = (await response
         .json()
-        .catch(() => ({ error: 'Unknown error' }));
-      throw new Error(error.error || `HTTP error! status: ${response.status}`);
+        .catch(() => ({ error: 'Unknown error' }))) as ApiErrorBody;
+      throw new Error(toApiErrorMessage(response.status, error));
     }
 
     const data: WalletResponse = await response.json();
@@ -114,10 +127,10 @@ export async function connectWallet(
     );
 
     if (!response.ok) {
-      const error = await response
+      const error = (await response
         .json()
-        .catch(() => ({ error: 'Unknown error' }));
-      throw new Error(error.error || `HTTP error! status: ${response.status}`);
+        .catch(() => ({ error: 'Unknown error' }))) as ApiErrorBody;
+      throw new Error(toApiErrorMessage(response.status, error));
     }
 
     const data: WalletResponse = await response.json();
@@ -148,10 +161,10 @@ export async function disconnectWallet(
     });
 
     if (!response.ok) {
-      const error = await response
+      const error = (await response
         .json()
-        .catch(() => ({ error: 'Unknown error' }));
-      throw new Error(error.error || `HTTP error! status: ${response.status}`);
+        .catch(() => ({ error: 'Unknown error' }))) as ApiErrorBody;
+      throw new Error(toApiErrorMessage(response.status, error));
     }
 
     const data: WalletResponse = await response.json();
@@ -183,10 +196,10 @@ export async function deleteWallet(
     });
 
     if (!response.ok) {
-      const error = await response
+      const error = (await response
         .json()
-        .catch(() => ({ error: 'Unknown error' }));
-      throw new Error(error.error || `HTTP error! status: ${response.status}`);
+        .catch(() => ({ error: 'Unknown error' }))) as ApiErrorBody;
+      throw new Error(toApiErrorMessage(response.status, error));
     }
 
     const data: WalletResponse = await response.json();

@@ -1,7 +1,7 @@
 import Button from './Button';
 import Modal from './Modal';
 
-interface ConfirmModalProps {
+interface ModalConfirmProps {
     isOpen: boolean;
     title?: string;
     message?: string;
@@ -12,7 +12,7 @@ interface ConfirmModalProps {
     onCancel: () => void;
 }
 
-export default function ConfirmModal({
+export default function ModalConfirm({
     isOpen,
     title = 'Are you sure?',
     message = 'Please confirm this action.',
@@ -21,7 +21,7 @@ export default function ConfirmModal({
     loading = false,
     onConfirm,
     onCancel,
-}: ConfirmModalProps) {
+}: ModalConfirmProps) {
     return (
         <Modal
             isOpen={isOpen}

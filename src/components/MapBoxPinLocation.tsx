@@ -16,13 +16,13 @@ interface GeocodingResponse {
     features?: SearchFeature[];
 }
 
-interface NftPinLocationMapProps {
+interface MapBoxPinLocationProps {
     onLocationChange: (location: { lng: number; lat: number } | null) => void;
     initialLocation?: { lng: number; lat: number } | null;
     className?: string;
 }
 
-export default function NftPinLocationMap({ onLocationChange, initialLocation = null, className }: NftPinLocationMapProps) {
+export default function MapBoxPinLocation({ onLocationChange, initialLocation = null, className }: MapBoxPinLocationProps) {
     const mapContainerRef = useRef<HTMLDivElement | null>(null);
     const mapRef = useRef<Map | null>(null);
     const markerRef = useRef<mapboxgl.Marker | null>(null);
@@ -211,8 +211,8 @@ export default function NftPinLocationMap({ onLocationChange, initialLocation = 
 
     return (
         <div className={className || 'relative'}>
-            <div className="mb-2 rounded-md border border-white/20 bg-black/65 px-3 py-2 text-xs text-white/85 backdrop-blur-sm">
-                <div className="flex items-center gap-3">
+            <div className="mb-2 text-xs text-white/85 backdrop-blur-sm">
+                <div className="flex items-center gap-2">
                     <input
                         type="text"
                         value={searchText}
@@ -233,12 +233,12 @@ export default function NftPinLocationMap({ onLocationChange, initialLocation = 
                             }
                         }}
                         placeholder="Search location"
-                        className="flex-1 rounded-md border border-white/25 bg-black/50 px-3 py-2 text-sm text-white placeholder:text-white/60 focus:border-sky-500 focus:outline-none"
+                        className="h-8 flex-1 rounded-md border border-[#3fcfcf2e] bg-black/50 px-3 py-1 text-sm text-white placeholder:text-white/60 focus:border-sky-500 focus:outline-none"
                     />
                     <button
                         type="button"
                         onClick={handleSearchSubmit}
-                        className="inline-flex h-8 w-8 items-center justify-center rounded border border-white/30 bg-black/70 text-white hover:bg-black/80"
+                        className="cursor-pointer inline-flex h-8 w-8 items-center justify-center rounded-md border border-[#3fcfcf2e] bg-black/50 text-white hover:bg-black/80"
                         title="Search"
                     >
                         <FontAwesomeIcon icon={faLocationArrow} className="text-xs" />
@@ -261,13 +261,13 @@ export default function NftPinLocationMap({ onLocationChange, initialLocation = 
                 )}
             </div>
 
-            <div ref={mapContainerRef} className="h-[420px] w-full overflow-hidden rounded-lg border border-white/20" />
+            <div ref={mapContainerRef} className="h-[378px] w-full overflow-hidden rounded-lg border border-[#3fcfcf2e]" />
 
             {isLocatingUser && (
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 top-[58px] flex items-center justify-center rounded-lg bg-black/35 backdrop-blur-[1px]">
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 top-[58px] flex items-center justify-center">
                     <div className="inline-flex items-center gap-2 rounded-md border border-white/25 bg-black/70 px-3 py-2 text-xs text-white">
                         <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
-                        Locating you...
+                        Locating...
                     </div>
                 </div>
             )}

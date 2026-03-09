@@ -3,8 +3,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faCopy, faSpinner, faThumbtack } from '@fortawesome/free-solid-svg-icons';
 import Button from './Button';
 import Modal from './Modal';
-import ConfirmModal from './ConfirmModal';
-import NftPinLocationMap from './NftPinLocationMap';
+import ModalConfirm from './ModalConfirm';
+import MapBoxPinLocation from './MapBoxPinLocation';
 import { useToast } from './ToastProvider';
 import type { WalletAssetSummary } from '../services/walletAssetService';
 import { getPinnedNfts, pinNft, unpinNft } from '../services/pinnedNftService';
@@ -945,7 +945,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
 
             <Modal
                 isOpen={pinTargetNft != null}
-                title="Pin NFT"
+                title="Choose your pin location on the map"
                 onClose={closePinModal}
                 closeOnOverlayClick
                 showCloseButton
@@ -974,21 +974,17 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                             </>
                         ) : (
                             <>
-                                <p className="text-white/90">Choose your pin location on the map, then submit to save.</p>
-                                <NftPinLocationMap
+                                <MapBoxPinLocation
                                     onLocationChange={setPinLocation}
                                     className="mt-2"
                                 />
-                                {/* <p className="text-xs text-white/60">
-                                    Current pin: {pinLocation ? `${pinLocation.lat.toFixed(5)}, ${pinLocation.lng.toFixed(5)}` : 'Not set'}
-                                </p> */}
-                                <div className="flex justify-end gap-3 pt-1">
+                                <div className="flex justify-end gap-3">
                                     <Button
                                         onClick={() => void handleSubmitPin()}
                                         disabled={isPinActionLoading || !pinLocation}
                                         className="bg-green-600 hover:bg-green-700 active:bg-green-800"
                                     >
-                                        {isPinActionLoading ? 'Saving pin' : 'Submit Pin'}
+                                        {isPinActionLoading ? 'Submitting' : 'Submit Pin'}
                                     </Button>
                                 </div>
                             </>
@@ -997,7 +993,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                 )}
             </Modal>
 
-            <ConfirmModal
+            <ModalConfirm
                 isOpen={pendingUnpinTokenId != null}
                 title="Remove pinned NFT?"
                 message="This will remove this NFT from the XoloGlobe map. You may pin it again later at any time."

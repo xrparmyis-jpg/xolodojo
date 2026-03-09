@@ -7,11 +7,11 @@ import { getXoloGlobePins, type XoloGlobePin } from '../services/xoloGlobePinSer
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || '';
 
-interface XoloGlobePinnedMapProps {
+interface MapBoxXoloGlobeProps {
     className?: string;
 }
 
-export default function XoloGlobePinnedMap({ className }: XoloGlobePinnedMapProps) {
+export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
     const mapContainerRef = useRef<HTMLDivElement | null>(null);
     const mapRef = useRef<Map | null>(null);
     const markersRef = useRef<mapboxgl.Marker[]>([]);

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import PageTitle from "../components/PageTitle";
+import GsapPageHeading from "../components/GsapPageHeading";
 
 function Home() {
   const parallaxRef = useRef<HTMLDivElement>(null);
@@ -89,13 +89,14 @@ function Home() {
 
       <section className="service-section fix py-8 lg:py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="section-title text-center">
-            <PageTitle title="Welcome to the XoloDojo" animate delay={0} iconType="star" iconCount={1} centered />
-            <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 opacity-0 animate-[fadeInUp_0.6s_ease-out_0.3s_forwards]">
-              A Sacred Legacy of <br />
-              <span>Art, Culture, &amp; XRPL</span>
-            </h2>
-          </div>
+          <GsapPageHeading
+            eyebrow="Welcome to the XoloDojo"
+            heading="A Sacred Legacy of"
+            accent="Art, Culture, & XRPL"
+            iconType="star"
+            iconCount={1}
+            centered
+          />
           <div className="flex flex-col items-center gap-6 mt-8">
             <div className="w-full max-w-4xl mx-auto opacity-0 animate-[fadeInUp_0.6s_ease-out_0.2s_forwards]">
               <div className="service-box-items flex flex-col md:flex-row items-center md:items-start justify-center gap-4 md:gap-6">
@@ -244,7 +245,7 @@ function Home() {
                   <p>
                     The collection's long-term vision is to build a decentralized
                     platform for Xolo NFT holders to network and sharetravel experiences, fostering global connection through
-                  wallet-to-wallet networking and person to person experiences on the XRPL.
+                    wallet-to-wallet networking and person to person experiences on the XRPL.
                   </p>
                 </div>
               </div>
