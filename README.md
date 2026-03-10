@@ -17,6 +17,11 @@ npm run dev:full
 
 Visit http://localhost:5173
 
+### WalletConnect note
+
+- Set `VITE_WALLETCONNECT_PROJECT_ID` in `.env.local` to enable WalletConnect wallets.
+- Optional: set `VITE_WALLETCONNECT_CONNECT_TIMEOUT_MS` (default `60000`) to tune how long the app waits for wallet signing before showing a timeout.
+
 ## Development
 
 - `npm run dev:full` - Start both API server and frontend

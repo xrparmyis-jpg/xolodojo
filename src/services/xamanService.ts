@@ -4,6 +4,7 @@ const xamanApiKey =
   import.meta.env.VITE_XAMAN_API_KEY || import.meta.env.VITE_XUMM_API_KEY || '';
 
 const configuredRedirectUrl = import.meta.env.VITE_XAMAN_REDIRECT_URL || '';
+const rememberXamanJwt = import.meta.env.VITE_XAMAN_REMEMBER_JWT !== 'false';
 
 let xamanPkce: XummPkce | null = null;
 
@@ -38,7 +39,7 @@ function getXamanClient() {
     xamanPkce = new XummPkce(xamanApiKey, {
       redirectUrl: getXamanRedirectUrl(),
       implicit: true,
-      rememberJwt: false,
+      rememberJwt: rememberXamanJwt,
     });
   }
 
@@ -71,4 +72,30 @@ export async function authorizeXamanAccount(): Promise<string> {
   }
 
   return account;
+}
+
+export function hasXamanRedirectParams() {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  return Boolean(
+    params.get('authorization_code') ||
+      params.get('access_token') ||
+      params.get('error') ||
+      params.get('error_description')
+  );
+}
+
+export async function restoreXamanAccountFromRedirect(): Promise<string | null> {
+  if (!hasXamanRedirectParams()) {
+    return null;
+  }
+
+  const client = getXamanClient();
+  const flow = await client.authorize();
+  const account = flow?.me?.account;
+
+  return account || null;
 }

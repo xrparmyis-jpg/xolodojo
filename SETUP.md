@@ -145,6 +145,8 @@ docker exec -i donovan-db mysql -udonovan_user -pdonovan_password donovan_db < d
 
 - Uses Docker MySQL database (localhost:3308)
 - Auth0 credentials needed from Auth0 dashboard
+- WalletConnect requires `VITE_WALLETCONNECT_PROJECT_ID`
+- Optional WalletConnect timeout override: `VITE_WALLETCONNECT_CONNECT_TIMEOUT_MS` (milliseconds, default `60000`)
 
 **Production (Vercel):**
 
