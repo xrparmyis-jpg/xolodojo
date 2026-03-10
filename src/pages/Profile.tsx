@@ -43,11 +43,30 @@ const createEmptyVisibleInputs = () => ({
 });
 
 const parseSocialsFromPreferences = (preferences: unknown): ProfileSocials => {
-    if (!preferences || typeof preferences !== 'object') {
+    if (!preferences) {
         return {};
     }
 
-    const rawSocials = (preferences as Record<string, unknown>).socials;
+    let parsedPreferences: Record<string, unknown> | null = null;
+
+    if (typeof preferences === 'string') {
+        try {
+            const parsed = JSON.parse(preferences) as unknown;
+            parsedPreferences = parsed && typeof parsed === 'object'
+                ? (parsed as Record<string, unknown>)
+                : null;
+        } catch {
+            return {};
+        }
+    } else if (typeof preferences === 'object') {
+        parsedPreferences = preferences as Record<string, unknown>;
+    }
+
+    if (!parsedPreferences) {
+        return {};
+    }
+
+    const rawSocials = parsedPreferences.socials;
     if (!rawSocials || typeof rawSocials !== 'object') {
         return {};
     }
@@ -346,9 +365,9 @@ function Profile() {
                                                     type="button"
                                                     title={isActive ? `${platform.label} enabled` : `Add ${platform.label}`}
                                                     onClick={() => handleActivateSocial(platform.key)}
-                                                    className={`cursor-pointer relative inline-flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-200 ${isActive
+                                                    className={`relative inline-flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-200 ${isActive
                                                         ? 'border-emerald-400/60 bg-emerald-700/20 text-emerald-200'
-                                                        : 'border-white/25 bg-white/5 text-white/70 hover:text-white hover:border-white/40'
+                                                        : 'cursor-pointer border-white/25 bg-white/5 text-white/70 hover:text-white hover:border-white/40'
                                                         }`}
                                                 >
                                                     <FontAwesomeIcon icon={platform.icon} />

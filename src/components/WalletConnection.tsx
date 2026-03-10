@@ -532,7 +532,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
         <div className="relative w-full p-6 bg-black/30 rounded-lg mt-4">
             <div className="flex justify-between items-center mb-4">
                 <h4 className="text-white text-lg">
-                    My Wallets {wallets.length > 0 && <span className="text-white/70 text-sm ml-2">({wallets.length})</span>}
+                    My Wallets
                 </h4>
             </div>
 
