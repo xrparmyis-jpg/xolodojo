@@ -65,7 +65,9 @@ function Header() {
                 </div>
               </div>
               <div className="header-right flex justify-end items-center gap-4">
-                <UserMenu isSticky={isSticky} />
+                <div className="hidden md:block">
+                  <UserMenu isSticky={isSticky} />
+                </div>
                 <Menu
                   variant="mobile-toggle"
                   isMobileMenuOpen={isMobileMenuOpen}

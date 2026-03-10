@@ -1,12 +1,97 @@
 import { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+    faDiscord,
+    faInstagram,
+    faTelegram,
+    faTiktok,
+    faXTwitter,
+} from '@fortawesome/free-brands-svg-icons';
+import { faCheck, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
+import Button from '../components/Button';
+import ModalConfirm from '../components/ModalConfirm';
+import { useToast } from '../components/ToastProvider';
 import { WalletConnection } from '../components/WalletConnection';
-import { getUserProfile } from '../services/profileService';
+import {
+    getUserProfile,
+    type ProfileSocials,
+    type UserProfile,
+    updateUserProfile,
+} from '../services/profileService';
+
+type SocialPlatformKey = keyof ProfileSocials;
+
+const socialPlatformOrder: Array<{
+    key: SocialPlatformKey;
+    label: string;
+    icon: typeof faXTwitter;
+}> = [
+        { key: 'twitter', label: 'X (Twitter)', icon: faXTwitter },
+        { key: 'discord', label: 'Discord', icon: faDiscord },
+        { key: 'tiktok', label: 'TikTok', icon: faTiktok },
+        { key: 'instagram', label: 'Instagram', icon: faInstagram },
+        { key: 'telegram', label: 'Telegram', icon: faTelegram },
+    ];
+
+const createEmptyVisibleInputs = () => ({
+    twitter: false,
+    discord: false,
+    tiktok: false,
+    instagram: false,
+    telegram: false,
+});
+
+const parseSocialsFromPreferences = (preferences: unknown): ProfileSocials => {
+    if (!preferences || typeof preferences !== 'object') {
+        return {};
+    }
+
+    const rawSocials = (preferences as Record<string, unknown>).socials;
+    if (!rawSocials || typeof rawSocials !== 'object') {
+        return {};
+    }
+
+    const source = rawSocials as Record<string, unknown>;
+    return socialPlatformOrder.reduce<ProfileSocials>((acc, platform) => {
+        const value = source[platform.key];
+        if (typeof value !== 'string') {
+            return acc;
+        }
+
+        const normalized = value.trim().replace(/^@+/, '');
+        if (normalized) {
+            acc[platform.key] = normalized;
+        }
+        return acc;
+    }, {});
+};
+
+const normalizeSocials = (socials: ProfileSocials): ProfileSocials =>
+    socialPlatformOrder.reduce<ProfileSocials>((acc, platform) => {
+        const value = socials[platform.key];
+        if (typeof value !== 'string') {
+            return acc;
+        }
+
+        const normalized = value.trim().replace(/^@+/, '');
+        if (normalized) {
+            acc[platform.key] = normalized;
+        }
+
+        return acc;
+    }, {});
 
 function Profile() {
     const { user, isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
-    //const [, setBio] = useState('');
+    const [dbUser, setDbUser] = useState<UserProfile | null>(null);
+    const [socials, setSocials] = useState<ProfileSocials>({});
+    const [visibleSocialInputs, setVisibleSocialInputs] = useState(createEmptyVisibleInputs());
+    const [isSavingSocials, setIsSavingSocials] = useState(false);
+    const [pendingRemoveSocial, setPendingRemoveSocial] = useState<SocialPlatformKey | null>(null);
+    const [showRemoveSocialModal, setShowRemoveSocialModal] = useState(false);
     const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+    const { showToast } = useToast();
 
     useEffect(() => {
         const loadProfile = async () => {
@@ -29,13 +114,22 @@ function Profile() {
                 console.log('Profile: API response:', result);
 
                 if (result.success && result.user) {
-                    //setDbUser(result.user);
-                    //setBio(result.user.bio || '');
-                    // console.log('Profile: Loaded successfully');
+                    setDbUser(result.user);
+                    const loadedSocials = parseSocialsFromPreferences(result.user.preferences);
+                    setSocials(loadedSocials);
+                    setVisibleSocialInputs({
+                        twitter: Boolean(loadedSocials.twitter),
+                        discord: Boolean(loadedSocials.discord),
+                        tiktok: Boolean(loadedSocials.tiktok),
+                        instagram: Boolean(loadedSocials.instagram),
+                        telegram: Boolean(loadedSocials.telegram),
+                    });
                 } else {
                     // User doesn't exist in DB yet - that's okay, they'll be created on sync
                     console.log('Profile: User not found in DB yet, will be created by sync');
-                    //setBio('');
+                    setDbUser(null);
+                    setSocials({});
+                    setVisibleSocialInputs(createEmptyVisibleInputs());
                 }
             } catch (error) {
                 const err = error instanceof Error ? error : new Error(String(error));
@@ -50,7 +144,9 @@ function Profile() {
                 if (err.message?.includes('404') || err.message?.includes('not found')) {
                     // User not in database yet - will be created by useUserSync
                     console.log('Profile: User not found (404) - will be created by sync');
-                    // setBio('');
+                    setDbUser(null);
+                    setSocials({});
+                    setVisibleSocialInputs(createEmptyVisibleInputs());
                 }
             } finally {
                 setIsLoadingProfile(false);
@@ -59,6 +155,135 @@ function Profile() {
 
         loadProfile();
     }, [isAuthenticated, user, getAccessTokenSilently]);
+
+    const handleActivateSocial = (key: SocialPlatformKey) => {
+        setVisibleSocialInputs((current) => ({
+            ...current,
+            [key]: true,
+        }));
+    };
+
+    const handleSocialInputChange = (key: SocialPlatformKey, value: string) => {
+        setSocials((current) => ({
+            ...current,
+            [key]: value.replace(/^@+/, ''),
+        }));
+    };
+
+    const handleRequestRemoveSocial = (key: SocialPlatformKey) => {
+        setPendingRemoveSocial(key);
+        setShowRemoveSocialModal(true);
+    };
+
+    const handleConfirmRemoveSocial = async () => {
+        if (!pendingRemoveSocial) {
+            return;
+        }
+
+        const socialToRemove = pendingRemoveSocial;
+        const nextSocials = { ...socials };
+        delete nextSocials[socialToRemove];
+
+        const nextVisibleSocialInputs = {
+            ...visibleSocialInputs,
+            [socialToRemove]: false,
+        };
+
+        setShowRemoveSocialModal(false);
+        setPendingRemoveSocial(null);
+
+        setSocials(nextSocials);
+        setVisibleSocialInputs(nextVisibleSocialInputs);
+
+        if (!user?.sub) {
+            return;
+        }
+
+        try {
+            setIsSavingSocials(true);
+
+            const accessToken = await getAccessTokenSilently().catch((err) => {
+                console.warn('Profile: Could not get access token for social remove:', err);
+                return undefined;
+            });
+
+            const normalizedSocials = normalizeSocials(nextSocials);
+            const result = await updateUserProfile(
+                user.sub,
+                {
+                    bio: dbUser?.bio || '',
+                    socials: normalizedSocials,
+                },
+                accessToken
+            );
+
+            if (!result.success || !result.user) {
+                throw new Error('Failed to remove social handle');
+            }
+
+            setDbUser(result.user);
+            setSocials(normalizedSocials);
+            setVisibleSocialInputs(nextVisibleSocialInputs);
+            showToast('success', 'Social handle removed.');
+        } catch (error) {
+            const err = error instanceof Error ? error : new Error(String(error));
+            showToast('error', `Failed to remove social handle: ${err.message}`);
+        } finally {
+            setIsSavingSocials(false);
+        }
+    };
+
+    const handleSaveSocials = async () => {
+        if (!user?.sub) {
+            return;
+        }
+
+        try {
+            setIsSavingSocials(true);
+
+            const accessToken = await getAccessTokenSilently().catch((err) => {
+                console.warn('Profile: Could not get access token for social save:', err);
+                return undefined;
+            });
+
+            const normalizedSocials = normalizeSocials(socials);
+            const result = await updateUserProfile(
+                user.sub,
+                {
+                    bio: dbUser?.bio || '',
+                    socials: normalizedSocials,
+                },
+                accessToken
+            );
+
+            if (!result.success || !result.user) {
+                throw new Error('Failed to save social handles');
+            }
+
+            setDbUser(result.user);
+            setSocials(normalizedSocials);
+            setVisibleSocialInputs({
+                twitter: Boolean(normalizedSocials.twitter),
+                discord: Boolean(normalizedSocials.discord),
+                tiktok: Boolean(normalizedSocials.tiktok),
+                instagram: Boolean(normalizedSocials.instagram),
+                telegram: Boolean(normalizedSocials.telegram),
+            });
+            showToast('success', 'Social handles saved.');
+        } catch (error) {
+            const err = error instanceof Error ? error : new Error(String(error));
+            showToast('error', `Failed to save social handles: ${err.message}`);
+        } finally {
+            setIsSavingSocials(false);
+        }
+    };
+
+    const activeSocialPlatforms = socialPlatformOrder.filter((platform) => visibleSocialInputs[platform.key]);
+    const hasOpenSocialInput = activeSocialPlatforms.length > 0;
+    const hasEnteredSocialHandle = socialPlatformOrder.some((platform) =>
+        Boolean((socials[platform.key] || '').trim())
+    );
+    const shouldShowSaveSocialsButton = hasOpenSocialInput || hasEnteredSocialHandle;
 
     if (isLoading) {
         return (
@@ -106,72 +331,92 @@ function Profile() {
                                     )} */}
                                 </div>
 
-                                {/* Test Field: Bio */}
-                                <div className="hidden w-full p-6 bg-black/30 rounded-lg mt-4">
-                                    {/* <h4 className="text-white text-lg mb-4">
-                                        Bio (Test Field)
-                                    </h4>
+                                <div className="w-full p-6 bg-black/30 rounded-lg mt-4">
+                                    <h4 className="text-white text-lg mb-2">Social Handles</h4>
+                                    <p className="text-white/60 text-sm mb-4">
+                                        Click an icon to add a handle. Enter usernames only (no full URLs). Save applies all changes at once.
+                                    </p>
 
-                                    {saveMessage && (
-                                        <div className={`mb-4 p-3 rounded-lg ${saveMessage.type === 'success'
-                                            ? 'bg-green-900/50 text-green-200'
-                                            : 'bg-red-900/50 text-red-200'
-                                            }`}>
-                                            {saveMessage.text}
+                                    <div className="flex flex-wrap gap-2 mb-4">
+                                        {socialPlatformOrder.map((platform) => {
+                                            const isActive = visibleSocialInputs[platform.key];
+                                            return (
+                                                <button
+                                                    key={platform.key}
+                                                    type="button"
+                                                    title={isActive ? `${platform.label} enabled` : `Add ${platform.label}`}
+                                                    onClick={() => handleActivateSocial(platform.key)}
+                                                    className={`cursor-pointer relative inline-flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-200 ${isActive
+                                                        ? 'border-emerald-400/60 bg-emerald-700/20 text-emerald-200'
+                                                        : 'border-white/25 bg-white/5 text-white/70 hover:text-white hover:border-white/40'
+                                                        }`}
+                                                >
+                                                    <FontAwesomeIcon icon={platform.icon} />
+                                                    {!isActive && (
+                                                        <span className="absolute -right-1 -top-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-[10px] text-white">
+                                                            <FontAwesomeIcon icon={faPlus} />
+                                                        </span>
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {activeSocialPlatforms.length > 0 ? (
+                                        <div className="space-y-3">
+                                            {activeSocialPlatforms.map((platform) => (
+                                                <div key={platform.key} className="flex items-center gap-2">
+                                                    <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white/80">
+                                                        <FontAwesomeIcon icon={platform.icon} />
+                                                    </div>
+                                                    <div className="w-full md:w-1/3 md:min-w-[280px]">
+                                                        <input
+                                                            value={socials[platform.key] || ''}
+                                                            onChange={(e) => handleSocialInputChange(platform.key, e.target.value)}
+                                                            placeholder={`Enter ${platform.label} username`}
+                                                            className="w-full rounded-lg border border-white/20 bg-black/40 px-3 py-2 text-white/90 placeholder:text-white/45 focus:outline-none focus:border-blue-500"
+                                                        />
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        title={`Remove ${platform.label}`}
+                                                        onClick={() => handleRequestRemoveSocial(platform.key)}
+                                                        className="cursor-pointer inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-red-500/40 bg-red-600/15 text-red-300 hover:bg-red-600/30"
+                                                    >
+                                                        <FontAwesomeIcon icon={faXmark} />
+                                                    </button>
+                                                </div>
+                                            ))}
                                         </div>
-                                    )}
-
-                                    {isEditing ? (
-                                        <textarea
-                                            value={bio}
-                                            onChange={(e) => setBio(e.target.value)}
-                                            placeholder="Enter your bio..."
-                                            className="w-full p-3 bg-black/40 text-white/90 rounded-lg border border-white/20 focus:border-blue-500 focus:outline-none resize-none"
-                                            rows={4}
-                                        />
                                     ) : (
-                                        <p className="text-white/70 whitespace-pre-wrap mb-4">
-                                            {dbUser?.bio || 'No bio set. Click Edit to add one.'}
-                                        </p>
+                                        <p className="text-white/50 text-sm">No social handles added yet.</p>
                                     )}
 
-                                    {dbUser && (
-                                        <div className="mt-4 pt-4 border-t border-white/10 mb-4">
-                                            <p className="text-white/50 text-sm">
-                                                Last updated: {new Date(dbUser.updated_at).toLocaleString()}
-                                            </p>
-                                        </div>
-                                    )} */}
-
-                                    {/* Buttons below the form */}
-                                    {/* <div className="flex justify-end gap-3 mt-4">
-                                        {!isEditing ? (
-                                            <Button onClick={() => setIsEditing(true)}>
-                                                Edit
+                                    {shouldShowSaveSocialsButton && (
+                                        <div className="mt-4 flex justify-end">
+                                            <Button
+                                                onClick={() => void handleSaveSocials()}
+                                                disabled={isSavingSocials}
+                                                className="bg-green-600 hover:bg-green-700 active:bg-green-800 min-w-[150px]"
+                                                icon={isSavingSocials ? undefined : <FontAwesomeIcon icon={faCheck} />}
+                                            >
+                                                {isSavingSocials ? 'Saving...' : 'Save Socials'}
                                             </Button>
-                                        ) : (
-                                            <>
-                                                <Button
-                                                    onClick={() => {
-                                                        setIsEditing(false);
-                                                        setBio(dbUser?.bio || '');
-                                                        setSaveMessage(null);
-                                                    }}
-                                                    disabled={isSaving}
-                                                    className="bg-gray-600 hover:bg-gray-700 active:bg-gray-800"
-                                                >
-                                                    Cancel
-                                                </Button>
-                                                <Button
-                                                    onClick={handleSave}
-                                                    disabled={isSaving}
-                                                    className="bg-green-600 hover:bg-green-700 active:bg-green-800"
-                                                >
-                                                    {isSaving ? 'Saving...' : 'Save'}
-                                                </Button>
-                                            </>
-                                        )}
-                                    </div> */}
+                                        </div>
+                                    )}
+
+                                    <ModalConfirm
+                                        isOpen={showRemoveSocialModal}
+                                        title="Remove social handle?"
+                                        message="This removes the handle from your profile. You can add it again anytime."
+                                        confirmLabel="Remove"
+                                        loading={isSavingSocials}
+                                        onCancel={() => {
+                                            setShowRemoveSocialModal(false);
+                                            setPendingRemoveSocial(null);
+                                        }}
+                                        onConfirm={handleConfirmRemoveSocial}
+                                    />
                                 </div>
 
                                 {/* Wallet Connection Section */}
