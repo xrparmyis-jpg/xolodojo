@@ -1,5 +1,6 @@
 import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/react';
 import { mainnet, polygon, arbitrum, optimism, base } from 'wagmi/chains';
+import type { Chain } from 'viem';
 
 export const walletConnectProjectId =
   import.meta.env.VITE_WALLETCONNECT_PROJECT_ID ||
@@ -24,7 +25,7 @@ const featuredWalletIds = parseWalletIds(import.meta.env.VITE_WC_FEATURED_WALLET
 const excludeWalletIds = parseWalletIds(import.meta.env.VITE_WC_EXCLUDE_WALLET_IDS);
 const showAllWallets = import.meta.env.VITE_WC_SHOW_ALL_WALLETS !== 'false';
 
-const supportedChainsById = new Map([
+const supportedChainsById = new Map<number, Chain>([
   [mainnet.id, mainnet],
   [polygon.id, polygon],
   [arbitrum.id, arbitrum],
@@ -35,7 +36,7 @@ const supportedChainsById = new Map([
 const configuredWalletConnectChainIds = parseChainIds(import.meta.env.VITE_WC_CHAIN_IDS);
 const configuredWalletConnectChains = configuredWalletConnectChainIds
   .map((chainId) => supportedChainsById.get(chainId))
-  .filter((chain): chain is typeof mainnet => Boolean(chain));
+  .filter((chain): chain is Chain => Boolean(chain));
 
 const appUrl =
   import.meta.env.VITE_APP_URL ||
@@ -48,7 +49,9 @@ const metadata = {
   icons: [`${appUrl}/favicon.ico`],
 };
 
-const chains = configuredWalletConnectChains.length > 0 ? configuredWalletConnectChains : [mainnet];
+const chains: [Chain, ...Chain[]] = configuredWalletConnectChains.length > 0
+  ? [configuredWalletConnectChains[0], ...configuredWalletConnectChains.slice(1)]
+  : [mainnet];
 
 export const wagmiConfig = defaultWagmiConfig({
   chains,
