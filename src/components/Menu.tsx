@@ -74,6 +74,7 @@ function Menu({
                     onClick={toggleMobileMenu}
                     aria-label="Toggle mobile menu"
                     style={{ color: 'var(--white)' }}
+                    className='cursor-pointer'
                 >
                     <FontAwesomeIcon icon={isMobileMenuOpen ? faTimes : faBars} />
                 </button>
