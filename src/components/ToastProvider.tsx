@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle, faCircleExclamation, faXmark } from '@fortawesome/free-solid-svg-icons';
 
@@ -18,15 +18,29 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 
 export function ToastProvider({ children }: { children: ReactNode }) {
     const [toasts, setToasts] = useState<ToastItem[]>([]);
+    const dismissTimeoutRef = useRef<number | null>(null);
+
+    const clearDismissTimeout = useCallback(() => {
+        if (dismissTimeoutRef.current != null) {
+            window.clearTimeout(dismissTimeoutRef.current);
+            dismissTimeoutRef.current = null;
+        }
+    }, []);
 
     const removeToast = useCallback((id: number) => {
-        setToasts((current) => current.filter((toast) => toast.id !== id));
-    }, []);
+        setToasts((current) => {
+            if (current.some((toast) => toast.id === id)) {
+                clearDismissTimeout();
+            }
+            return current.filter((toast) => toast.id !== id);
+        });
+    }, [clearDismissTimeout]);
 
     const showToast = useCallback(
         (type: ToastType, message: string, durationMs?: number) => {
             const id = Date.now() + Math.floor(Math.random() * 1000);
-            setToasts((current) => [...current, { id, type, message }]);
+            clearDismissTimeout();
+            setToasts([{ id, type, message }]);
 
             const timeoutMs = typeof durationMs === 'number'
                 ? durationMs
@@ -38,12 +52,18 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 return;
             }
 
-            window.setTimeout(() => {
+            dismissTimeoutRef.current = window.setTimeout(() => {
                 removeToast(id);
             }, timeoutMs);
         },
-        [removeToast]
+        [clearDismissTimeout, removeToast]
     );
+
+    useEffect(() => {
+        return () => {
+            clearDismissTimeout();
+        };
+    }, [clearDismissTimeout]);
 
     const value = useMemo(() => ({ showToast }), [showToast]);
 

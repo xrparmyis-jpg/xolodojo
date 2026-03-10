@@ -4,6 +4,14 @@ import mysql from 'mysql2/promise';
 // Reuse the same pool function from sync.ts
 let pool: mysql.Pool | null = null;
 
+type ProfileSocials = {
+  twitter?: string;
+  discord?: string;
+  tiktok?: string;
+  instagram?: string;
+  telegram?: string;
+};
+
 function getPool(): mysql.Pool {
   if (!pool) {
     pool = mysql.createPool({
@@ -19,6 +27,58 @@ function getPool(): mysql.Pool {
     });
   }
   return pool;
+}
+
+function parsePreferences(preferences: unknown): Record<string, unknown> {
+  if (!preferences) {
+    return {};
+  }
+
+  if (typeof preferences === 'string') {
+    try {
+      const parsed = JSON.parse(preferences) as unknown;
+      return parsed && typeof parsed === 'object'
+        ? (parsed as Record<string, unknown>)
+        : {};
+    } catch {
+      return {};
+    }
+  }
+
+  if (typeof preferences === 'object') {
+    return preferences as Record<string, unknown>;
+  }
+
+  return {};
+}
+
+function sanitizeSocials(input: unknown): ProfileSocials {
+  if (!input || typeof input !== 'object') {
+    return {};
+  }
+
+  const source = input as Record<string, unknown>;
+  const keys: Array<keyof ProfileSocials> = [
+    'twitter',
+    'discord',
+    'tiktok',
+    'instagram',
+    'telegram',
+  ];
+
+  return keys.reduce<ProfileSocials>((acc, key) => {
+    const value = source[key];
+    if (typeof value !== 'string') {
+      return acc;
+    }
+
+    const normalized = value.trim().replace(/^@+/, '');
+    if (normalized) {
+      acc[key] = normalized;
+    }
+
+    return acc;
+  }, {});
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -175,7 +235,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const authHeader = req.headers.authorization;
       // Note: In production, you should verify the Auth0 token here
       
-      const { auth0_id, bio } = req.body;
+      const { auth0_id, bio, socials } = req.body;
       console.log('API: Updating profile for auth0_id:', auth0_id);
 
       if (!auth0_id) {
@@ -197,12 +257,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const userId = userResult[0].id;
 
+        const [profileResult] = await pool.execute(
+          'SELECT preferences FROM user_profiles WHERE user_id = ?',
+          [userId]
+        ) as [any[], any];
+
+        const currentPreferences =
+          Array.isArray(profileResult) && profileResult.length > 0
+            ? parsePreferences(profileResult[0].preferences)
+            : {};
+
+        const nextPreferences = {
+          ...currentPreferences,
+          socials: sanitizeSocials(socials),
+        };
+
         // Update or insert user profile
         await pool.execute(
-          `INSERT INTO user_profiles (user_id, bio, updated_at)
-           VALUES (?, ?, CURRENT_TIMESTAMP)
-           ON DUPLICATE KEY UPDATE bio = ?, updated_at = CURRENT_TIMESTAMP`,
-          [userId, bio || null, bio || null]
+          `INSERT INTO user_profiles (user_id, bio, preferences, updated_at)
+           VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+           ON DUPLICATE KEY UPDATE bio = ?, preferences = ?, updated_at = CURRENT_TIMESTAMP`,
+          [
+            userId,
+            bio || null,
+            JSON.stringify(nextPreferences),
+            bio || null,
+            JSON.stringify(nextPreferences),
+          ]
         );
 
         // Get updated profile

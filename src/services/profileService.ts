@@ -14,6 +14,14 @@ export interface UserProfile {
   updated_at: string;
 }
 
+export interface ProfileSocials {
+  twitter?: string;
+  discord?: string;
+  tiktok?: string;
+  instagram?: string;
+  telegram?: string;
+}
+
 interface ProfileResponse {
   success: boolean;
   user: UserProfile;
@@ -106,7 +114,10 @@ export async function getUserProfile(
  */
 export async function updateUserProfile(
   auth0Id: string,
-  bio: string,
+  payload: {
+    bio?: string;
+    socials?: ProfileSocials;
+  },
   accessToken?: string
 ): Promise<ProfileResponse> {
   try {
@@ -118,7 +129,8 @@ export async function updateUserProfile(
       },
       body: JSON.stringify({
         auth0_id: auth0Id,
-        bio,
+        bio: payload.bio ?? '',
+        socials: payload.socials ?? {},
       }),
     });
 

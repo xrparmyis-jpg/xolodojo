@@ -13,10 +13,29 @@ const parseWalletIds = (rawValue?: string) =>
     .map((item) => item.trim())
     .filter(Boolean);
 
+const parseChainIds = (rawValue?: string) =>
+  (rawValue || '')
+    .split(',')
+    .map((item) => Number(item.trim()))
+    .filter((value) => Number.isInteger(value) && value > 0);
+
 const includeWalletIds = parseWalletIds(import.meta.env.VITE_WC_INCLUDE_WALLET_IDS);
 const featuredWalletIds = parseWalletIds(import.meta.env.VITE_WC_FEATURED_WALLET_IDS);
 const excludeWalletIds = parseWalletIds(import.meta.env.VITE_WC_EXCLUDE_WALLET_IDS);
 const showAllWallets = import.meta.env.VITE_WC_SHOW_ALL_WALLETS !== 'false';
+
+const supportedChainsById = new Map([
+  [mainnet.id, mainnet],
+  [polygon.id, polygon],
+  [arbitrum.id, arbitrum],
+  [optimism.id, optimism],
+  [base.id, base],
+]);
+
+const configuredWalletConnectChainIds = parseChainIds(import.meta.env.VITE_WC_CHAIN_IDS);
+const configuredWalletConnectChains = configuredWalletConnectChainIds
+  .map((chainId) => supportedChainsById.get(chainId))
+  .filter((chain): chain is typeof mainnet => Boolean(chain));
 
 const appUrl =
   import.meta.env.VITE_APP_URL ||
@@ -29,7 +48,7 @@ const metadata = {
   icons: [`${appUrl}/favicon.ico`],
 };
 
-const chains = [mainnet, polygon, arbitrum, optimism, base] as const;
+const chains = configuredWalletConnectChains.length > 0 ? configuredWalletConnectChains : [mainnet];
 
 export const wagmiConfig = defaultWagmiConfig({
   chains,
