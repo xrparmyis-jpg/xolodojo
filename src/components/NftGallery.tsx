@@ -817,7 +817,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                                         openPinModalForNft(nft.token_id);
                                     }}
                                     title={isPinned ? 'Remove NFT pin' : 'Pin NFT'}
-                                    className={`cursor-pointer absolute bottom-4 right-3 inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/20 transition-colors hover:border-green-400 hover:text-sky-600 hover:bg-green-600/55 ${isPinned ? 'bg-green-600/55 border-green-400 hover:text-white/55 hover:bg-black/35! text-sky-600 hover:border-white/20!' : 'bg-black/35 text-white/55'}`.trim()}
+                                    className={`cursor-pointer absolute bottom-4 right-3 inline-flex h-7 w-7 items-center justify-center rounded-full border border-black/55 transition-colors hover:text-[#86e90f] hover:bg-[color-mix(in_oklab,rgba(25,_59,_192,_0.8)_55%,black)] ${isPinned ? 'bg-[color-mix(in_oklab,rgba(25,_59,_192,_0.8)_55%,black)] text-[#86e90f]' : 'bg-black text-white/55'}`.trim()}
                                 >
                                     <FontAwesomeIcon icon={faThumbtack} className="text-sm" />
                                     <span className="sr-only">{isPinned ? 'Remove NFT pin' : 'Pin NFT'}</span>
