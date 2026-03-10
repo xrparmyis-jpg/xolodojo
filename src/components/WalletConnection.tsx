@@ -42,6 +42,8 @@ interface WalletConnectionProps {
     onWalletsUpdated?: (wallets: Wallet[]) => void;
 }
 
+const walletConnectTimeoutMs = Number(import.meta.env.VITE_WALLETCONNECT_CONNECT_TIMEOUT_MS || 60000);
+
 function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: WalletConnectionProps) {
     const { open } = useWeb3Modal();
     const { address: wagmiAddress, isConnected: isWagmiConnected } = useAccount();
@@ -188,7 +190,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
             setPendingWalletConnectId(null);
             setIsWalletConnectPending(false);
             showToast('error', 'WalletConnect request timed out. Please try again.');
-        }, 15000);
+        }, walletConnectTimeoutMs);
 
         return () => clearTimeout(timeout);
     }, [isWalletConnectPending, isWagmiConnected, showToast]);
@@ -310,9 +312,9 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                     return;
                 }
 
+                await open({ view: 'Connect' });
                 setPendingWalletConnectId(wallet.id);
                 setIsWalletConnectPending(true);
-                await open({ view: 'Connect' });
                 return;
             }
 
@@ -393,9 +395,9 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
         }
 
         try {
+            await open({ view: 'Connect' });
             setPendingWalletConnectId(null);
             setIsWalletConnectPending(true);
-            await open({ view: 'Connect' });
         } catch (error) {
             const err = error instanceof Error ? error : new Error(String(error));
             console.error('Failed to open WalletConnect modal:', err);
