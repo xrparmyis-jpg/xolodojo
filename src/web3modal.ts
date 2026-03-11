@@ -24,6 +24,7 @@ const includeWalletIds = parseWalletIds(import.meta.env.VITE_WC_INCLUDE_WALLET_I
 const featuredWalletIds = parseWalletIds(import.meta.env.VITE_WC_FEATURED_WALLET_IDS);
 const excludeWalletIds = parseWalletIds(import.meta.env.VITE_WC_EXCLUDE_WALLET_IDS);
 const showAllWallets = import.meta.env.VITE_WC_SHOW_ALL_WALLETS !== 'false';
+const allowInjectedWallets = import.meta.env.VITE_WC_ENABLE_INJECTED === 'true';
 
 const supportedChainsById = new Map<number, Chain>([
   [mainnet.id, mainnet],
@@ -64,9 +65,11 @@ export const wagmiConfig = defaultWagmiConfig({
     walletFeatures: false,
   },
   enableWalletConnect: true,
-  enableInjected: true,
-  enableEIP6963: true,
-  enableCoinbase: true,
+  // Restrict wallet selection to WalletConnect directory/recents by default.
+  // Enable only when explicitly testing injected wallets.
+  enableInjected: allowInjectedWallets,
+  enableEIP6963: allowInjectedWallets,
+  enableCoinbase: allowInjectedWallets,
 });
 
 createWeb3Modal({

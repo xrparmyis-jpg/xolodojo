@@ -1,7 +1,16 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import type { Map } from 'mapbox-gl';
+import { useSearchParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { icon } from '@fortawesome/fontawesome-svg-core';
+import {
+    faDiscord,
+    faInstagram,
+    faTelegram,
+    faTiktok,
+    faXTwitter,
+} from '@fortawesome/free-brands-svg-icons';
 import { faPause, faPlay, faPlus, faMinus, faSpinner, faSun, faMoon, faMap, faSatellite } from '@fortawesome/free-solid-svg-icons';
 import { getXoloGlobePins, type XoloGlobePin } from '../services/xoloGlobePinService';
 
@@ -11,11 +20,78 @@ interface MapBoxXoloGlobeProps {
     className?: string;
 }
 
+const socialPlatformMeta = {
+    twitter: { label: 'X (Twitter)', hrefPrefix: 'https://x.com/', iconSvg: icon(faXTwitter).html.join('') },
+    discord: { label: 'Discord', hrefPrefix: 'https://discord.com/users/', iconSvg: icon(faDiscord).html.join('') },
+    tiktok: { label: 'TikTok', hrefPrefix: 'https://tiktok.com/@', iconSvg: icon(faTiktok).html.join('') },
+    instagram: { label: 'Instagram', hrefPrefix: 'https://instagram.com/', iconSvg: icon(faInstagram).html.join('') },
+    telegram: { label: 'Telegram', hrefPrefix: 'https://t.me/', iconSvg: icon(faTelegram).html.join('') },
+} as const;
+
+type SocialPlatformKey = keyof typeof socialPlatformMeta;
+
+const socialPlatformOrder: SocialPlatformKey[] = ['twitter', 'discord', 'tiktok', 'instagram', 'telegram'];
+
+const escapeHtml = (value: string) =>
+    value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+
+const toSocialHref = (platform: SocialPlatformKey, handle: string) => {
+    const { hrefPrefix } = socialPlatformMeta[platform];
+    return `${hrefPrefix}${encodeURIComponent(handle)}`;
+};
+
+const buildPinPopupHtml = (pin: XoloGlobePin) => {
+    const fallbackTitle = `NFT ${pin.token_id.slice(0, 8)}...`;
+    const title = escapeHtml(pin.title || fallbackTitle);
+    const collectionName = escapeHtml(pin.collection_name || 'Xolo NFT');
+
+    const socials = socialPlatformOrder
+        .map((platform) => {
+            const rawHandle = pin.socials?.[platform];
+            if (!rawHandle) {
+                return null;
+            }
+
+            const handle = rawHandle.trim().replace(/^@+/, '');
+            if (!handle) {
+                return null;
+            }
+
+            const href = toSocialHref(platform, handle);
+            const safeLabel = escapeHtml(socialPlatformMeta[platform].label);
+            const safePlatform = escapeHtml(platform);
+            const iconSvg = socialPlatformMeta[platform].iconSvg;
+
+            return `<a class="xolo-social-link xolo-social-icon--${safePlatform}" href="${href}" target="_blank" rel="noopener noreferrer" aria-label="Open ${safeLabel} for @${escapeHtml(handle)}" title="${safeLabel}">`
+                + `<span class="xolo-social-icon" aria-hidden="true">${iconSvg}</span>`
+                + '</a>';
+        })
+        .filter((item): item is string => Boolean(item));
+
+    const socialsHtml = socials.length > 0
+        ? socials.join('')
+        : '<p class="xolo-social-empty">No socials shared for this pin yet.</p>';
+
+    return `<div class="xolo-popup">`
+        + `<h2 class="xolo-popup-title">${title}</h2>`
+        + `<p class="xolo-popup-subtitle">${collectionName}</p>`
+        + `<div class="xolo-social-list">${socialsHtml}</div>`
+        + '</div>';
+};
+
 export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
+    const [searchParams] = useSearchParams();
     const mapContainerRef = useRef<HTMLDivElement | null>(null);
     const mapRef = useRef<Map | null>(null);
     const markersRef = useRef<mapboxgl.Marker[]>([]);
     const markerElementsRef = useRef<Array<{ marker: mapboxgl.Marker; visualElement: HTMLDivElement }>>([]);
+    const pinPopupControllersRef = useRef<Record<string, { open: () => void }>>({});
+    const autoOpenedPinTokenIdRef = useRef<string | null>(null);
     const spinningRef = useRef(true);
     const userInteractingRef = useRef(false);
     const popupFocusActiveRef = useRef(false);
@@ -40,6 +116,21 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
     const slowSpinZoom = 3;
 
     const accessToken = useMemo(() => import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || '', []);
+    const targetPinTokenId = searchParams.get('pin')?.trim() || null;
+
+    const openTargetPinFromQuery = useCallback(() => {
+        if (!targetPinTokenId || autoOpenedPinTokenIdRef.current === targetPinTokenId) {
+            return;
+        }
+
+        const controller = pinPopupControllersRef.current[targetPinTokenId];
+        if (!controller) {
+            return;
+        }
+
+        autoOpenedPinTokenIdRef.current = targetPinTokenId;
+        controller.open();
+    }, [targetPinTokenId]);
 
     useEffect(() => {
         let cancelled = false;
@@ -262,10 +353,19 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
             markersRef.current.forEach(marker => marker.remove());
             markersRef.current = [];
             markerElementsRef.current = [];
+            pinPopupControllersRef.current = {};
             map.remove();
             mapRef.current = null;
         };
     }, [accessToken]);
+
+    useEffect(() => {
+        if (autoOpenedPinTokenIdRef.current !== targetPinTokenId) {
+            autoOpenedPinTokenIdRef.current = null;
+        }
+
+        openTargetPinFromQuery();
+    }, [openTargetPinFromQuery, targetPinTokenId]);
 
     useEffect(() => {
         const map = mapRef.current;
@@ -275,6 +375,7 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
 
         markersRef.current.forEach(marker => marker.remove());
         markersRef.current = [];
+        pinPopupControllersRef.current = {};
 
         const timeoutId = window.setTimeout(() => {
             const nextMarkerElements: Array<{ marker: mapboxgl.Marker; visualElement: HTMLDivElement }> = [];
@@ -321,8 +422,12 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
                 markerVisualElement.style.cursor = 'pointer';
                 markerElement.appendChild(markerVisualElement);
 
-                const popup = new mapboxgl.Popup({ offset: 68, className: 'xolo-globe-popup' }).setHTML(
-                    `<h2>${pin.title || `NFT ${pin.token_id.slice(0, 8)}...`}</h2>${pin.collection_name || 'Xolo NFT'}<br/>${pin.latitude.toFixed(5)}, ${pin.longitude.toFixed(5)}`
+                const popup = new mapboxgl.Popup({
+                    offset: 68,
+                    className: 'xolo-globe-popup',
+                    anchor: 'bottom',
+                }).setHTML(
+                    buildPinPopupHtml(pin)
                 );
 
                 const focusOnPin = () => {
@@ -409,6 +514,17 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
                     .setPopup(popup)
                     .addTo(map);
 
+                pinPopupControllersRef.current[pin.token_id] = {
+                    open: () => {
+                        if (!popup.isOpen()) {
+                            popup.addTo(map);
+                            return;
+                        }
+
+                        focusOnPin();
+                    },
+                };
+
                 nextMarkerElements.push({ marker, visualElement: markerVisualElement });
                 return marker;
             });
@@ -416,12 +532,13 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
             markersRef.current = nextMarkers;
             markerElementsRef.current = nextMarkerElements;
             updateMarkerScale();
+            openTargetPinFromQuery();
         }, 400);
 
         return () => {
             window.clearTimeout(timeoutId);
         };
-    }, [pins]);
+    }, [openTargetPinFromQuery, pins]);
 
     if (!hasMapToken) {
         return (

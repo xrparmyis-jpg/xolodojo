@@ -20,6 +20,7 @@ Visit http://localhost:5173
 ### WalletConnect note
 
 - Set `VITE_WALLETCONNECT_PROJECT_ID` in `.env.local` to enable WalletConnect wallets.
+- Browser-injected wallets (MetaMask/Trust/etc.) are disabled by default; set `VITE_WC_ENABLE_INJECTED=true` only when intentionally testing them.
 - Optional: set `VITE_WC_CHAIN_IDS` (default `1`) to control which EVM chains are requested in the WalletConnect session.
 
 ## Development
