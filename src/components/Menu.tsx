@@ -54,10 +54,10 @@ function Menu({
 
     const menuItems = [
         { path: '/xoloitzquintle', label: 'Xoloitzquintle' },
-        { path: '/vision', label: 'Vision' },
         { path: '/team', label: 'Team' },
-        { path: '/xologlobe', label: 'XoloGlobe' },
+        { path: '/vision', label: 'Vision' },
         { path: '/mint', label: 'Mint' },
+        { path: '/xologlobe', label: 'XoloGlobe' },
     ];
 
     if (variant === 'mobile-toggle') {

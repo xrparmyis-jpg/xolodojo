@@ -6,6 +6,7 @@ export interface Wallet {
   user_id: number;
   wallet_address: string;
   wallet_type: string;
+  wallet_label?: string | null;
   is_connected: boolean;
   created_at: string;
   updated_at: string;
@@ -72,6 +73,7 @@ export async function addWallet(
   auth0Id: string,
   walletAddress: string,
   walletType: string,
+  walletLabel?: string,
   accessToken?: string
 ): Promise<WalletResponse> {
   try {
@@ -85,6 +87,7 @@ export async function addWallet(
         auth0_id: auth0Id,
         wallet_address: walletAddress,
         wallet_type: walletType,
+        wallet_label: walletLabel,
       }),
     });
 

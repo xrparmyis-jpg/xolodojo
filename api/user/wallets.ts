@@ -23,6 +23,79 @@ function getPool(): mysql.Pool {
   return pool;
 }
 
+function parsePreferences(preferences: unknown): Record<string, unknown> {
+  if (!preferences) {
+    return {};
+  }
+
+  if (typeof preferences === 'string') {
+    try {
+      const parsed = JSON.parse(preferences) as unknown;
+      return parsed && typeof parsed === 'object'
+        ? (parsed as Record<string, unknown>)
+        : {};
+    } catch {
+      return {};
+    }
+  }
+
+  if (typeof preferences === 'object') {
+    return preferences as Record<string, unknown>;
+  }
+
+  return {};
+}
+
+function normalizeWalletAddress(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function parseWalletLabels(preferences: Record<string, unknown>): Record<string, string> {
+  const walletLabelsRaw = preferences.wallet_labels;
+  if (!walletLabelsRaw || typeof walletLabelsRaw !== 'object') {
+    return {};
+  }
+
+  const source = walletLabelsRaw as Record<string, unknown>;
+  return Object.entries(source).reduce<Record<string, string>>((acc, [key, value]) => {
+    if (typeof value !== 'string') {
+      return acc;
+    }
+
+    const normalizedKey = normalizeWalletAddress(key);
+    const normalizedLabel = value.trim();
+    if (!normalizedKey || !normalizedLabel) {
+      return acc;
+    }
+
+    acc[normalizedKey] = normalizedLabel;
+    return acc;
+  }, {});
+}
+
+async function getUserPreferences(pool: mysql.Pool, userId: number): Promise<Record<string, unknown>> {
+  const [profileResult] = (await pool.execute(
+    'SELECT preferences FROM user_profiles WHERE user_id = ?',
+    [userId]
+  )) as [any[], any];
+
+  if (!Array.isArray(profileResult) || profileResult.length === 0) {
+    return {};
+  }
+
+  return parsePreferences(profileResult[0].preferences);
+}
+
+async function upsertUserPreferences(pool: mysql.Pool, userId: number, preferences: Record<string, unknown>) {
+  const preferencesJson = JSON.stringify(preferences);
+  await pool.execute(
+    `INSERT INTO user_profiles (user_id, preferences, updated_at)
+     VALUES (?, ?, CURRENT_TIMESTAMP)
+     ON DUPLICATE KEY UPDATE preferences = ?, updated_at = CURRENT_TIMESTAMP`,
+    [userId, preferencesJson, preferencesJson]
+  );
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const pool = getPool();
 
@@ -36,6 +109,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Missing auth0_id' });
       }
 
+      const [userResult] = (await pool.execute(
+        'SELECT id FROM users WHERE auth0_id = ?',
+        [auth0Id]
+      )) as [any[], any];
+
+      if (!Array.isArray(userResult) || userResult.length === 0) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const userId = userResult[0].id;
+
       const [result] = (await pool.execute(
         `SELECT uw.* FROM user_wallets uw
          JOIN users u ON uw.user_id = u.id
@@ -44,9 +128,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         [auth0Id]
       )) as [any[], any];
 
+      const preferences = await getUserPreferences(pool, userId);
+      const walletLabels = parseWalletLabels(preferences);
+      const wallets = (Array.isArray(result) ? result : []).map((wallet) => {
+        const normalizedAddress = typeof wallet.wallet_address === 'string'
+          ? normalizeWalletAddress(wallet.wallet_address)
+          : '';
+
+        return {
+          ...wallet,
+          wallet_label: walletLabels[normalizedAddress] ?? null,
+        };
+      });
+
       return res.status(200).json({
         success: true,
-        wallets: Array.isArray(result) ? result : [],
+        wallets,
       });
     } catch (error: any) {
       console.error('Error fetching wallets:', error);
@@ -59,7 +156,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Add a new wallet
   if (req.method === 'POST') {
     try {
-      const { auth0_id, wallet_address, wallet_type } = req.body;
+      const { auth0_id, wallet_address, wallet_type, wallet_label } = req.body;
       if (!auth0_id || !wallet_address || !wallet_type) {
         return res.status(400).json({ error: 'Missing required fields' });
       }
@@ -75,11 +172,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       const userId = userResult[0].id;
+      const normalizedWalletAddress = normalizeWalletAddress(wallet_address);
 
       // Check if wallet already exists
       const [existingWallet] = (await pool.execute(
         'SELECT id FROM user_wallets WHERE user_id = ? AND wallet_address = ?',
-        [userId, wallet_address]
+        [userId, normalizedWalletAddress]
       )) as [any[], any];
 
       if (Array.isArray(existingWallet) && existingWallet.length > 0) {
@@ -92,8 +190,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const [insertResult] = (await pool.execute(
         `INSERT INTO user_wallets (user_id, wallet_address, wallet_type, is_connected)
          VALUES (?, ?, ?, false)`,
-        [userId, wallet_address, wallet_type]
+        [userId, normalizedWalletAddress, wallet_type]
       )) as [any, any];
+
+      if (typeof wallet_label === 'string' && wallet_label.trim()) {
+        const preferences = await getUserPreferences(pool, userId);
+        const existingLabelsRaw = preferences.wallet_labels;
+        const existingLabels =
+          existingLabelsRaw && typeof existingLabelsRaw === 'object'
+            ? (existingLabelsRaw as Record<string, unknown>)
+            : {};
+
+        await upsertUserPreferences(pool, userId, {
+          ...preferences,
+          wallet_labels: {
+            ...existingLabels,
+            [normalizedWalletAddress]: wallet_label.trim(),
+          },
+        });
+      }
 
       // Get the inserted wallet
       const [newWallet] = (await pool.execute(
@@ -105,7 +220,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         success: true,
         wallet:
           Array.isArray(newWallet) && newWallet.length > 0
-            ? newWallet[0]
+            ? {
+                ...newWallet[0],
+                wallet_label: typeof wallet_label === 'string' ? wallet_label.trim() || null : null,
+              }
             : null,
         message: 'Wallet added successfully',
       });

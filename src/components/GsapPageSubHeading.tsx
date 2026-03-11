@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faAsterisk } from "@fortawesome/free-solid-svg-icons";
 
 gsap.registerPlugin(useGSAP);
 
@@ -92,10 +94,10 @@ function GsapPageSubHeading({ heading, className = "" }: GsapPageSubHeadingProps
 
     return (
         <div ref={containerRef} className={`mb-4 flex w-full items-center justify-center gap-2 ${className}`}>
-            <img
-                src="/has.png"
-                alt="subheading icon"
-                className="subheading-icon w-5 h-5 md:w-6 md:h-6 opacity-0"
+            <FontAwesomeIcon
+                icon={faAsterisk}
+                className="subheading-icon w-5 h-5 md:w-6 md:h-6 opacity-0 text-[#a32ca1]"
+                aria-label="subheading icon"
             />
             <h3 ref={headingRef} className="text-2xl md:text-3xl font-bold leading-tight text-center opacity-0">
                 {headingLetters.map((letter, index) => (

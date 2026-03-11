@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useAccount, useDisconnect as useWagmiDisconnect } from 'wagmi';
 import { useWeb3Modal } from '@web3modal/wagmi/react';
+import { standalone as joeyStandalone } from '@joey-wallet/wc-client/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faArrowsRotate,
@@ -45,10 +46,13 @@ interface WalletConnectionProps {
 }
 
 const walletConnectTimeoutMs = Number(import.meta.env.VITE_WALLETCONNECT_CONNECT_TIMEOUT_MS || 60000);
+const joeyConnectTimeoutMs = Number(import.meta.env.VITE_JOEY_CONNECT_TIMEOUT_MS || 60000);
+const defaultJoeyChain = 'xrpl:0';
 
 function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: WalletConnectionProps) {
     const { open } = useWeb3Modal();
-    const { address: wagmiAddress, isConnected: isWagmiConnected } = useAccount();
+    const { address: wagmiAddress, isConnected: isWagmiConnected, connector: wagmiConnector } = useAccount();
+    const { accounts: joeyAccounts, actions: joeyActions } = joeyStandalone.provider.useProvider();
     const { mutateAsync: wagmiDisconnectAsync } = useWagmiDisconnect();
     const [wallets, setWallets] = useState<Wallet[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -56,7 +60,12 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showAddWalletModal, setShowAddWalletModal] = useState(false);
     const [isWalletConnectPending, setIsWalletConnectPending] = useState(false);
+    const [isJoeyConnectPending, setIsJoeyConnectPending] = useState(false);
     const [pendingWalletConnectId, setPendingWalletConnectId] = useState<number | null>(null);
+    const [pendingJoeyConnectId, setPendingJoeyConnectId] = useState<number | null>(null);
+    const [showJoeyQrModal, setShowJoeyQrModal] = useState(false);
+    const [joeyConnectUri, setJoeyConnectUri] = useState<string | null>(null);
+    const [joeyDeepLink, setJoeyDeepLink] = useState<string | null>(null);
     const [isXamanRedirectRecoveryDone, setIsXamanRedirectRecoveryDone] = useState(false);
     const [connectedWalletAssets, setConnectedWalletAssets] = useState<WalletAssetSummary | null>(null);
     const [isAssetsLoading, setIsAssetsLoading] = useState(false);
@@ -95,6 +104,70 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
             setIsLoading(false);
         }
     }, [accessToken, auth0Id, onWalletsUpdated, showToast]);
+
+    const getWalletConnectSessionLabel = useCallback(async (): Promise<string | undefined> => {
+        if (!wagmiConnector || wagmiConnector.id !== 'walletConnect') {
+            return undefined;
+        }
+
+        try {
+            const provider = await wagmiConnector.getProvider();
+            const providerWithSession = provider as {
+                session?: {
+                    peer?: {
+                        metadata?: {
+                            name?: string;
+                        };
+                    };
+                };
+                signer?: {
+                    session?: {
+                        peer?: {
+                            metadata?: {
+                                name?: string;
+                            };
+                        };
+                    };
+                    client?: {
+                        session?: {
+                            peer?: {
+                                metadata?: {
+                                    name?: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+
+            const sessionLabelCandidates = [
+                providerWithSession.session?.peer?.metadata?.name,
+                providerWithSession.signer?.session?.peer?.metadata?.name,
+                providerWithSession.signer?.client?.session?.peer?.metadata?.name,
+                wagmiConnector.name,
+            ];
+
+            const sessionLabel = sessionLabelCandidates.find(
+                (candidate): candidate is string => typeof candidate === 'string' && candidate.trim().length > 0
+            );
+
+            if (!sessionLabel) {
+                if (import.meta.env.DEV) {
+                    console.debug('[WalletConnection] WalletConnect label not found from provider/session metadata');
+                }
+                return undefined;
+            }
+
+            const normalizedLabel = sessionLabel.trim();
+            if (import.meta.env.DEV) {
+                console.debug('[WalletConnection] Resolved WalletConnect label:', normalizedLabel);
+            }
+            return normalizedLabel || undefined;
+        } catch (error) {
+            console.warn('Failed to read WalletConnect peer metadata:', error);
+            return undefined;
+        }
+    }, [wagmiConnector]);
 
     // Load wallets on mount
     useEffect(() => {
@@ -149,7 +222,14 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                     return;
                 }
 
-                const result = await addWallet(auth0Id, normalizedAddress, 'walletconnect', accessToken);
+                const walletConnectLabel = await getWalletConnectSessionLabel();
+                const result = await addWallet(
+                    auth0Id,
+                    normalizedAddress,
+                    'walletconnect',
+                    walletConnectLabel,
+                    accessToken
+                );
                 if (result.success && result.wallet) {
                     if (currentConnectedWallet) {
                         await tryDisconnectCurrentWallet(currentConnectedWallet);
@@ -177,11 +257,112 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
         isWalletConnectPending,
         isWagmiConnected,
         pendingWalletConnectId,
+        getWalletConnectSessionLabel,
         tryDisconnectCurrentWallet,
         wagmiAddress,
         wallets,
         loadWallets,
         showToast,
+    ]);
+
+    useEffect(() => {
+        const syncJoeySession = async () => {
+            if (!isJoeyConnectPending || !joeyAccounts || joeyAccounts.length === 0) {
+                return;
+            }
+
+            const resolvedAddress = joeyAccounts
+                .map((account: string) => account.split(':').pop()?.trim())
+                .find((account: string | undefined) => Boolean(account));
+
+            if (!resolvedAddress) {
+                return;
+            }
+
+            try {
+                setIsLoading(true);
+
+                const normalizedAddress = resolvedAddress.toLowerCase();
+                const currentConnectedWallet = wallets.find((wallet) => wallet.is_connected);
+
+                if (pendingJoeyConnectId != null) {
+                    const existingWallet = wallets.find((wallet) => wallet.id === pendingJoeyConnectId);
+                    if (!existingWallet) {
+                        showToast('error', 'Wallet not found');
+                        return;
+                    }
+
+                    if (existingWallet.wallet_address.toLowerCase() !== normalizedAddress) {
+                        showToast('error', 'Connected Joey account does not match the selected wallet address.');
+                        return;
+                    }
+
+                    if (currentConnectedWallet && currentConnectedWallet.id !== existingWallet.id) {
+                        await tryDisconnectCurrentWallet(currentConnectedWallet);
+                    }
+
+                    await connectWallet(auth0Id, existingWallet.id, accessToken);
+                    await loadWallets();
+                    showToast('success', 'Joey wallet connected');
+                    return;
+                }
+
+                const existingWallet = wallets.find(
+                    (wallet) => wallet.wallet_address.toLowerCase() === normalizedAddress
+                );
+
+                if (existingWallet) {
+                    if (currentConnectedWallet && currentConnectedWallet.id !== existingWallet.id) {
+                        await tryDisconnectCurrentWallet(currentConnectedWallet);
+                    }
+                    await connectWallet(auth0Id, existingWallet.id, accessToken);
+                    await loadWallets();
+                    showToast('success', 'Joey wallet connected');
+                    return;
+                }
+
+                const result = await addWallet(
+                    auth0Id,
+                    normalizedAddress,
+                    'joey',
+                    'Joey Wallet',
+                    accessToken
+                );
+                if (result.success && result.wallet) {
+                    if (currentConnectedWallet) {
+                        await tryDisconnectCurrentWallet(currentConnectedWallet);
+                    }
+                    await connectWallet(auth0Id, result.wallet.id, accessToken);
+                }
+
+                await loadWallets();
+                showToast('success', 'Joey wallet added and connected!');
+            } catch (error) {
+                const err = error instanceof Error ? error : new Error(String(error));
+                console.error('Failed to sync Joey session:', err);
+                showToast('error', `Failed to connect Joey wallet: ${err.message}`);
+            } finally {
+                setShowJoeyQrModal(false);
+                setJoeyConnectUri(null);
+                setJoeyDeepLink(null);
+                setPendingJoeyConnectId(null);
+                setIsJoeyConnectPending(false);
+                setIsLoading(false);
+            }
+        };
+
+        void syncJoeySession();
+    }, [
+        accessToken,
+        auth0Id,
+        isJoeyConnectPending,
+        joeyAccounts,
+        joeyActions,
+        loadWallets,
+        pendingJoeyConnectId,
+        showToast,
+        tryDisconnectCurrentWallet,
+        wallets,
     ]);
 
     useEffect(() => {
@@ -217,7 +398,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                     return;
                 }
 
-                const result = await addWallet(auth0Id, xrplAddress, 'xaman', accessToken);
+                const result = await addWallet(auth0Id, xrplAddress, 'xaman', undefined, accessToken);
                 if (result.success && result.wallet) {
                     if (currentConnectedWallet) {
                         await tryDisconnectCurrentWallet(currentConnectedWallet);
@@ -264,6 +445,24 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
 
         return () => clearTimeout(timeout);
     }, [isWalletConnectPending, isWagmiConnected, showToast]);
+
+    useEffect(() => {
+        if (!isJoeyConnectPending || (joeyAccounts && joeyAccounts.length > 0)) {
+            return;
+        }
+
+        const timeout = setTimeout(() => {
+            setPendingJoeyConnectId(null);
+            setIsJoeyConnectPending(false);
+            setShowJoeyQrModal(false);
+            setJoeyConnectUri(null);
+            setJoeyDeepLink(null);
+            setIsLoading(false);
+            showToast('error', 'Joey connection request timed out. Please try again.');
+        }, joeyConnectTimeoutMs);
+
+        return () => clearTimeout(timeout);
+    }, [isJoeyConnectPending, joeyAccounts, showToast]);
 
     const handleConnectXaman = async (walletIdToConnect?: number) => {
         try {
@@ -312,7 +511,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                 return;
             }
 
-            const result = await addWallet(auth0Id, xrplAddress, 'xaman', accessToken);
+            const result = await addWallet(auth0Id, xrplAddress, 'xaman', undefined, accessToken);
             if (result.success && result.wallet) {
                 if (connectedWallet) {
                     await tryDisconnectCurrentWallet(connectedWallet);
@@ -340,11 +539,73 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
         }
     };
 
+    const handleConnectJoey = async (walletIdToConnect?: number) => {
+        try {
+            setIsLoading(true);
+            setPendingJoeyConnectId(walletIdToConnect ?? null);
+            setIsJoeyConnectPending(true);
+
+            const generatedConnection = await joeyActions.generate({
+                chain: defaultJoeyChain,
+                openModal: false,
+            });
+
+            if (generatedConnection.error) {
+                throw generatedConnection.error;
+            }
+
+            const generatedUri = generatedConnection.data?.uri?.trim();
+            if (!generatedUri) {
+                throw new Error('Joey QR code could not be generated.');
+            }
+
+            if (import.meta.env.DEV) {
+                console.debug('[WalletConnection] Joey QR generated', {
+                    uri: generatedUri,
+                    deeplink: generatedConnection.data?.deeplink ?? null,
+                    walletIdToConnect: walletIdToConnect ?? null,
+                });
+            }
+
+            setJoeyConnectUri(generatedUri);
+            setJoeyDeepLink(generatedConnection.data?.deeplink ?? null);
+            setShowJoeyQrModal(true);
+            setIsLoading(false);
+        } catch (error) {
+            const err = error instanceof Error ? error : new Error(String(error));
+            console.error('Failed to connect Joey wallet:', err);
+            showToast('error', `Failed to connect Joey wallet: ${err.message}`);
+            setShowJoeyQrModal(false);
+            setJoeyConnectUri(null);
+            setJoeyDeepLink(null);
+            setPendingJoeyConnectId(null);
+            setIsJoeyConnectPending(false);
+            setIsLoading(false);
+        }
+    };
+
+    const handleCancelJoeyQr = async () => {
+        setShowJoeyQrModal(false);
+        setJoeyConnectUri(null);
+        setJoeyDeepLink(null);
+        setPendingJoeyConnectId(null);
+        setIsJoeyConnectPending(false);
+        setIsLoading(false);
+
+        try {
+            await joeyActions.disconnect();
+        } catch (error) {
+            console.warn('Best-effort Joey disconnect after QR cancel failed:', error);
+        }
+    };
+
     const handleDisconnect = async () => {
         try {
             setIsLoading(true);
             if (connectedWallet?.wallet_type === 'walletconnect') {
                 await wagmiDisconnectAsync();
+            } else if (connectedWallet?.wallet_type === 'joey') {
+                await joeyActions.disconnect();
             } else if (connectedWallet?.wallet_type === 'xaman') {
                 await clearXamanSession();
             }
@@ -373,6 +634,11 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
 
             if (wallet.wallet_type === 'xaman') {
                 await handleConnectXaman(wallet.id);
+                return;
+            }
+
+            if (wallet.wallet_type === 'joey') {
+                await handleConnectJoey(wallet.id);
                 return;
             }
 
@@ -409,6 +675,8 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
             if (walletToDelete?.is_connected) {
                 if (walletToDelete.wallet_type === 'walletconnect') {
                     await wagmiDisconnectAsync();
+                } else if (walletToDelete?.wallet_type === 'joey') {
+                    await joeyActions.disconnect();
                 } else if (walletToDelete.wallet_type === 'xaman') {
                     await clearXamanSession();
                 }
@@ -520,10 +788,31 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
         [wallets]
     );
 
-    const isInteractionBlocked = isLoading || isAssetsLoading || isWalletConnectPending;
+    useEffect(() => {
+        if (!import.meta.env.DEV) {
+            return;
+        }
+
+        console.groupCollapsed(`[WalletConnection] Rendering ${sortedWallets.length} wallet(s)`);
+        console.table(
+            sortedWallets.map((wallet) => ({
+                id: wallet.id,
+                address: wallet.wallet_address,
+                type: wallet.wallet_type,
+                label: wallet.wallet_label ?? null,
+                is_connected: wallet.is_connected,
+                created_at: wallet.created_at,
+                updated_at: wallet.updated_at,
+            }))
+        );
+        console.log('Full wallet objects:', sortedWallets);
+        console.groupEnd();
+    }, [sortedWallets]);
+
+    const isInteractionBlocked = isLoading || isAssetsLoading || isWalletConnectPending || isJoeyConnectPending;
     const loadingLabel = isAssetsLoading
         ? 'Loading wallet summary...'
-        : isWalletConnectPending
+        : isWalletConnectPending || isJoeyConnectPending
             ? 'Connecting wallet...'
             : 'Loading...';
     const shouldUseSummaryMinHeight = isAssetsLoading || ((connectedWalletAssets?.nft_count ?? 0) > 0);
@@ -579,14 +868,18 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                                                     ? 'bg-[#0030cf]/90 text-white/90 border border-white/40'
                                                     : wallet.wallet_type === 'walletconnect'
                                                         ? 'bg-emerald-900/60 text-emerald-200 border border-emerald-500/40'
-                                                        : 'bg-blue-900/60 text-blue-200 border border-blue-500/40'
+                                                        : wallet.wallet_type === 'joey'
+                                                            ? 'bg-cyan-900/60 text-cyan-200 border border-cyan-500/40'
+                                                            : 'bg-blue-900/60 text-blue-200 border border-blue-500/40'
                                                     }`}
                                             >
                                                 {wallet.wallet_type === 'xaman'
                                                     ? 'Xaman (XUMM)'
-                                                    : wallet.wallet_type === 'walletconnect'
-                                                        ? 'WalletConnect'
-                                                        : wallet.wallet_type}
+                                                    : wallet.wallet_type === 'joey'
+                                                        ? 'Joey Wallet'
+                                                        : wallet.wallet_type === 'walletconnect'
+                                                            ? wallet.wallet_label || 'WalletConnect'
+                                                            : wallet.wallet_type}
                                             </span>
                                             <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-green-600/70 text-white/80 border border-white/40">
                                                 {getConnectionChannel(wallet.wallet_type)}
@@ -680,6 +973,16 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                                 WalletConnect
                             </Button>
                             <Button
+                                onClick={() => {
+                                    setShowAddWalletModal(false);
+                                    void handleConnectJoey();
+                                }}
+                                disabled={isLoading}
+                                className="w-full bg-teal-600 hover:bg-teal-700 active:bg-teal-800"
+                            >
+                                Joey Wallet
+                            </Button>
+                            <Button
                                 onClick={() => void handleSelectWalletType('xaman')}
                                 disabled={isLoading}
                                 className="w-full bg-purple-600 hover:bg-purple-700 active:bg-purple-800"
@@ -691,6 +994,45 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                             <Button
                                 onClick={() => setShowAddWalletModal(false)}
                                 disabled={isLoading}
+                                className="bg-gray-600 hover:bg-gray-700 active:bg-gray-800 text-sm"
+                            >
+                                Cancel
+                            </Button>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
+
+            {showJoeyQrModal && joeyConnectUri && typeof document !== 'undefined' && createPortal(
+                <div className="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-black/80 p-4 sm:p-6">
+                    <div className="w-full max-w-sm rounded-xl bg-neutral-900 p-6 shadow-xl border border-white/10">
+                        <h3 className="text-white text-lg font-semibold mb-2">Scan With Joey Wallet</h3>
+                        <p className="text-sm text-white/70 mb-4">
+                            Open Joey Wallet on your phone and scan this QR code to continue.
+                        </p>
+
+                        <div className="mx-auto mb-4 w-fit rounded-lg bg-white p-3">
+                            <img
+                                src={`https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodeURIComponent(joeyConnectUri)}`}
+                                alt="Joey Wallet connection QR code"
+                                className="h-56 w-56"
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                            {joeyDeepLink ? (
+                                <a
+                                    href={joeyDeepLink}
+                                    className="inline-flex items-center justify-center rounded-md bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700"
+                                >
+                                    Open Joey App
+                                </a>
+                            ) : (
+                                <div />
+                            )}
+                            <Button
+                                onClick={() => void handleCancelJoeyQr()}
                                 className="bg-gray-600 hover:bg-gray-700 active:bg-gray-800 text-sm"
                             >
                                 Cancel
@@ -772,8 +1114,48 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
 }
 
 export function WalletConnection({ auth0Id, accessToken, onWalletsUpdated }: WalletConnectionProps) {
+    const joeyProjectId = (import.meta.env.VITE_JOEY_PROJECT_ID || walletConnectProjectId || '717dec7dead15d3a101d504ed3933709').trim();
+    const appUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173';
+    const [isJoeyProviderReady, setIsJoeyProviderReady] = useState(!import.meta.env.DEV);
+
+    useEffect(() => {
+        if (!import.meta.env.DEV) {
+            return;
+        }
+
+        // In React StrictMode (dev only), mount/unmount cycles happen twice.
+        // Delay provider mount by one macrotask so Joey Core initializes only on the stable mount.
+        const timer = window.setTimeout(() => {
+            setIsJoeyProviderReady(true);
+        }, 0);
+
+        return () => {
+            window.clearTimeout(timer);
+        };
+    }, []);
+
+    const joeyProviderConfig = useMemo(() => ({
+        projectId: joeyProjectId,
+        defaultChain: defaultJoeyChain,
+        metadata: {
+            name: 'Donovan',
+            description: 'Donovan Joey wallet connection',
+            url: appUrl,
+            icons: [`${appUrl}/favicon.ico`],
+            redirect: {
+                universal: appUrl,
+            },
+        },
+    }), [appUrl, joeyProjectId]);
+
+    if (!isJoeyProviderReady) {
+        return null;
+    }
+
     return (
-        <WalletConnectionContent auth0Id={auth0Id} accessToken={accessToken} onWalletsUpdated={onWalletsUpdated} />
+        <joeyStandalone.provider.Provider config={joeyProviderConfig}>
+            <WalletConnectionContent auth0Id={auth0Id} accessToken={accessToken} onWalletsUpdated={onWalletsUpdated} />
+        </joeyStandalone.provider.Provider>
     );
 }
 
