@@ -211,13 +211,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             typeof nft.Issuer === 'string' &&
             nft.Issuer.toLowerCase() === configuredCollectionAddress
         )
-      : [];
+      : nfts;
+
+    if (!configuredCollectionAddress && nfts.length > 0) {
+      console.warn(
+        'NFT_COLLECTION_CONTRACT_ADDRESS is not configured; returning unfiltered wallet NFTs.',
+        { walletAddress, nftCount: nfts.length }
+      );
+    }
 
     return res.status(200).json({
       success: true,
       wallet_address: walletAddress,
       is_xrpl: true,
       xrp_balance: xrpBalance,
+      collection_filter_applied: Boolean(configuredCollectionAddress),
+      configured_collection_address: configuredCollectionAddress,
       nft_count: filteredNfts.length,
       nfts: filteredNfts.map(nft => ({
         token_id: nft.NFTokenID,
