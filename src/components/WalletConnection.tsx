@@ -11,6 +11,7 @@ import {
     faLink,
     faLinkSlash,
     faSpinner,
+    faThumbtack,
     faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 import Button from './Button';
@@ -86,8 +87,8 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
     const [copiedWalletId, setCopiedWalletId] = useState<number | null>(null);
     const { showToast, clearToasts } = useToast();
 
-    const clearWalletErrorToasts = useCallback(() => {
-        clearToasts('error');
+    const clearWalletToasts = useCallback(() => {
+        clearToasts();
     }, [clearToasts]);
 
     const tryDisconnectCurrentWallet = useCallback(
@@ -451,7 +452,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
 
     const handleConnectXaman = async (walletIdToConnect?: number) => {
         try {
-            clearWalletErrorToasts();
+            clearWalletToasts();
             setIsLoading(true);
 
             if (!isXamanConfigured()) {
@@ -527,7 +528,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
 
     const handleConnectJoey = async (walletIdToConnect?: number) => {
         try {
-            clearWalletErrorToasts();
+            clearWalletToasts();
             setIsLoading(true);
             setPendingJoeyConnectId(walletIdToConnect ?? null);
             setIsJoeyConnectPending(true);
@@ -588,7 +589,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
 
     const handleDisconnect = async () => {
         try {
-            clearWalletErrorToasts();
+            clearWalletToasts();
             setIsLoading(true);
             if (connectedWallet?.wallet_type === 'walletconnect') {
                 await wagmiDisconnectAsync();
@@ -612,7 +613,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
 
     const handleConnectExisting = async (walletId: number) => {
         try {
-            clearWalletErrorToasts();
+            clearWalletToasts();
             setIsLoading(true);
 
             const wallet = wallets.find((currentWallet) => currentWallet.id === walletId);
@@ -657,7 +658,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
 
     const handleDelete = async (walletId: number) => {
         try {
-            clearWalletErrorToasts();
+            clearWalletToasts();
             setIsLoading(true);
 
             // Check if this is the connected wallet
@@ -696,7 +697,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
 
     const handleCopyWalletAddress = async (walletId: number, walletAddress: string) => {
         try {
-            clearWalletErrorToasts();
+            clearWalletToasts();
             await navigator.clipboard.writeText(walletAddress);
             setCopiedWalletId(walletId);
             setTimeout(() => {
@@ -711,7 +712,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
     };
 
     const handleSelectWalletType = async (walletType: 'walletconnect' | 'xaman') => {
-        clearWalletErrorToasts();
+        clearWalletToasts();
         setShowAddWalletModal(false);
 
         if (walletType === 'xaman') {
@@ -1037,6 +1038,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
 
             <Button
                 onClick={() => {
+                    clearWalletToasts();
                     setShowAddWalletModal(true);
                 }}
                 disabled={isLoading || isWalletConnectPending}
@@ -1063,6 +1065,11 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                         <div className="flex items-start justify-between gap-3">
                             <p>
                                 NFTs Found: <span className="font-semibold text-white">{connectedWalletAssets.nft_count}</span>
+                                {' - Click the '}
+                                <span className="mx-1 inline-flex h-5 w-5 items-center justify-center rounded-full border border-black/55 bg-black text-white/85 align-middle">
+                                    <FontAwesomeIcon icon={faThumbtack} className="text-[10px]" />
+                                </span>
+                                {' to pin an NFT to the XoloGlobe'}
                             </p>
                             <button
                                 type="button"

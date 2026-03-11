@@ -146,6 +146,7 @@ docker exec -i donovan-db mysql -udonovan_user -pdonovan_password donovan_db < d
 - Uses Docker MySQL database (localhost:3308)
 - Auth0 credentials needed from Auth0 dashboard
 - WalletConnect requires `VITE_WALLETCONNECT_PROJECT_ID`
+- Browser-injected wallets are disabled by default; set `VITE_WC_ENABLE_INJECTED=true` only for explicit compatibility testing
 - Optional WalletConnect chain list: `VITE_WC_CHAIN_IDS` (comma-separated chain IDs, default `1`)
 
 **Production (Vercel):**

@@ -34,11 +34,11 @@ const owners: Owner[] = [
         image: "/team/Cryptonite.jpg",
         email: "xrparmyis@gmail.com",
         socials: {
-            twitter: "https://x.com/XoloDojo",
-            discord: "https://x.com/XoloDojo",
-            tiktok: "https://x.com/XoloDojo",
-            instagram: "https://x.com/XoloDojo",
-            telegram: "https://x.com/XoloDojo",
+            twitter: "XoloDojo",
+            discord: "XoloDojo",
+            tiktok: "XoloDojo",
+            instagram: "XoloDojo",
+            telegram: "XoloDojo",
         },
     },
     {

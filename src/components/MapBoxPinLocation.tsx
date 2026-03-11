@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import mapboxgl from 'mapbox-gl';
 import type { LngLatLike, Map } from 'mapbox-gl';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faLocationArrow, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || '';
 
@@ -20,9 +20,17 @@ interface MapBoxPinLocationProps {
     onLocationChange: (location: { lng: number; lat: number } | null) => void;
     initialLocation?: { lng: number; lat: number } | null;
     className?: string;
+    mapHeightClassName?: string;
+    footerAction?: ReactNode;
 }
 
-export default function MapBoxPinLocation({ onLocationChange, initialLocation = null, className }: MapBoxPinLocationProps) {
+export default function MapBoxPinLocation({
+    onLocationChange,
+    initialLocation = null,
+    className,
+    mapHeightClassName = 'h-[378px]',
+    footerAction,
+}: MapBoxPinLocationProps) {
     const mapContainerRef = useRef<HTMLDivElement | null>(null);
     const mapRef = useRef<Map | null>(null);
     const markerRef = useRef<mapboxgl.Marker | null>(null);
@@ -211,8 +219,21 @@ export default function MapBoxPinLocation({ onLocationChange, initialLocation = 
 
     return (
         <div className={`${className || 'relative'} mapbox-pin-controls`}>
-            <div className="mb-2 text-xs text-white/85 backdrop-blur-sm">
-                <div className="flex items-center gap-2">
+            <div className="relative">
+                <div ref={mapContainerRef} className={`${mapHeightClassName} w-full overflow-hidden rounded-lg border border-[#3fcfcf2e]`} />
+
+                {isLocatingUser && (
+                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-lg">
+                        <div className="inline-flex items-center gap-2 rounded-md border border-white/25 bg-black/70 px-3 py-2 text-xs text-white">
+                            <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
+                            Locating...
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            <div className="mt-3 text-xs text-white/85 backdrop-blur-sm">
+                <div className="flex items-center gap-3">
                     <input
                         type="text"
                         value={searchText}
@@ -233,16 +254,9 @@ export default function MapBoxPinLocation({ onLocationChange, initialLocation = 
                             }
                         }}
                         placeholder="Search location"
-                        className="h-8 flex-1 rounded-md border border-[#3fcfcf2e] bg-black/50 px-3 py-1 text-sm text-white placeholder:text-white/60 focus:border-sky-500 focus:outline-none"
+                        className="h-11 flex-1 rounded-lg border border-white/20 bg-black/40 px-3 py-2 text-base text-white/90 placeholder:text-white/45 focus:border-blue-500 focus:outline-none"
                     />
-                    <button
-                        type="button"
-                        onClick={handleSearchSubmit}
-                        className="cursor-pointer inline-flex h-8 w-8 items-center justify-center rounded-md border border-[#3fcfcf2e] bg-black/50 text-white hover:bg-black/80"
-                        title="Search"
-                    >
-                        <FontAwesomeIcon icon={faLocationArrow} className="text-xs" />
-                    </button>
+                    {footerAction}
                 </div>
 
                 {searchResults.length > 0 && (
@@ -252,7 +266,7 @@ export default function MapBoxPinLocation({ onLocationChange, initialLocation = 
                                 type="button"
                                 key={result.id}
                                 onClick={() => handleSelectSearchResult(result)}
-                                className="block w-full border-b border-white/10 px-3 py-2 text-left text-xs text-white/90 last:border-b-0 hover:bg-white/10"
+                                className="cursor-pointer block w-full border-b border-white/10 px-3 py-2 text-left text-xs text-white/90 last:border-b-0 hover:bg-white/10"
                             >
                                 {result.place_name}
                             </button>
@@ -260,17 +274,6 @@ export default function MapBoxPinLocation({ onLocationChange, initialLocation = 
                     </div>
                 )}
             </div>
-
-            <div ref={mapContainerRef} className="h-[378px] w-full overflow-hidden rounded-lg border border-[#3fcfcf2e]" />
-
-            {isLocatingUser && (
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 top-[58px] flex items-center justify-center">
-                    <div className="inline-flex items-center gap-2 rounded-md border border-white/25 bg-black/70 px-3 py-2 text-xs text-white">
-                        <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
-                        Locating...
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

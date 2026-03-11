@@ -101,6 +101,34 @@ const normalizeSocials = (socials: ProfileSocials): ProfileSocials =>
         return acc;
     }, {});
 
+const getSocialProfileUrl = (platform: SocialPlatformKey, rawHandle?: string): string | undefined => {
+    if (!rawHandle) {
+        return undefined;
+    }
+
+    const handle = rawHandle.trim().replace(/^@+/, '');
+    if (!handle) {
+        return undefined;
+    }
+
+    const encodedHandle = encodeURIComponent(handle);
+
+    switch (platform) {
+        case 'twitter':
+            return `https://x.com/${encodedHandle}`;
+        case 'discord':
+            return `https://discord.com/users/${encodedHandle}`;
+        case 'tiktok':
+            return `https://tiktok.com/@${encodedHandle}`;
+        case 'instagram':
+            return `https://instagram.com/${encodedHandle}`;
+        case 'telegram':
+            return `https://t.me/${encodedHandle}`;
+        default:
+            return undefined;
+    }
+};
+
 function Profile() {
     const { user, isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
     const [dbUser, setDbUser] = useState<UserProfile | null>(null);
@@ -374,32 +402,48 @@ function Profile() {
 
                                     {openSocialPlatforms.length > 0 ? (
                                         <div className="space-y-3">
-                                            {openSocialPlatforms.map((platform) => (
-                                                <div key={platform.key} className="flex items-center gap-2">
-                                                    <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white/80">
-                                                        <FontAwesomeIcon icon={platform.icon} />
-                                                    </div>
-                                                    <div className="w-full md:w-1/3 md:min-w-[280px]">
-                                                        <div className="relative">
-                                                            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-white/45">@</span>
-                                                            <input
-                                                                value={socials[platform.key] || ''}
-                                                                onChange={(e) => handleSocialInputChange(platform.key, e.target.value)}
-                                                                placeholder={`${platform.label} username`}
-                                                                className="w-full rounded-lg border border-white/20 bg-black/40 pl-8 pr-3 py-2 text-white/90 placeholder:text-white/45 focus:outline-none focus:border-blue-500"
-                                                            />
+                                            {openSocialPlatforms.map((platform) => {
+                                                const profileUrl = getSocialProfileUrl(platform.key, socials[platform.key]);
+
+                                                return (
+                                                    <div key={platform.key} className="flex items-center gap-2">
+                                                        {profileUrl ? (
+                                                            <a
+                                                                href={profileUrl}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                title={`Open ${platform.label}`}
+                                                                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white/80 hover:border-white/40 hover:bg-white/10 hover:text-white transition-all duration-200"
+                                                            >
+                                                                <FontAwesomeIcon icon={platform.icon} />
+                                                            </a>
+                                                        ) : (
+                                                            <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white/80">
+                                                                <FontAwesomeIcon icon={platform.icon} />
+                                                            </div>
+                                                        )}
+                                                        <div className="w-full md:w-1/3 md:min-w-[280px]">
+                                                            <div className="relative">
+                                                                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-white/45">@</span>
+                                                                <input
+                                                                    value={socials[platform.key] || ''}
+                                                                    onChange={(e) => handleSocialInputChange(platform.key, e.target.value)}
+                                                                    placeholder={`${platform.label} username`}
+                                                                    className="w-full rounded-lg border border-white/20 bg-black/40 pl-8 pr-3 py-2 text-white/90 placeholder:text-white/45 focus:outline-none focus:border-blue-500"
+                                                                />
+                                                            </div>
                                                         </div>
+                                                        <button
+                                                            type="button"
+                                                            title={`Remove ${platform.label}`}
+                                                            onClick={() => handleRequestRemoveSocial(platform.key)}
+                                                            className="cursor-pointer inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-red-500/40 bg-red-600/15 text-red-300 hover:bg-red-600/30"
+                                                        >
+                                                            <FontAwesomeIcon icon={faXmark} />
+                                                        </button>
                                                     </div>
-                                                    <button
-                                                        type="button"
-                                                        title={`Remove ${platform.label}`}
-                                                        onClick={() => handleRequestRemoveSocial(platform.key)}
-                                                        className="cursor-pointer inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-red-500/40 bg-red-600/15 text-red-300 hover:bg-red-600/30"
-                                                    >
-                                                        <FontAwesomeIcon icon={faXmark} />
-                                                    </button>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     ) : activeSocialPlatforms.length === 0 ? (
                                         <p className="text-white/50 text-sm">No social handles added yet.</p>
