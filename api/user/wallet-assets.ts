@@ -202,7 +202,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const userId = userResult[0].id;
 
     const [walletResult] = (await dbPool.execute(
-      'SELECT id FROM user_wallets WHERE user_id = ? AND wallet_address = ?',
+      'SELECT id FROM user_wallets WHERE user_id = ? AND LOWER(wallet_address) = LOWER(?)',
       [userId, walletAddress]
     )) as [any[], any];
 

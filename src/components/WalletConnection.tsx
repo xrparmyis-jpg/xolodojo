@@ -22,6 +22,7 @@ import { walletConnectProjectId } from '../web3modal';
 import {
     authorizeXamanAccount,
     clearXamanSession,
+    getActiveXamanAccount,
     getXamanRedirectUrl,
     hasXamanRedirectParams,
     isXamanConfigured,
@@ -34,6 +35,7 @@ import {
     disconnectWallet,
     deleteWallet,
     getUserWallets,
+    updateWalletAddress,
 } from '../services/walletService';
 import {
     getWalletAssetSummary,
@@ -86,11 +88,24 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
     const [isAssetsLoading, setIsAssetsLoading] = useState(false);
     const [assetsError, setAssetsError] = useState<string | null>(null);
     const [copiedWalletId, setCopiedWalletId] = useState<number | null>(null);
+    const [hasAttemptedXamanSessionRepair, setHasAttemptedXamanSessionRepair] = useState(false);
     const { showToast, clearToasts } = useToast();
 
     const clearWalletToasts = useCallback(() => {
         clearToasts();
     }, [clearToasts]);
+
+    const repairWalletAddressIfNeeded = useCallback(async (
+        wallet: Wallet,
+        resolvedAddress: string
+    ): Promise<Wallet> => {
+        if (!isXrplWalletType(wallet.wallet_type) || wallet.wallet_address === resolvedAddress) {
+            return wallet;
+        }
+
+        const result = await updateWalletAddress(wallet.id, auth0Id, resolvedAddress, accessToken);
+        return result.wallet ?? { ...wallet, wallet_address: resolvedAddress };
+    }, [accessToken, auth0Id]);
 
     const tryDisconnectCurrentWallet = useCallback(
         async (currentWallet?: Wallet | null) => {
@@ -193,6 +208,52 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
     useEffect(() => {
         void loadWallets();
     }, [loadWallets]);
+
+    useEffect(() => {
+        const repairConnectedXamanWallet = async () => {
+            if (hasAttemptedXamanSessionRepair) {
+                return;
+            }
+
+            const currentConnectedWallet = wallets.find((wallet) => wallet.is_connected);
+            if (!currentConnectedWallet || currentConnectedWallet.wallet_type !== 'xaman') {
+                setHasAttemptedXamanSessionRepair(true);
+                return;
+            }
+
+            if (currentConnectedWallet.wallet_address !== currentConnectedWallet.wallet_address.toLowerCase()) {
+                setHasAttemptedXamanSessionRepair(true);
+                return;
+            }
+
+            const activeXamanAccount = await getActiveXamanAccount();
+            if (!activeXamanAccount) {
+                setHasAttemptedXamanSessionRepair(true);
+                return;
+            }
+
+            if (!addressesMatchForWalletType(currentConnectedWallet.wallet_address, activeXamanAccount, 'xaman')) {
+                setHasAttemptedXamanSessionRepair(true);
+                return;
+            }
+
+            if (currentConnectedWallet.wallet_address === activeXamanAccount) {
+                setHasAttemptedXamanSessionRepair(true);
+                return;
+            }
+
+            try {
+                await repairWalletAddressIfNeeded(currentConnectedWallet, activeXamanAccount);
+                await loadWallets();
+            } catch (error) {
+                console.error('Failed to repair Xaman wallet address casing:', error);
+            } finally {
+                setHasAttemptedXamanSessionRepair(true);
+            }
+        };
+
+        void repairConnectedXamanWallet();
+    }, [hasAttemptedXamanSessionRepair, loadWallets, repairWalletAddressIfNeeded, wallets]);
 
     useEffect(() => {
         const syncWalletConnectSession = async () => {
@@ -317,11 +378,13 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                         return;
                     }
 
-                    if (currentConnectedWallet && currentConnectedWallet.id !== existingWallet.id) {
+                    const repairedWallet = await repairWalletAddressIfNeeded(existingWallet, resolvedJoeyAddress);
+
+                    if (currentConnectedWallet && currentConnectedWallet.id !== repairedWallet.id) {
                         await tryDisconnectCurrentWallet(currentConnectedWallet);
                     }
 
-                    await connectWallet(auth0Id, existingWallet.id, accessToken);
+                    await connectWallet(auth0Id, repairedWallet.id, accessToken);
                     await loadWallets();
                     showToast('success', 'Joey wallet connected');
                     return;
@@ -332,10 +395,11 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                 );
 
                 if (existingWallet) {
-                    if (currentConnectedWallet && currentConnectedWallet.id !== existingWallet.id) {
+                    const repairedWallet = await repairWalletAddressIfNeeded(existingWallet, resolvedJoeyAddress);
+                    if (currentConnectedWallet && currentConnectedWallet.id !== repairedWallet.id) {
                         await tryDisconnectCurrentWallet(currentConnectedWallet);
                     }
-                    await connectWallet(auth0Id, existingWallet.id, accessToken);
+                    await connectWallet(auth0Id, repairedWallet.id, accessToken);
                     await loadWallets();
                     showToast('success', 'Joey wallet connected');
                     return;
@@ -409,10 +473,11 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                 );
 
                 if (existingWallet) {
-                    if (currentConnectedWallet && currentConnectedWallet.id !== existingWallet.id) {
+                    const repairedWallet = await repairWalletAddressIfNeeded(existingWallet, resolvedXrplAddress);
+                    if (currentConnectedWallet && currentConnectedWallet.id !== repairedWallet.id) {
                         await tryDisconnectCurrentWallet(currentConnectedWallet);
                     }
-                    await connectWallet(auth0Id, existingWallet.id, accessToken);
+                    await connectWallet(auth0Id, repairedWallet.id, accessToken);
                     await loadWallets();
                     showToast('success', 'Xaman wallet connected');
                     return;
@@ -477,10 +542,12 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                     return;
                 }
 
-                if (connectedWallet && connectedWallet.id !== targetWallet.id) {
+                const repairedWallet = await repairWalletAddressIfNeeded(targetWallet, resolvedXrplAddress);
+
+                if (connectedWallet && connectedWallet.id !== repairedWallet.id) {
                     await tryDisconnectCurrentWallet(connectedWallet);
                 }
-                await connectWallet(auth0Id, targetWallet.id, accessToken);
+                await connectWallet(auth0Id, repairedWallet.id, accessToken);
                 await loadWallets();
                 showToast('success', 'Xaman wallet connected');
                 return;
@@ -491,10 +558,11 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
             );
 
             if (existingWallet) {
-                if (connectedWallet && connectedWallet.id !== existingWallet.id) {
+                const repairedWallet = await repairWalletAddressIfNeeded(existingWallet, resolvedXrplAddress);
+                if (connectedWallet && connectedWallet.id !== repairedWallet.id) {
                     await tryDisconnectCurrentWallet(connectedWallet);
                 }
-                await connectWallet(auth0Id, existingWallet.id, accessToken);
+                await connectWallet(auth0Id, repairedWallet.id, accessToken);
                 await loadWallets();
                 showToast('success', 'Xaman wallet connected');
                 return;

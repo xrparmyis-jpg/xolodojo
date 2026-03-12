@@ -99,3 +99,18 @@ export async function restoreXamanAccountFromRedirect(): Promise<string | null> 
 
   return account || null;
 }
+
+export async function getActiveXamanAccount(): Promise<string | null> {
+  if (!isXamanConfigured()) {
+    return null;
+  }
+
+  try {
+    const client = getXamanClient();
+    const flow = await client.state();
+    return flow?.me?.account || null;
+  } catch (error) {
+    console.warn('Failed to read active Xaman session:', error);
+    return null;
+  }
+}

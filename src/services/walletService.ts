@@ -212,3 +212,37 @@ export async function deleteWallet(
     throw error;
   }
 }
+
+export async function updateWalletAddress(
+  walletId: number,
+  auth0Id: string,
+  walletAddress: string,
+  accessToken?: string
+): Promise<WalletResponse> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/user/wallets/${walletId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+      },
+      body: JSON.stringify({
+        auth0_id: auth0Id,
+        wallet_address: walletAddress,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = (await response
+        .json()
+        .catch(() => ({ error: 'Unknown error' }))) as ApiErrorBody;
+      throw new Error(toApiErrorMessage(response.status, error));
+    }
+
+    const data: WalletResponse = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error updating wallet address:', error);
+    throw error;
+  }
+}

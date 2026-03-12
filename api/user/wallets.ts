@@ -46,7 +46,23 @@ function parsePreferences(preferences: unknown): Record<string, unknown> {
   return {};
 }
 
-function normalizeWalletAddress(value: string): string {
+function isLikelyXrplAddress(value: string): boolean {
+  return /^r[1-9A-HJ-NP-Za-km-z]{24,34}$/.test(value.trim());
+}
+
+function normalizeWalletAddressForStorage(
+  value: string,
+  walletType?: string
+): string {
+  const trimmed = value.trim();
+  if (walletType === 'xaman' || walletType === 'joey' || isLikelyXrplAddress(trimmed)) {
+    return trimmed;
+  }
+
+  return trimmed.toLowerCase();
+}
+
+function normalizeWalletAddressForComparison(value: string): string {
   return value.trim().toLowerCase();
 }
 
@@ -62,7 +78,7 @@ function parseWalletLabels(preferences: Record<string, unknown>): Record<string,
       return acc;
     }
 
-    const normalizedKey = normalizeWalletAddress(key);
+    const normalizedKey = normalizeWalletAddressForComparison(key);
     const normalizedLabel = value.trim();
     if (!normalizedKey || !normalizedLabel) {
       return acc;
@@ -132,7 +148,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const walletLabels = parseWalletLabels(preferences);
       const wallets = (Array.isArray(result) ? result : []).map((wallet) => {
         const normalizedAddress = typeof wallet.wallet_address === 'string'
-          ? normalizeWalletAddress(wallet.wallet_address)
+          ? normalizeWalletAddressForComparison(wallet.wallet_address)
           : '';
 
         return {
@@ -172,15 +188,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       const userId = userResult[0].id;
-      const normalizedWalletAddress = normalizeWalletAddress(wallet_address);
+      const normalizedWalletAddress = normalizeWalletAddressForStorage(
+        wallet_address,
+        wallet_type
+      );
+      const comparisonWalletAddress = normalizeWalletAddressForComparison(wallet_address);
 
-      // Check if wallet already exists
-      const [existingWallet] = (await pool.execute(
-        'SELECT id FROM user_wallets WHERE user_id = ? AND wallet_address = ?',
-        [userId, normalizedWalletAddress]
+      // Check if wallet already exists, ignoring case so legacy XRPL rows still match.
+      const [existingWallets] = (await pool.execute(
+        'SELECT id, wallet_address FROM user_wallets WHERE user_id = ?',
+        [userId]
       )) as [any[], any];
 
-      if (Array.isArray(existingWallet) && existingWallet.length > 0) {
+      const duplicateWallet = (Array.isArray(existingWallets) ? existingWallets : []).find(
+        (wallet) =>
+          typeof wallet.wallet_address === 'string' &&
+          normalizeWalletAddressForComparison(wallet.wallet_address) === comparisonWalletAddress
+      );
+
+      if (duplicateWallet) {
         return res
           .status(409)
           .json({ error: 'Wallet already exists for this user' });
@@ -205,7 +231,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           ...preferences,
           wallet_labels: {
             ...existingLabels,
-            [normalizedWalletAddress]: wallet_label.trim(),
+            [comparisonWalletAddress]: wallet_label.trim(),
           },
         });
       }
