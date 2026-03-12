@@ -29,7 +29,13 @@ function isLikelyXrplAddress(address: string) {
   return /^r[1-9A-HJ-NP-Za-km-z]{24,34}$/.test(address);
 }
 
-function getSafeXrplFallback(walletAddress: string) {
+function getSafeXrplFallback(
+  walletAddress: string,
+  details?: {
+    error?: string;
+    rpc_urls_attempted?: string[];
+  }
+) {
   return {
     success: true,
     wallet_address: walletAddress,
@@ -37,7 +43,29 @@ function getSafeXrplFallback(walletAddress: string) {
     xrp_balance: '0.000000',
     nft_count: 0,
     nfts: [],
+    xrpl_fetch_failed: true,
+    xrpl_fetch_error: details?.error || null,
+    xrpl_rpc_urls_attempted: details?.rpc_urls_attempted || [],
   };
+}
+
+function getXrplRpcUrls() {
+  const configured =
+    process.env.XRPL_RPC_URL || process.env.VITE_XRPL_RPC_URL || '';
+
+  const configuredUrls = configured
+    .split(',')
+    .map(item => item.trim())
+    .filter(Boolean);
+
+  const defaultUrls = [
+    'https://xrplcluster.com/',
+    'https://xrpl.ws/',
+    'https://s1.ripple.com:51234/',
+  ];
+
+  const urls = configuredUrls.length > 0 ? configuredUrls : defaultUrls;
+  return Array.from(new Set(urls));
 }
 
 function normalizeCollectionAddress(value: string | null | undefined): string | null {
@@ -86,36 +114,48 @@ async function getConfiguredCollectionAddress(): Promise<string | null> {
 }
 
 async function callXrpl<T>(method: string, params: Record<string, unknown>) {
-  const xrplUrl =
-    process.env.XRPL_RPC_URL ||
-    process.env.VITE_XRPL_RPC_URL ||
-    'https://s1.ripple.com:51234/';
+  const rpcUrls = getXrplRpcUrls();
+  const errors: string[] = [];
 
-  const response = await fetch(xrplUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ method, params: [params] }),
-  });
+  for (const xrplUrl of rpcUrls) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
 
-  if (!response.ok) {
-    throw new Error(`XRPL RPC request failed with status ${response.status}`);
+    try {
+      const response = await fetch(xrplUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ method, params: [params] }),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(`status ${response.status}`);
+      }
+
+      const data = (await response.json()) as {
+        result?: {
+          status?: string;
+          error_message?: string;
+          error?: string;
+        } & T;
+      };
+
+      if (!data.result || data.result.status !== 'success') {
+        throw new Error(
+          data.result?.error_message || data.result?.error || 'XRPL request failed'
+        );
+      }
+
+      clearTimeout(timeout);
+      return data.result as T;
+    } catch (error: any) {
+      clearTimeout(timeout);
+      errors.push(`${xrplUrl} -> ${error?.message || 'unknown error'}`);
+    }
   }
 
-  const data = (await response.json()) as {
-    result?: {
-      status?: string;
-      error_message?: string;
-      error?: string;
-    } & T;
-  };
-
-  if (!data.result || data.result.status !== 'success') {
-    throw new Error(
-      data.result?.error_message || data.result?.error || 'XRPL request failed'
-    );
-  }
-
-  return data.result as T;
+  throw new Error(`XRPL RPC failed on all endpoints: ${errors.join(' | ')}`);
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -170,6 +210,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(404).json({ error: 'Wallet not found for user' });
     }
 
+    const rpcUrlsAttempted = getXrplRpcUrls();
+
     const accountInfo = await callXrpl<{
       account_data?: { Balance?: string };
     }>('account_info', {
@@ -180,12 +222,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       console.warn('XRPL account_info failed, returning empty wallet summary:', {
         walletAddress,
         message: error.message,
+        rpcUrlsAttempted,
       });
-      return null;
+      return { error };
     });
 
-    if (!accountInfo) {
-      return res.status(200).json(getSafeXrplFallback(walletAddress));
+    if ('error' in accountInfo) {
+      return res.status(200).json(
+        getSafeXrplFallback(walletAddress, {
+          error: accountInfo.error.message,
+          rpc_urls_attempted: rpcUrlsAttempted,
+        })
+      );
     }
 
     const accountNfts = await callXrpl<{

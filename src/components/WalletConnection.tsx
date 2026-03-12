@@ -70,6 +70,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
     const { mutateAsync: wagmiDisconnectAsync } = useWagmiDisconnect();
     const [wallets, setWallets] = useState<Wallet[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [hasAttemptedInitialWalletLoad, setHasAttemptedInitialWalletLoad] = useState(false);
     const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showAddWalletModal, setShowAddWalletModal] = useState(false);
@@ -120,6 +121,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
             showToast('error', 'Failed to load wallets');
         } finally {
             setIsLoading(false);
+            setHasAttemptedInitialWalletLoad(true);
         }
     }, [accessToken, auth0Id, onWalletsUpdated, showToast]);
 
@@ -935,9 +937,9 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                         </div>
                     ))}
                 </div>
-            ) : (
+            ) : hasAttemptedInitialWalletLoad && !isLoading ? (
                 <p className="text-white/50 text-center py-4 mb-4">No wallets added yet.</p>
-            )}
+            ) : null}
 
             <ModalConfirm
                 isOpen={showDeleteModal}
