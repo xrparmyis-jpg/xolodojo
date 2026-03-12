@@ -45,6 +45,8 @@ const toSocialHref = (platform: SocialPlatformKey, handle: string) => {
     return `${hrefPrefix}${encodeURIComponent(handle)}`;
 };
 
+const tailwindSocialLink = "inline-flex items-center justify-center mr-1 mb-0 rounded-full border border-[#b7e9f7] w-10 h-10 bg-[rgba(25,25,35,0.85)] border border-white/20 bg-white/5 text-white/80 hover:border-white/40 hover:bg-white/10 hover:text-white transition-all duration-200";
+const tailwindSocialIcon = "inline-block align-middle w-[22px] h-[22px] text-[18px] leading-[22px] text-[#cdcdcd] group-hover:text-white transition-colors duration-200";
 const buildPinPopupHtml = (pin: XoloGlobePin) => {
     const fallbackTitle = `NFT ${pin.token_id.slice(0, 8)}...`;
     const title = escapeHtml(pin.title || fallbackTitle);
@@ -67,20 +69,21 @@ const buildPinPopupHtml = (pin: XoloGlobePin) => {
             const safePlatform = escapeHtml(platform);
             const iconSvg = socialPlatformMeta[platform].iconSvg;
 
-            return `<a class="xolo-social-link xolo-social-icon--${safePlatform}" href="${href}" target="_blank" rel="noopener noreferrer" aria-label="Open ${safeLabel} for @${escapeHtml(handle)}" title="${safeLabel}">`
-                + `<span class="xolo-social-icon" aria-hidden="true">${iconSvg}</span>`
-                + '</a>';
+            // Use Tailwind classes for social icon style
+            return `<a class="${tailwindSocialLink} xolo-social-icon--${safePlatform}" href="${href}" target="_blank" rel="noopener noreferrer" aria-label="Open ${safeLabel} for @${escapeHtml(handle)}" title="${safeLabel}">
+                <span class="${tailwindSocialIcon}" aria-hidden="true">${iconSvg}</span>
+            </a>`;
         })
         .filter((item): item is string => Boolean(item));
 
     const socialsHtml = socials.length > 0
-        ? socials.join('')
+        ? `<div class="flex flex-row gap-1 mt-2 mb-2">${socials.join('')}</div>`
         : '<p class="xolo-social-empty">No socials shared for this pin yet.</p>';
 
     return `<div class="xolo-popup">`
         + `<h2 class="xolo-popup-title">${title}</h2>`
         + `<p class="xolo-popup-subtitle">${collectionName}</p>`
-        + `<div class="xolo-social-list">${socialsHtml}</div>`
+        + `${socialsHtml}`
         + '</div>';
 };
 

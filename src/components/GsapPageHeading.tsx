@@ -100,6 +100,13 @@ function GsapPageHeading({
                     "-=0.82"
                 );
             }
+
+            // Ensure eyebrow letters end at the correct position after animation
+            timeline.add(() => {
+                setTimeout(() => {
+                    gsap.set(".eyebrow-letter", { y: 0, scale: 1, autoAlpha: 1 });
+                }, 120);
+            }, "+=0.1");
         },
         { scope: containerRef }
     );

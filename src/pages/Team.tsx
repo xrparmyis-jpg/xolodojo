@@ -10,6 +10,7 @@ import {
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import GsapPageHeading from "../components/GsapPageHeading";
 import GsapSocialLinks from "../components/GsapSocialLinks";
+import { getSocialProfileUrl } from "../common/getSocialProfileUrl";
 
 interface Owner {
     id: number;
@@ -102,7 +103,7 @@ function OwnerCard({ owner }: { owner: Owner }) {
                 )}
                 {isValidLink(owner.socials?.twitter) && (
                     <a
-                        href={owner.socials!.twitter}
+                        href={getSocialProfileUrl("twitter", owner.socials?.twitter ?? "")}
                         title={owner.title}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -113,7 +114,7 @@ function OwnerCard({ owner }: { owner: Owner }) {
                 )}
                 {isValidLink(owner.socials?.discord) && (
                     <a
-                        href={owner.socials!.discord}
+                        href={getSocialProfileUrl("discord", owner.socials?.discord ?? "")}
                         title={owner.title}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -124,7 +125,7 @@ function OwnerCard({ owner }: { owner: Owner }) {
                 )}
                 {isValidLink(owner.socials?.tiktok) && (
                     <a
-                        href={owner.socials!.tiktok}
+                        href={getSocialProfileUrl("tiktok", owner.socials?.tiktok ?? "")}
                         title={owner.title}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -135,7 +136,7 @@ function OwnerCard({ owner }: { owner: Owner }) {
                 )}
                 {isValidLink(owner.socials?.instagram) && (
                     <a
-                        href={owner.socials!.instagram}
+                        href={getSocialProfileUrl("instagram", owner.socials?.instagram ?? "")}
                         title={owner.title}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -146,7 +147,7 @@ function OwnerCard({ owner }: { owner: Owner }) {
                 )}
                 {isValidLink(owner.socials?.telegram) && (
                     <a
-                        href={owner.socials!.telegram}
+                        href={getSocialProfileUrl("telegram", owner.socials?.telegram ?? "")}
                         title={owner.title}
                         target="_blank"
                         rel="noopener noreferrer"
