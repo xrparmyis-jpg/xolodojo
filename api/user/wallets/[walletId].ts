@@ -46,6 +46,22 @@ function parsePreferences(preferences: unknown): Record<string, unknown> {
   return {};
 }
 
+function isLikelyXrplAddress(value: string): boolean {
+  return /^r[1-9A-HJ-NP-Za-km-z]{24,34}$/.test(value.trim());
+}
+
+function normalizeWalletAddressForStorage(
+  value: string,
+  walletType?: string
+): string {
+  const trimmed = value.trim();
+  if (walletType === 'xaman' || walletType === 'joey' || isLikelyXrplAddress(trimmed)) {
+    return trimmed;
+  }
+
+  return trimmed.toLowerCase();
+}
+
 function normalizeWalletAddress(value: string): string {
   return value.trim().toLowerCase();
 }
@@ -160,6 +176,82 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     } catch (error: any) {
       console.error('Error connecting wallet:', error);
+      return res
+        .status(500)
+        .json({ error: 'Internal server error', details: error.message });
+    }
+  }
+
+  // Delete a wallet
+  if (req.method === 'PATCH') {
+    try {
+      const { auth0_id, wallet_address } = req.body;
+      if (!auth0_id || !wallet_address) {
+        return res.status(400).json({ error: 'Missing auth0_id or wallet_address' });
+      }
+
+      const [userResult] = (await pool.execute(
+        'SELECT id FROM users WHERE auth0_id = ?',
+        [auth0_id]
+      )) as [any[], any];
+
+      if (!Array.isArray(userResult) || userResult.length === 0) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const userId = userResult[0].id;
+
+      const [walletLookup] = (await pool.execute(
+        'SELECT id, wallet_type FROM user_wallets WHERE id = ? AND user_id = ?',
+        [walletId, userId]
+      )) as [any[], any];
+
+      if (!Array.isArray(walletLookup) || walletLookup.length === 0) {
+        return res.status(404).json({ error: 'Wallet not found' });
+      }
+
+      const walletType = walletLookup[0].wallet_type as string | undefined;
+      const nextWalletAddress = normalizeWalletAddressForStorage(
+        wallet_address,
+        walletType
+      );
+      const nextComparisonAddress = normalizeWalletAddress(wallet_address);
+
+      const [allUserWallets] = (await pool.execute(
+        'SELECT id, wallet_address FROM user_wallets WHERE user_id = ? AND id <> ?',
+        [userId, walletId]
+      )) as [any[], any];
+
+      const duplicateWallet = (Array.isArray(allUserWallets) ? allUserWallets : []).find(
+        wallet =>
+          typeof wallet.wallet_address === 'string' &&
+          normalizeWalletAddress(wallet.wallet_address) === nextComparisonAddress
+      );
+
+      if (duplicateWallet) {
+        return res.status(409).json({ error: 'Wallet already exists for this user' });
+      }
+
+      await pool.execute(
+        'UPDATE user_wallets SET wallet_address = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?',
+        [nextWalletAddress, walletId, userId]
+      );
+
+      const [updatedWallet] = (await pool.execute(
+        'SELECT * FROM user_wallets WHERE id = ?',
+        [walletId]
+      )) as [any[], any];
+
+      return res.status(200).json({
+        success: true,
+        wallet:
+          Array.isArray(updatedWallet) && updatedWallet.length > 0
+            ? updatedWallet[0]
+            : null,
+        message: 'Wallet updated successfully',
+      });
+    } catch (error: any) {
+      console.error('Error updating wallet:', error);
       return res
         .status(500)
         .json({ error: 'Internal server error', details: error.message });
