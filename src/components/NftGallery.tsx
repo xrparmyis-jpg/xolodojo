@@ -1151,9 +1151,9 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                     </div>
                 ) : pinTargetNft && (
                     <div className="space-y-4 text-sm text-white/85">
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
-                            <div className="space-y-2">
-                                <label htmlFor="pin-title" className="block text-xs font-semibold uppercase tracking-wide text-white/80">
+                        <div className="flex flex-row items-start gap-4">
+                            <div className="flex-1 min-w-0 flex flex-col">
+                                <label htmlFor="pin-title" className="block text-xs font-semibold uppercase tracking-wide text-white/80 mb-1">
                                     Pin Title <span className="text-red-300">*</span>
                                 </label>
                                 <input
@@ -1163,14 +1163,15 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                                     onChange={(event) => setPinTitleInput(event.target.value)}
                                     placeholder="Add a title for this pin"
                                     maxLength={120}
-                                    className="w-full rounded-lg border border-white/20 bg-black/40 px-3 py-2 text-white/90 placeholder:text-white/45 focus:outline-none focus:border-blue-500"
+                                    className="w-full rounded-lg border border-white/20 bg-black/40 px-3 py-2 text-white/90 placeholder:text-white/45 focus:outline-none focus:border-blue-500 transition-all duration-200"
                                 />
                             </div>
-
-                            <div className="space-y-2 sm:w-fit sm:min-w-[140px]">
-                                <p className="text-xs font-semibold uppercase tracking-wide text-white/80">Select Socials</p>
+                            <div className="flex flex-col min-w-[140px]">
+                                <label className="block text-xs font-semibold uppercase tracking-wide text-white/80 mb-1">
+                                    Select Socials
+                                </label>
                                 {availableSocialPlatforms.length > 0 ? (
-                                    <div className="flex flex-wrap gap-2 sm:max-w-[132px]">
+                                    <div className="flex flex-row gap-2">
                                         {availableSocialPlatforms.map((platform) => {
                                             const isSelected = Boolean(selectedPinSocialPlatforms[platform.key]);
 
@@ -1185,18 +1186,18 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                                                             [platform.key]: !current[platform.key],
                                                         }));
                                                     }}
-                                                    className={`cursor-pointer inline-flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-200 ${isSelected
+                                                    className={`cursor-pointer inline-flex h-7 w-7 items-center justify-center rounded-full border transition-all duration-200 ${isSelected
                                                         ? 'border-emerald-400/70 bg-emerald-700/30 text-emerald-200'
                                                         : 'border-white/25 bg-white/5 text-white/70 hover:text-white hover:border-white/40'
                                                         }`}
                                                 >
-                                                    <FontAwesomeIcon icon={platform.icon} />
+                                                    <FontAwesomeIcon icon={platform.icon} className="text-[16px]" />
                                                 </button>
                                             );
                                         })}
                                     </div>
                                 ) : (
-                                    <p className="text-xs text-white/55 sm:max-w-[132px]">No social handles found in your profile yet.</p>
+                                    <p className="text-xs text-white/55 min-w-[140px]">No social handles found in your profile yet.</p>
                                 )}
                             </div>
                         </div>
