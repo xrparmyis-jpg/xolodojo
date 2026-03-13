@@ -117,8 +117,7 @@ function Home() {
                   <h3 className="h3-default">10,001 Unique NFT Masterpieces</h3>
                   <p>
                     A meaningful collection featuring 10,001 unique Xolo
-                    NFTs with a combination of 11 distinct traits, capturing
-                    the sacred canine's spirit.
+                    NFTs with a combination of 11 distinct traits and 311 sub traits, hand-drawn by RedShadow.
                   </p>
                 </div>
               </div>
@@ -132,8 +131,7 @@ function Home() {
                   <h3 className="h3-default">Built on the XRP Ledger (XRPL)</h3>
                   <p>
                     Hosted on the XRPL for its high speed payments, low-cost
-                    transactions, and eco-friendly design. The artist RedShadow
-                    bringing the 10,001 Xolo NFT's to life.
+                    transactions, and eco-friendly design.
                   </p>
                 </div>
               </div>
@@ -146,8 +144,8 @@ function Home() {
                 <div className="service-content text-center md:text-left">
                   <h3 className="h3-default">Decentralized Travel Vision</h3>
                   <p>
-                    Our long-term goal: a platform for holders to explore the
-                    world through unique, wallet-to-wallet travel
+                    Our long-term goal: a platform for holders to network, share skills, and explore the
+                    world person to person, interacting wallet-to-wallet to foster global connection through travel
                     experiences on the XRPL.
                   </p>
                 </div>
@@ -163,7 +161,7 @@ function Home() {
                     Upcoming Mint in the xrp.cafe
                   </h3>
                   <p>
-                    Prepare your Xaman wallet with recommended 20 XRP minimum reserve
+                    Prepare your Xaman or Joey wallet with recommended 20 XRP minimum reserve
                     for the Xoloitzquintle mint on the XRPL.
                   </p>
                 </div>
@@ -214,7 +212,7 @@ function Home() {
                     Heritage
                   </h3>
                   <p>
-                    Dating back over 3,000 years, the Xolo is a living symbol
+                    Dating back over 3,000 years, the Xoloitzquintle (Show Low eats queentlee) is a living symbol
                     of Mesoamerican heritage, revered as a spiritual guide to
                     Mictlan, the Aztec afterlife.
                   </p>
@@ -227,11 +225,12 @@ function Home() {
                   <h3 className="text-2xl md:text-3xl font-bold mb-3">
                     RedShadow &amp; <br />
                     Cryptonite
+                    Code
                   </h3>
                   <p>
                     Cryptonite, the global explorer and XRPL enthusiast,
-                    partnered with RedShadow, the visionary artist, to bring
-                    the 10,001 Xolo NFTs to life.
+                    partnered with RedShadow, the talented artist,and Code, the skilled developer, to bring
+                    to bring the 10,001 Xolo NFTs and XoloGlobe into reality, blending art, culture, and blockchain innovation.
                   </p>
                 </div>
               </div>
@@ -254,7 +253,7 @@ function Home() {
                   </h3>
                   <p>
                     The collection's long-term vision is to build a decentralized
-                    platform for Xolo NFT holders to network and sharetravel experiences, fostering global connection through
+                    platform for Xolo NFT holders to network and share travel experiences, fostering global connection through
                     wallet-to-wallet networking and person to person experiences on the XRPL.
                   </p>
                 </div>
