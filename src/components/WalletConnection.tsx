@@ -3,17 +3,15 @@ import { createPortal } from 'react-dom';
 import { useAccount, useDisconnect as useWagmiDisconnect } from 'wagmi';
 import { useWeb3Modal } from '@web3modal/wagmi/react';
 import { standalone as joeyStandalone } from '@joey-wallet/wc-client/react';
-import { walletConnectHandler } from '../walletHandlers/walletConnect';
-import { joeyHandler } from '../walletHandlers/joey';
-import { xamanHandler } from '../walletHandlers/xaman';
-import type { IWalletHandler } from '../walletHandlers/IWalletHandler';
+// import { walletConnectHandler } from '../walletHandlers/walletConnect';
+// import { joeyHandler } from '../walletHandlers/joey';
+// import { xamanHandler } from '../walletHandlers/xaman';
+// import type { IWalletHandler } from '../walletHandlers/IWalletHandler';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faArrowsRotate,
-    faCheck,
     faCopy,
     faLink,
-    faLinkSlash,
     faSpinner,
     faThumbtack,
     faXmark,
@@ -76,7 +74,6 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
     const { mutateAsync: wagmiDisconnectAsync } = useWagmiDisconnect();
     const [wallets, setWallets] = useState<Wallet[]>([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [hasAttemptedInitialWalletLoad, setHasAttemptedInitialWalletLoad] = useState(false);
     const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showAddWalletModal, setShowAddWalletModal] = useState(false);
@@ -96,11 +93,6 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
     const { showToast, clearToasts } = useToast();
 
     // Map wallet types to handlers
-    const walletHandlers: Record<string, IWalletHandler> = {
-        walletconnect: walletConnectHandler,
-        joey: joeyHandler,
-        xaman: xamanHandler,
-    };
 
     // Example usage: walletHandlers[walletType].connect({...})
 
@@ -153,7 +145,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
             showToast('error', 'Failed to load wallets');
         } finally {
             setIsLoading(false);
-            setHasAttemptedInitialWalletLoad(true);
+            //setHasAttemptedInitialWalletLoad(true);
         }
     }, [accessToken, auth0Id, onWalletsUpdated, showToast]);
 

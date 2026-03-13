@@ -2,13 +2,21 @@ import { IWalletHandler } from './IWalletHandler';
 
 export const walletConnectHandler: IWalletHandler = {
   async connect({ auth0Id, walletId, accessToken, showToast, connectWallet, loadWallets }) {
-    // ...existing WalletConnect connect logic...
+     // TODO: Implement WalletConnect connect logic
+     // Example: await wagmiConnector.connect(...)
+     // await connectWallet(auth0Id, walletId, accessToken);
+     // await loadWallets();
+     // showToast('success', 'WalletConnect wallet connected');
   },
   async disconnect({ showToast, loadWallets, auth0Id, accessToken }) {
-    // ...existing WalletConnect disconnect logic...
+     // TODO: Implement WalletConnect disconnect logic
+     // Example: await wagmiConnector.disconnect(...)
+     // await loadWallets();
+     // showToast('success', 'WalletConnect wallet disconnected');
   },
   async repair() {
-    // ...existing WalletConnect repair logic if needed...
+     // TODO: Implement WalletConnect repair logic if needed
+     return undefined;
   },
   async getLabel() {
     // ...existing WalletConnect getLabel logic...
