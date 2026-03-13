@@ -87,15 +87,14 @@ function Menu({
         <>
             {/* Desktop Menu - Only show on desktop screens */}
             <nav className={`main-menu desktop-menu-wrapper ${isSticky ? '-mt-1' : ''}`}>
-                <ul>
+                <ul className="flex flex-row gap-6">
                     {menuItems.map((item) => (
                         <li key={item.path}>
                             <NavLink
                                 to={item.path}
                                 className={({ isActive }) =>
-                                    `inline-block text-lg font-medium capitalize transition-all duration-300 ease-in-out no-underline hover:no-underline ${isSticky ? 'py-1.5' : 'py-5'} ${isActive ? 'active' : ''}`
+                                    `inline-block text-lg font-medium capitalize transition-all duration-300 ease-in-out no-underline ${isSticky ? 'py-1.5' : 'py-5'} text-white hover:text-[#b7e9f7] ${isActive ? 'font-bold underline' : ''}`
                                 }
-                                style={{ color: 'var(--white)' }}
                             >
                                 {item.label}
                             </NavLink>

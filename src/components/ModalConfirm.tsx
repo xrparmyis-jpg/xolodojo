@@ -31,7 +31,7 @@ export default function ModalConfirm({
             showCloseButton={false}
             maxWidthClassName="max-w-sm"
         >
-            <p className="mb-4 text-sm text-white/70">
+            <p className="mb-4 text-sm text-white/70" style={{ whiteSpace: 'pre-line' }}>
                 {message}
             </p>
             <div className="flex justify-end gap-3">

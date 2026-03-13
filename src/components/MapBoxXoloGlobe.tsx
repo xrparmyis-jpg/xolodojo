@@ -69,7 +69,6 @@ const buildPinPopupHtml = (pin: XoloGlobePin) => {
             const safePlatform = escapeHtml(platform);
             const iconSvg = socialPlatformMeta[platform].iconSvg;
 
-            // Use Tailwind classes for social icon style
             return `<a class="${tailwindSocialLink} xolo-social-icon--${safePlatform}" href="${href}" target="_blank" rel="noopener noreferrer" aria-label="Open ${safeLabel} for @${escapeHtml(handle)}" title="${safeLabel}">
                 <span class="${tailwindSocialIcon}" aria-hidden="true">${iconSvg}</span>
             </a>`;

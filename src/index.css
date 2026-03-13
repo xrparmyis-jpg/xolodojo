@@ -1,5 +1,49 @@
 @import 'tailwindcss';
 
+@import url('https://fonts.cdnfonts.com/css/satoshi');
+@import url('https://fonts.googleapis.com/css2?family=Marcellus&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap');
+
+:root {
+  --body: #fff;
+  --black: #000;
+  --white: #fff;
+  --theme: #b7e9f7;
+  --theme2: #514de0;
+  --theme3: #0d6dfd;
+  --theme5: #f16319;
+  --theme6: #ff9960;
+  --header: #151518;
+  --header2: #072032;
+  --text: #cdcdcd;
+  --text2: #5c6972;
+  --border: #2a2a2a;
+  --body-bg: #151518;
+  --bg: #1a1a1e;
+  --box-shadow: 0px 4px 25px 0px rgba(0, 0, 0, 0.06);
+  --secondary-clr: #f2f2f2;
+}
+
+body {
+  font-family: 'Satoshi Variable', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 28px;
+  color: var(--text);
+  padding: 0;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+a {
+  text-decoration: none;
+  outline: none !important;
+  cursor: pointer;
+  transition: all 0.4s ease-in-out;
+}
+
 /* Override jQuery sticky class to prevent conflicts */
 #header-sticky.sticky {
   position: fixed !important;

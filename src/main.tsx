@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
+import { UserProvider } from './providers/UserContext';
 import './index.css'
 // Mapbox CSS is required for proper map and marker styling
 import 'mapbox-gl/dist/mapbox-gl.css'
@@ -48,7 +49,9 @@ createRoot(document.getElementById('root')!).render(
       >
         <WagmiProvider config={wagmiConfig}>
           <QueryClientProvider client={queryClient}>
-            <App />
+            <UserProvider>
+              <App />
+            </UserProvider>
           </QueryClientProvider>
         </WagmiProvider>
       </Auth0Provider>

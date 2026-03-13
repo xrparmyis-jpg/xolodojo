@@ -2,45 +2,46 @@ import { useEffect, useRef, useState } from "react";
 import GsapPageHeading from "../components/GsapPageHeading";
 import { useSectionParallaxOffsets } from "../hooks/useSectionParallaxOffsets";
 import SectionParallaxBlobs from "../components/SectionParallaxBlobs";
+import CounterSection from "../components/CounterSection";
 
 function Home() {
-  const parallaxRef = useRef<HTMLDivElement>(null);
-  const parallaxSectionRef = useRef<HTMLDivElement>(null);
+  // const parallaxRef = useRef<HTMLDivElement>(null);
+  // const parallaxSectionRef = useRef<HTMLDivElement>(null);
   const projectSectionRef = useRef<HTMLElement>(null);
   const projectColorBgRef = useRef<HTMLDivElement>(null);
-  const [parallaxOffset, setParallaxOffset] = useState(0);
+  // const [parallaxOffset, setParallaxOffset] = useState(0);
   const [projectBlobOffset, setProjectBlobOffset] = useState(0);
-  const lastScrollY = useRef(0);
+  // const lastScrollY = useRef(0);
 
   const { sectionRef, bgShapeOffset, colorBgOffset, colorBg2Offset } = useSectionParallaxOffsets();
 
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!parallaxSectionRef.current) return;
+  // useEffect(() => {
+  //   const handleScroll = () => {
+  //     if (!parallaxSectionRef.current) return;
 
-      const rect = parallaxSectionRef.current.getBoundingClientRect();
-      const windowHeight = window.innerHeight;
-      const currentScrollY = window.scrollY;
+  //     const rect = parallaxSectionRef.current.getBoundingClientRect();
+  //     const windowHeight = window.innerHeight;
+  //     const currentScrollY = window.scrollY;
 
-      lastScrollY.current = currentScrollY;
+  //     lastScrollY.current = currentScrollY;
 
-      if (rect.top <= windowHeight && rect.bottom >= 0) {
-        const sectionTop = rect.top;
-        const sectionHeight = rect.height;
+  //     if (rect.top <= windowHeight && rect.bottom >= 0) {
+  //       const sectionTop = rect.top;
+  //       const sectionHeight = rect.height;
 
-        const scrollProgress = Math.max(0, (windowHeight - sectionTop) / (windowHeight + sectionHeight));
-        const offset = -scrollProgress * sectionHeight * 0.5;
-        setParallaxOffset(offset);
-      } else {
-        setParallaxOffset(0);
-      }
-    };
+  //       const scrollProgress = Math.max(0, (windowHeight - sectionTop) / (windowHeight + sectionHeight));
+  //       const offset = -scrollProgress * sectionHeight * 0.5;
+  //       setParallaxOffset(offset);
+  //     } else {
+  //       setParallaxOffset(0);
+  //     }
+  //   };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
+  //   window.addEventListener('scroll', handleScroll, { passive: true });
+  //   handleScroll();
 
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  //   return () => window.removeEventListener('scroll', handleScroll);
+  // }, []);
 
   useEffect(() => {
     const handleProjectScroll = () => {
@@ -264,63 +265,8 @@ function Home() {
         </div>
       </section>
 
-      {/* Paralax Section Start */}
-      <div
-        ref={parallaxSectionRef}
-        className="paralax-section fix pt-0 overflow-hidden relative border-t border-[#36e9e424]"
-        style={{ height: '500px', minHeight: '500px' }}
-      >
-        <div
-          ref={parallaxRef}
-          className="paralax-image absolute top-0 left-0 right-0 w-full"
-          style={{
-            transform: `translateY(${parallaxOffset}px)`,
-            willChange: 'transform',
-            height: '150%',
-            minHeight: '150%',
-            transition: 'transform 0.1s ease-out',
-          }}
-        >
-          <img
-            src="paralax-bg.png"
-            alt="Parallax background"
-            className="w-full h-full object-cover"
-            style={{
-              height: '100%',
-              width: '100%',
-              objectFit: 'cover',
-              objectPosition: 'center top',
-            }}
-          />
-        </div>
-      </div>
+      <CounterSection />
 
-      {/* MAPBOX
-      <div className="w-[80%] h-160 rounded-none overflow-visible my-5 mx-auto">
-        <iframe
-          className="w-full h-full border-none"
-          src={`https://api.mapbox.com/styles/v1/${import.meta.env.VITE_MAPBOX_USERNAME}/${import.meta.env.VITE_MAPBOX_STYLE_ID}.html?title=false&access_token=${import.meta.env.VITE_MAPBOX_ACCESS_TOKEN}&zoomwheel=true#2/38/-34`}
-          title="Untitled"
-        ></iframe>
-      </div> */}
-
-      {/* 3D ROTATING GLOBE - 3D version with terrain and buildings */}
-      {/* <div className="w-[80%] mx-auto my-12">
-        <h3 className="text-2xl font-bold text-white mb-4 text-center">Rotating Globe 3D (Terrain & Buildings)</h3>
-        <RotatingGlobe3D />
-      </div> */}
-
-      {/* Draggable Marker (circle source) */}
-      {/* <div className="w-[80%] mx-auto my-12">
-        <h3 className="text-2xl font-bold text-white mb-4 text-center">Draggable Marker (Circle Layer)</h3>
-        <DraggableMarker />
-      </div> */}
-
-      {/* Draggable Pin (native Mapbox Marker) */}
-      {/* <div className="w-[80%] mx-auto my-12">
-        <h3 className="text-2xl font-bold text-white mb-4 text-center">Draggable Pin (Mapbox Marker)</h3>
-        <DraggablePin />
-      </div> */}
     </>
   );
 }

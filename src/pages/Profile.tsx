@@ -13,6 +13,7 @@ import Button from '../components/Button';
 import ModalConfirm from '../components/ModalConfirm';
 import { useToast } from '../components/ToastProvider';
 import { WalletConnection } from '../components/WalletConnection';
+import { useUserContext } from '../providers/UserContext';
 import {
     getUserProfile,
     type ProfileSocials,
@@ -131,6 +132,7 @@ const getSocialProfileUrl = (platform: SocialPlatformKey, rawHandle?: string): s
 
 function Profile() {
     const { user, isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
+    const { profile, setProfile, setWallets } = useUserContext();
     const [dbUser, setDbUser] = useState<UserProfile | null>(null);
     const [socials, setSocials] = useState<ProfileSocials>({});
     const [visibleSocialInputs, setVisibleSocialInputs] = useState(createEmptyVisibleInputs());
@@ -143,49 +145,21 @@ function Profile() {
     useEffect(() => {
         const loadProfile = async () => {
             if (!isAuthenticated || !user || !user.sub) {
-                console.log('Profile: Not authenticated or no user', { isAuthenticated, hasUser: !!user, hasSub: !!user?.sub });
                 return;
             }
-
             try {
                 setIsLoadingProfile(true);
-
-                //console.log('Profile: Starting to load profile for user:', user.sub);
-                const accessToken = await getAccessTokenSilently().catch((err) => {
-                    console.warn('Profile: Could not get access token:', err);
-                    return undefined;
-                });
-
-                // console.log('Profile: Calling getUserProfile API...');
+                const accessToken = await getAccessTokenSilently().catch(() => undefined);
                 const result = await getUserProfile(user.sub, accessToken);
-                console.log('Profile: API response:', result);
-
                 if (result.success && result.user) {
                     setDbUser(result.user);
                     const loadedSocials = parseSocialsFromPreferences(result.user.preferences);
-                    setSocials(loadedSocials);
+                    setProfile({ auth0Id: user.sub, accessToken, socialHandles: { ...loadedSocials } });
+                    setSocials(parseSocialsFromPreferences(result.user.preferences));
                     setVisibleSocialInputs(createEmptyVisibleInputs());
                 } else {
-                    // User doesn't exist in DB yet - that's okay, they'll be created on sync
-                    console.log('Profile: User not found in DB yet, will be created by sync');
                     setDbUser(null);
-                    setSocials({});
-                    setVisibleSocialInputs(createEmptyVisibleInputs());
-                }
-            } catch (error) {
-                const err = error instanceof Error ? error : new Error(String(error));
-                console.error('Profile: Failed to load profile:', err);
-                console.error('Profile: Error details:', {
-                    message: err.message,
-                    stack: err.stack,
-                    response: undefined
-                });
-
-                // Don't show error if it's just that user doesn't exist yet
-                if (err.message?.includes('404') || err.message?.includes('not found')) {
-                    // User not in database yet - will be created by useUserSync
-                    console.log('Profile: User not found (404) - will be created by sync');
-                    setDbUser(null);
+                    setProfile({ auth0Id: user.sub, accessToken });
                     setSocials({});
                     setVisibleSocialInputs(createEmptyVisibleInputs());
                 }
@@ -193,9 +167,8 @@ function Profile() {
                 setIsLoadingProfile(false);
             }
         };
-
         loadProfile();
-    }, [isAuthenticated, user, getAccessTokenSilently]);
+    }, [isAuthenticated, user, getAccessTokenSilently, setProfile]);
 
     const handleActivateSocial = (key: SocialPlatformKey) => {
         setVisibleSocialInputs((current) => ({
@@ -363,10 +336,10 @@ function Profile() {
                                         {user.name || 'User'}
                                     </h3>
                                     {/* {user.email && (
-                                        <p className="text-white/70 mb-4">
-                                            {user.email}
-                                        </p>
-                                    )} */}
+                                            <p className="text-white/70 mb-4">
+                                                {user.email}
+                                            </p>
+                                        )} */}
                                 </div>
 
                                 <div className="w-full p-6 bg-black/30 rounded-lg mt-4">
@@ -476,10 +449,11 @@ function Profile() {
                                 </div>
 
                                 {/* Wallet Connection Section */}
-                                {user && user.sub && (
+                                {profile && profile.auth0Id && (
                                     <WalletConnection
-                                        auth0Id={user.sub}
-                                        accessToken={undefined}
+                                        auth0Id={profile.auth0Id}
+                                        accessToken={profile.accessToken}
+                                        onWalletsUpdated={setWallets}
                                     />
                                 )}
                             </div>

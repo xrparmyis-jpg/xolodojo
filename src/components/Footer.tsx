@@ -82,7 +82,7 @@ function Footer() {
         orangeBlobOffset={orangeBlobOffset}
       />
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl relative z-10">
         {/* XRPL Resources Section */}
         <div className={`flex flex-col items-center mb-4 ${isVisible ? 'opacity-100' : 'opacity-0'} transition-opacity duration-700 ease-out`}>
           <h3 className="text-xl md:text-2xl font-bold text-white mb-6 opacity-0 animate-[fadeInUp_0.6s_ease-out_0.2s_forwards]">
