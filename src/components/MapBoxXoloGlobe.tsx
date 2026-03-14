@@ -457,6 +457,8 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
                         map.stop();
                     }
 
+                    // Remove pointer cursor while popup is open
+                    markerVisualElement.style.cursor = '';
                     map.easeTo({
                         center: [pin.longitude, pin.latitude],
                         zoom: Math.max(map.getZoom(), 6.4),
@@ -469,6 +471,8 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
                 popup.on('open', focusOnPin);
 
                 popup.on('close', () => {
+                    // Restore pointer cursor when popup closes
+                    markerVisualElement.style.cursor = 'pointer';
                     popupRestoreTimerRef.current = window.setTimeout(() => {
                         if (document.querySelector('.mapboxgl-popup')) {
                             return;

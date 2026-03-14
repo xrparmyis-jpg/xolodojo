@@ -917,7 +917,6 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                             {(() => {
                                 let directCandidates = getDirectNftThumbnailCandidates(nft.uri).filter(Boolean);
                                 const isCollectionFallback = collectionFallbackTokens[nft.token_id] === true;
-                                // Fallback to resolved thumbnail if available
                                 const resolved = resolvedNftThumbnails[nft.token_id];
                                 if ((!directCandidates || directCandidates.length === 0) && resolved) {
                                     directCandidates = [resolved];
@@ -933,7 +932,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                                 if (!directCandidates || directCandidates.length === 0) {
                                     return (
                                         <div className={`relative h-auto w-full aspect-square max-h-[200px] overflow-hidden rounded border ${isCollectionFallback ? 'border-red-600' : 'border-white/10'} flex items-center justify-center bg-white/5`}>
-                                            <span className="text-xs text-white/40">No image</span>
+                                            <FontAwesomeIcon icon={faSpinner} className="text-white/60 animate-spin text-2xl" />
                                         </div>
                                     );
                                 }

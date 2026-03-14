@@ -1,13 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-    faDiscord,
-    faInstagram,
-    faTelegram,
-    faTiktok,
-    faXTwitter,
-} from '@fortawesome/free-brands-svg-icons';
+// Social icons are now imported in useSocials
 import { faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
 import Button from '../components/Button';
 import ModalConfirm from '../components/ModalConfirm';
@@ -18,22 +12,12 @@ import {
     getUserProfile,
     type ProfileSocials,
     type UserProfile,
-    updateUserProfile,
 } from '../services/profileService';
+import { parseSocialsFromPreferences, useSocials, getSocialProfileUrl } from '../hooks/useSocials';
 
 type SocialPlatformKey = keyof ProfileSocials;
 
-const socialPlatformOrder: Array<{
-    key: SocialPlatformKey;
-    label: string;
-    icon: typeof faXTwitter;
-}> = [
-        { key: 'twitter', label: 'X (Twitter)', icon: faXTwitter },
-        { key: 'discord', label: 'Discord', icon: faDiscord },
-        { key: 'tiktok', label: 'TikTok', icon: faTiktok },
-        { key: 'instagram', label: 'Instagram', icon: faInstagram },
-        { key: 'telegram', label: 'Telegram', icon: faTelegram },
-    ];
+import { socialPlatformOrder } from '../hooks/useSocials';
 
 const createEmptyVisibleInputs = () => ({
     twitter: false,
@@ -42,93 +26,6 @@ const createEmptyVisibleInputs = () => ({
     instagram: false,
     telegram: false,
 });
-
-const parseSocialsFromPreferences = (preferences: unknown): ProfileSocials => {
-    if (!preferences) {
-        return {};
-    }
-
-    let parsedPreferences: Record<string, unknown> | null = null;
-
-    if (typeof preferences === 'string') {
-        try {
-            const parsed = JSON.parse(preferences) as unknown;
-            parsedPreferences = parsed && typeof parsed === 'object'
-                ? (parsed as Record<string, unknown>)
-                : null;
-        } catch {
-            return {};
-        }
-    } else if (typeof preferences === 'object') {
-        parsedPreferences = preferences as Record<string, unknown>;
-    }
-
-    if (!parsedPreferences) {
-        return {};
-    }
-
-    const rawSocials = parsedPreferences.socials;
-    if (!rawSocials || typeof rawSocials !== 'object') {
-        return {};
-    }
-
-    const source = rawSocials as Record<string, unknown>;
-    return socialPlatformOrder.reduce<ProfileSocials>((acc, platform) => {
-        const value = source[platform.key];
-        if (typeof value !== 'string') {
-            return acc;
-        }
-
-        const normalized = value.trim().replace(/^@+/, '');
-        if (normalized) {
-            acc[platform.key] = normalized;
-        }
-        return acc;
-    }, {});
-};
-
-const normalizeSocials = (socials: ProfileSocials): ProfileSocials =>
-    socialPlatformOrder.reduce<ProfileSocials>((acc, platform) => {
-        const value = socials[platform.key];
-        if (typeof value !== 'string') {
-            return acc;
-        }
-
-        const normalized = value.trim().replace(/^@+/, '');
-        if (normalized) {
-            acc[platform.key] = normalized;
-        }
-
-        return acc;
-    }, {});
-
-const getSocialProfileUrl = (platform: SocialPlatformKey, rawHandle?: string): string | undefined => {
-    if (!rawHandle) {
-        return undefined;
-    }
-
-    const handle = rawHandle.trim().replace(/^@+/, '');
-    if (!handle) {
-        return undefined;
-    }
-
-    const encodedHandle = encodeURIComponent(handle);
-
-    switch (platform) {
-        case 'twitter':
-            return `https://x.com/${encodedHandle}`;
-        case 'discord':
-            return `https://discord.com/users/${encodedHandle}`;
-        case 'tiktok':
-            return `https://tiktok.com/@${encodedHandle}`;
-        case 'instagram':
-            return `https://instagram.com/${encodedHandle}`;
-        case 'telegram':
-            return `https://t.me/${encodedHandle}`;
-        default:
-            return undefined;
-    }
-};
 
 function Profile() {
     const { user, isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
@@ -141,6 +38,19 @@ function Profile() {
     const [showRemoveSocialModal, setShowRemoveSocialModal] = useState(false);
     const [isLoadingProfile, setIsLoadingProfile] = useState(true);
     const { showToast } = useToast();
+
+    const socialsHook = useSocials({
+        user,
+        dbUser,
+        socials,
+        visibleSocialInputs,
+        setSocials,
+        setVisibleSocialInputs,
+        setDbUser,
+        showToast: ((type: string, msg: string) => showToast(type as 'success' | 'error', msg)) as (type: string, msg: string) => void,
+        getAccessTokenSilently,
+        setIsSavingSocials,
+    });
 
     useEffect(() => {
         const loadProfile = async () => {
@@ -190,100 +100,13 @@ function Profile() {
     };
 
     const handleConfirmRemoveSocial = async () => {
-        if (!pendingRemoveSocial) {
-            return;
-        }
-
-        const socialToRemove = pendingRemoveSocial;
-        const nextSocials = { ...socials };
-        delete nextSocials[socialToRemove];
-
-        const nextVisibleSocialInputs = {
-            ...visibleSocialInputs,
-            [socialToRemove]: false,
-        };
-
+        await socialsHook.handleConfirmRemoveSocial(pendingRemoveSocial);
         setShowRemoveSocialModal(false);
         setPendingRemoveSocial(null);
-
-        setSocials(nextSocials);
-        setVisibleSocialInputs(nextVisibleSocialInputs);
-
-        if (!user?.sub) {
-            return;
-        }
-
-        try {
-            setIsSavingSocials(true);
-
-            const accessToken = await getAccessTokenSilently().catch((err) => {
-                console.warn('Profile: Could not get access token for social remove:', err);
-                return undefined;
-            });
-
-            const normalizedSocials = normalizeSocials(nextSocials);
-            const result = await updateUserProfile(
-                user.sub,
-                {
-                    bio: dbUser?.bio || '',
-                    socials: normalizedSocials,
-                },
-                accessToken
-            );
-
-            if (!result.success || !result.user) {
-                throw new Error('Failed to remove social handle');
-            }
-
-            setDbUser(result.user);
-            setSocials(normalizedSocials);
-            setVisibleSocialInputs(nextVisibleSocialInputs);
-            showToast('success', 'Social handle removed.');
-        } catch (error) {
-            const err = error instanceof Error ? error : new Error(String(error));
-            showToast('error', `Failed to remove social handle: ${err.message}`);
-        } finally {
-            setIsSavingSocials(false);
-        }
     };
 
     const handleSaveSocials = async () => {
-        if (!user?.sub) {
-            return;
-        }
-
-        try {
-            setIsSavingSocials(true);
-
-            const accessToken = await getAccessTokenSilently().catch((err) => {
-                console.warn('Profile: Could not get access token for social save:', err);
-                return undefined;
-            });
-
-            const normalizedSocials = normalizeSocials(socials);
-            const result = await updateUserProfile(
-                user.sub,
-                {
-                    bio: dbUser?.bio || '',
-                    socials: normalizedSocials,
-                },
-                accessToken
-            );
-
-            if (!result.success || !result.user) {
-                throw new Error('Failed to save social handles');
-            }
-
-            setDbUser(result.user);
-            setSocials(normalizedSocials);
-            setVisibleSocialInputs(createEmptyVisibleInputs());
-            showToast('success', 'Social handles saved.');
-        } catch (error) {
-            const err = error instanceof Error ? error : new Error(String(error));
-            showToast('error', `Failed to save social handles: ${err.message}`);
-        } finally {
-            setIsSavingSocials(false);
-        }
+        await socialsHook.handleSaveSocials();
     };
 
     const activeSocialPlatforms = socialPlatformOrder.filter((platform) =>
@@ -403,6 +226,7 @@ function Profile() {
                                                                     onChange={(e) => handleSocialInputChange(platform.key, e.target.value)}
                                                                     placeholder={`${platform.label} username`}
                                                                     className="w-full rounded-lg border border-white/20 bg-black/40 pl-8 pr-3 py-2 text-white/90 placeholder:text-white/45 focus:outline-none focus:border-blue-500"
+                                                                    autoComplete="off"
                                                                 />
                                                             </div>
                                                         </div>
