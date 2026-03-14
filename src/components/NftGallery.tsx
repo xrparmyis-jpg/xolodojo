@@ -88,6 +88,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
     const NFTS_PER_PAGE = 12;
     const navigate = useNavigate();
     const [currentNftPage, setCurrentNftPage] = useState(1);
+    // Track failed state per tokenId (boolean)
     const [failedNftThumbnails, setFailedNftThumbnails] = useState<Record<string, boolean>>({});
     const [loadedNftThumbnails, setLoadedNftThumbnails] = useState<Record<string, boolean>>({});
     const [resolvedNftThumbnails, setResolvedNftThumbnails] = useState<Record<string, string | null>>({});
@@ -437,6 +438,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
         return resolved;
     }, [debugNft, getProxiedUrl]);
 
+    // Returns the first candidate for a given tokenId
     const getNftThumbnailUrl = (tokenId: string, uri: string | null): string | null => {
         const resolved = resolvedNftThumbnails[tokenId];
         if (resolved !== undefined) {
@@ -915,6 +917,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                                 const thumbnailSrc = getNftThumbnailSrc(thumbnailUrl);
                                 const thumbnailFailed = failedNftThumbnails[nft.token_id];
                                 const isCollectionFallback = collectionFallbackTokens[nft.token_id] === true;
+                                const isThumbnailLoaded = loadedNftThumbnails[nft.token_id] === true;
 
                                 if (nftDebugEnabled) {
                                     console.log('[NFT DEBUG] Render thumbnail', {
@@ -931,8 +934,6 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                                         <div className="h-auto w-full aspect-square max-h-[200px] rounded border border-white/10 bg-white/5" />
                                     );
                                 }
-
-                                const isThumbnailLoaded = loadedNftThumbnails[nft.token_id] === true;
 
                                 return (
                                     <div
