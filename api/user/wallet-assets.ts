@@ -236,37 +236,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       );
     }
 
-    const accountNfts = await callXrpl<{
-      account_nfts?: Array<{
-        NFTokenID: string;
-        Issuer?: string;
-        URI?: string;
-        NFTokenTaxon?: number;
-      }>;
-    }>('account_nfts', {
-      account: walletAddress,
-      ledger_index: 'validated',
-      limit: 100,
-    }).catch(() => ({ account_nfts: [] }));
+
+    let allNfts: Array<{ NFTokenID: string; Issuer?: string; URI?: string; NFTokenTaxon?: number }> = [];
+    let marker: string | undefined = undefined;
+    do {
+      const params: Record<string, any> = {
+        account: walletAddress,
+        ledger_index: 'validated',
+      };
+      if (marker) params.marker = marker;
+      const resp = await callXrpl<{
+        account_nfts?: Array<{ NFTokenID: string; Issuer?: string; URI?: string; NFTokenTaxon?: number }>;
+        marker?: string;
+      }>('account_nfts', params).catch(() => ({ account_nfts: [], marker: undefined }));
+      if (resp.account_nfts) allNfts = allNfts.concat(resp.account_nfts);
+      marker = resp.marker;
+    } while (marker);
 
     const balanceDrops = accountInfo.account_data?.Balance || '0';
     const xrpBalance = (Number(balanceDrops) / 1_000_000).toFixed(6);
-    const nfts = accountNfts.account_nfts || [];
+    const nfts = allNfts;
     const configuredCollectionAddress = await getConfiguredCollectionAddress();
-    const filteredNfts = configuredCollectionAddress
-      ? nfts.filter(
-          nft =>
-            typeof nft.Issuer === 'string' &&
-            nft.Issuer.toLowerCase() === configuredCollectionAddress
-        )
-      : nfts;
 
-    if (!configuredCollectionAddress && nfts.length > 0) {
-      console.warn(
-        'NFT_COLLECTION_CONTRACT_ADDRESS is not configured; returning unfiltered wallet NFTs.',
-        { walletAddress, nftCount: nfts.length }
-      );
-    }
+    // TEMPORARY: Show all NFTs in the wallet, no filtering by collection address
+    const filteredNfts = nfts;
+    // (You can revert this change later to restore filtering)
 
     return res.status(200).json({
       success: true,

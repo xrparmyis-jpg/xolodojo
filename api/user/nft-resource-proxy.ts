@@ -93,6 +93,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
     if (!upstreamResponse.ok) {
+      // If not JSON mode, return a blank PNG for image requests
+      if (modeParam !== 'json') {
+        // 1x1 transparent PNG
+        const blankPng = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/w8AAgMBAp6n1wAAAABJRU5ErkJggg==', 'base64');
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Content-Length', String(blankPng.length));
+        return res.status(200).send(blankPng);
+      }
+      // Otherwise, return JSON error
       return res.status(upstreamResponse.status).json({
         error: `Upstream request failed with status ${upstreamResponse.status}`,
       });

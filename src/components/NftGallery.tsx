@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import ResilientImage from './ResilientImage';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -88,8 +89,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
     const NFTS_PER_PAGE = 12;
     const navigate = useNavigate();
     const [currentNftPage, setCurrentNftPage] = useState(1);
-    const [failedNftThumbnails, setFailedNftThumbnails] = useState<Record<string, boolean>>({});
-    const [loadedNftThumbnails, setLoadedNftThumbnails] = useState<Record<string, boolean>>({});
+    // Track failed state per tokenId (boolean)
     const [resolvedNftThumbnails, setResolvedNftThumbnails] = useState<Record<string, string | null>>({});
     const [resolvedNftTitles, setResolvedNftTitles] = useState<Record<string, string | null>>({});
     const [resolvedNftCollections, setResolvedNftCollections] = useState<Record<string, string | null>>({});
@@ -437,6 +437,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
         return resolved;
     }, [debugNft, getProxiedUrl]);
 
+    // Returns the first candidate for a given tokenId
     const getNftThumbnailUrl = (tokenId: string, uri: string | null): string | null => {
         const resolved = resolvedNftThumbnails[tokenId];
         if (resolved !== undefined) {
@@ -484,13 +485,6 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
         setCurrentNftPage(1);
     }, [walletAddress]);
 
-    useEffect(() => {
-        setFailedNftThumbnails({});
-    }, [walletAddress, currentNftPage]);
-
-    useEffect(() => {
-        setLoadedNftThumbnails({});
-    }, [walletAddress, currentNftPage]);
 
     useEffect(() => {
         setResolvedNftThumbnails({});
@@ -893,11 +887,17 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
 
     return (
         <div className="rounded-md border border-white/10 bg-black/20 p-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 justify-items-startr">
+            <div
+                className={
+                    paginatedNfts.length === 1
+                        ? 'flex grid grid-cols-1 justify-center gap-4'
+                        : 'flex grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 justify-center'
+                }
+            >
                 {paginatedNfts.map((nft) => (
                     <div
                         key={nft.token_id}
-                        className="relative w-full max-w-[200px] rounded bg-white/[0.03] p-2 text-left transition-colors hover:bg-white/[0.06]"
+                        className="relative w-full max-w-[320px] sm:max-w-[240px] lg:max-w-[200px] mx-auto sm:mx-0 rounded bg-white/[0.03] p-2 text-left transition-colors hover:bg-white/[0.06]"
                     >
                         <button
                             type="button"
@@ -905,65 +905,37 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                             className="cursor-pointer w-full"
                         >
                             {(() => {
-                                const thumbnailUrl = getNftThumbnailUrl(nft.token_id, nft.uri);
-                                const thumbnailSrc = getNftThumbnailSrc(thumbnailUrl);
-                                const thumbnailFailed = failedNftThumbnails[nft.token_id];
+                                let directCandidates = getDirectNftThumbnailCandidates(nft.uri).filter(Boolean);
                                 const isCollectionFallback = collectionFallbackTokens[nft.token_id] === true;
-
+                                // Fallback to resolved thumbnail if available
+                                const resolved = resolvedNftThumbnails[nft.token_id];
+                                if ((!directCandidates || directCandidates.length === 0) && resolved) {
+                                    directCandidates = [resolved];
+                                }
                                 if (nftDebugEnabled) {
                                     console.log('[NFT DEBUG] Render thumbnail', {
                                         tokenId: nft.token_id,
                                         uri: nft.uri,
-                                        thumbnailUrl,
-                                        thumbnailSrc,
-                                        thumbnailFailed,
+                                        directCandidates,
+                                        resolved,
                                     });
                                 }
-
-                                if (!thumbnailSrc || thumbnailFailed) {
+                                if (!directCandidates || directCandidates.length === 0) {
                                     return (
-                                        <div className="h-auto w-full aspect-square max-h-[200px] rounded border border-white/10 bg-white/5" />
+                                        <div className={`relative h-auto w-full aspect-square max-h-[200px] overflow-hidden rounded border ${isCollectionFallback ? 'border-red-600' : 'border-white/10'} flex items-center justify-center bg-white/5`}>
+                                            <span className="text-xs text-white/40">No image</span>
+                                        </div>
                                     );
                                 }
-
-                                const isThumbnailLoaded = loadedNftThumbnails[nft.token_id] === true;
-
                                 return (
                                     <div
                                         className={`relative h-auto w-full aspect-square max-h-[200px] overflow-hidden rounded border ${isCollectionFallback ? 'border-red-600' : 'border-white/10'}`}
                                     >
-                                        {!isThumbnailLoaded && (
-                                            <div className="absolute inset-0 flex items-center justify-center bg-white/5">
-                                                <FontAwesomeIcon icon={faSpinner} className="text-white/60 animate-spin" />
-                                            </div>
-                                        )}
-                                        <img
-                                            src={thumbnailSrc}
+                                        <ResilientImage
+                                            urls={directCandidates}
                                             alt="NFT thumbnail"
-                                            className={`h-full w-full object-cover transition-opacity duration-200 ${isThumbnailLoaded ? 'opacity-100' : 'opacity-0'}`}
-                                            loading="lazy"
-                                            decoding="async"
-                                            onLoad={() => {
-                                                setLoadedNftThumbnails((current) => ({
-                                                    ...current,
-                                                    [nft.token_id]: true,
-                                                }));
-                                            }}
-                                            onError={(event) => {
-                                                debugNft('Image load error', {
-                                                    tokenId: nft.token_id,
-                                                    src: event.currentTarget.currentSrc || event.currentTarget.src,
-                                                    originalUri: nft.uri,
-                                                });
-                                                setFailedNftThumbnails((current) => ({
-                                                    ...current,
-                                                    [nft.token_id]: true,
-                                                }));
-                                                setLoadedNftThumbnails((current) => ({
-                                                    ...current,
-                                                    [nft.token_id]: false,
-                                                }));
-                                            }}
+                                            className="h-full w-full"
+                                            style={{ minHeight: 40 }}
                                         />
                                     </div>
                                 );
