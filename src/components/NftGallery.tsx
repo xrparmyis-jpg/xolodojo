@@ -893,11 +893,17 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
 
     return (
         <div className="rounded-md border border-white/10 bg-black/20 p-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 justify-items-startr">
+            <div
+                className={
+                    paginatedNfts.length === 1
+                        ? 'flex grid grid-cols-1 justify-center gap-4'
+                        : 'flex grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 justify-center'
+                }
+            >
                 {paginatedNfts.map((nft) => (
                     <div
                         key={nft.token_id}
-                        className="relative w-full max-w-[200px] rounded bg-white/[0.03] p-2 text-left transition-colors hover:bg-white/[0.06]"
+                        className="relative w-full max-w-[320px] sm:max-w-[240px] lg:max-w-[200px] mx-auto sm:mx-0 rounded bg-white/[0.03] p-2 text-left transition-colors hover:bg-white/[0.06]"
                     >
                         <button
                             type="button"

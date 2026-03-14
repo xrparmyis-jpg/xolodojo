@@ -253,20 +253,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const xrpBalance = (Number(balanceDrops) / 1_000_000).toFixed(6);
     const nfts = accountNfts.account_nfts || [];
     const configuredCollectionAddress = await getConfiguredCollectionAddress();
-    const filteredNfts = configuredCollectionAddress
-      ? nfts.filter(
-          nft =>
-            typeof nft.Issuer === 'string' &&
-            nft.Issuer.toLowerCase() === configuredCollectionAddress
-        )
-      : nfts;
 
-    if (!configuredCollectionAddress && nfts.length > 0) {
-      console.warn(
-        'NFT_COLLECTION_CONTRACT_ADDRESS is not configured; returning unfiltered wallet NFTs.',
-        { walletAddress, nftCount: nfts.length }
-      );
-    }
+    // TEMPORARY: Show all NFTs in the wallet, no filtering by collection address
+    const filteredNfts = nfts;
+    // (You can revert this change later to restore filtering)
 
     return res.status(200).json({
       success: true,
