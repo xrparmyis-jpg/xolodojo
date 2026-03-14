@@ -236,22 +236,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       );
     }
 
-    const accountNfts = await callXrpl<{
-      account_nfts?: Array<{
-        NFTokenID: string;
-        Issuer?: string;
-        URI?: string;
-        NFTokenTaxon?: number;
-      }>;
-    }>('account_nfts', {
-      account: walletAddress,
-      ledger_index: 'validated',
-      limit: 100,
-    }).catch(() => ({ account_nfts: [] }));
+
+    // Fetch all NFTs using pagination (marker)
+    let allNfts: Array<{ NFTokenID: string; Issuer?: string; URI?: string; NFTokenTaxon?: number }> = [];
+    let marker: string | undefined = undefined;
+    do {
+      const params: Record<string, any> = {
+        account: walletAddress,
+        ledger_index: 'validated',
+      };
+      if (marker) params.marker = marker;
+      const resp = await callXrpl<{
+        account_nfts?: Array<{ NFTokenID: string; Issuer?: string; URI?: string; NFTokenTaxon?: number }>;
+        marker?: string;
+      }>('account_nfts', params).catch(() => ({ account_nfts: [] }));
+      if (resp.account_nfts) allNfts = allNfts.concat(resp.account_nfts);
+      marker = resp.marker;
+    } while (marker);
 
     const balanceDrops = accountInfo.account_data?.Balance || '0';
     const xrpBalance = (Number(balanceDrops) / 1_000_000).toFixed(6);
-    const nfts = accountNfts.account_nfts || [];
+    const nfts = allNfts;
     const configuredCollectionAddress = await getConfiguredCollectionAddress();
 
     // TEMPORARY: Show all NFTs in the wallet, no filtering by collection address
