@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import ResilientImage from './ResilientImage';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -913,64 +914,37 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                             className="cursor-pointer w-full"
                         >
                             {(() => {
-                                const thumbnailUrl = getNftThumbnailUrl(nft.token_id, nft.uri);
-                                const thumbnailSrc = getNftThumbnailSrc(thumbnailUrl);
-                                const thumbnailFailed = failedNftThumbnails[nft.token_id];
+                                let directCandidates = getDirectNftThumbnailCandidates(nft.uri).filter(Boolean);
                                 const isCollectionFallback = collectionFallbackTokens[nft.token_id] === true;
-                                const isThumbnailLoaded = loadedNftThumbnails[nft.token_id] === true;
-
+                                // Fallback to resolved thumbnail if available
+                                const resolved = resolvedNftThumbnails[nft.token_id];
+                                if ((!directCandidates || directCandidates.length === 0) && resolved) {
+                                    directCandidates = [resolved];
+                                }
                                 if (nftDebugEnabled) {
                                     console.log('[NFT DEBUG] Render thumbnail', {
                                         tokenId: nft.token_id,
                                         uri: nft.uri,
-                                        thumbnailUrl,
-                                        thumbnailSrc,
-                                        thumbnailFailed,
+                                        directCandidates,
+                                        resolved,
                                     });
                                 }
-
-                                if (!thumbnailSrc || thumbnailFailed) {
+                                if (!directCandidates || directCandidates.length === 0) {
                                     return (
-                                        <div className="h-auto w-full aspect-square max-h-[200px] rounded border border-white/10 bg-white/5" />
+                                        <div className={`relative h-auto w-full aspect-square max-h-[200px] overflow-hidden rounded border ${isCollectionFallback ? 'border-red-600' : 'border-white/10'} flex items-center justify-center bg-white/5`}>
+                                            <span className="text-xs text-white/40">No image</span>
+                                        </div>
                                     );
                                 }
-
                                 return (
                                     <div
                                         className={`relative h-auto w-full aspect-square max-h-[200px] overflow-hidden rounded border ${isCollectionFallback ? 'border-red-600' : 'border-white/10'}`}
                                     >
-                                        {!isThumbnailLoaded && (
-                                            <div className="absolute inset-0 flex items-center justify-center bg-white/5">
-                                                <FontAwesomeIcon icon={faSpinner} className="text-white/60 animate-spin" />
-                                            </div>
-                                        )}
-                                        <img
-                                            src={thumbnailSrc}
+                                        <ResilientImage
+                                            urls={directCandidates}
                                             alt="NFT thumbnail"
-                                            className={`h-full w-full object-cover transition-opacity duration-200 ${isThumbnailLoaded ? 'opacity-100' : 'opacity-0'}`}
-                                            loading="lazy"
-                                            decoding="async"
-                                            onLoad={() => {
-                                                setLoadedNftThumbnails((current) => ({
-                                                    ...current,
-                                                    [nft.token_id]: true,
-                                                }));
-                                            }}
-                                            onError={(event) => {
-                                                debugNft('Image load error', {
-                                                    tokenId: nft.token_id,
-                                                    src: event.currentTarget.currentSrc || event.currentTarget.src,
-                                                    originalUri: nft.uri,
-                                                });
-                                                setFailedNftThumbnails((current) => ({
-                                                    ...current,
-                                                    [nft.token_id]: true,
-                                                }));
-                                                setLoadedNftThumbnails((current) => ({
-                                                    ...current,
-                                                    [nft.token_id]: false,
-                                                }));
-                                            }}
+                                            className="h-full w-full"
+                                            style={{ minHeight: 40 }}
                                         />
                                     </div>
                                 );
