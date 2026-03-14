@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useAccount, useDisconnect as useWagmiDisconnect } from 'wagmi';
 import { useWeb3Modal } from '@web3modal/wagmi/react';
@@ -68,6 +68,7 @@ const addressesMatchForWalletType = (
 };
 
 function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: WalletConnectionProps) {
+    const myWalletsRef = useRef<HTMLDivElement | null>(null);
     const { open } = useWeb3Modal();
     const { address: wagmiAddress, isConnected: isWagmiConnected, connector: wagmiConnector } = useAccount();
     const { accounts: joeyAccounts, actions: joeyActions } = joeyStandalone.provider.useProvider();
@@ -131,6 +132,12 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
     const loadWallets = useCallback(async () => {
         try {
             setIsLoading(true);
+            // Scroll to My Wallets section when loading starts
+            setTimeout(() => {
+                if (myWalletsRef.current) {
+                    myWalletsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 100);
             const result = await getUserWallets(auth0Id, accessToken);
             if (result.success) {
                 // Filter out wallets with empty address or invalid type
@@ -901,7 +908,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
     const shouldUseSummaryMinHeight = isAssetsLoading || ((connectedWalletAssets?.nft_count ?? 0) > 0);
 
     return (
-        <div className="relative w-full p-6 bg-black/30 rounded-lg mt-4">
+        <div className="relative w-full p-6 bg-black/30 rounded-lg mt-4" ref={myWalletsRef}>
             {wallets.length > 0 && (
                 <div className="flex justify-between items-center mb-4">
                     <h4 className="text-white text-lg">
