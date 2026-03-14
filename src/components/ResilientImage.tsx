@@ -22,11 +22,11 @@ export default function ResilientImage({
         onLoad,
         onError,
         manualRetry,
-    } = useResilientImageLoader({ urls, retryDelays });
+    } = useResilientImageLoader({ urls, retryDelays, maxRetries: 5 });
 
     return (
         <div className={`relative w-full h-full ${className}`} style={{ minHeight: 40 }}>
-            {loading && (
+            {loading ? (
                 <div
                     className="absolute inset-0 flex items-center justify-center cursor-pointer"
                     onClick={manualRetry}
@@ -51,7 +51,11 @@ export default function ResilientImage({
                         </svg>
                     )}
                 </div>
-            )}
+            ) : error ? (
+                <div className="absolute inset-0 flex items-center justify-center bg-white/5">
+                    <span className="text-xs text-white/40">No image</span>
+                </div>
+            ) : null}
             <img
                 {...imgProps}
                 src={src}

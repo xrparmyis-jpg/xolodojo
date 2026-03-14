@@ -12,7 +12,8 @@ export function useResilientImageLoader({
   retryDelays = [1000, 2000, 5000, 10000, 30000],
   onLoad,
   onError,
-}: UseResilientImageLoaderOptions) {
+  maxRetries = 5,
+}: UseResilientImageLoaderOptions & { maxRetries?: number }) {
   const [currentUrlIndex, setCurrentUrlIndex] = useState(0);
   const [retryCount, setRetryCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -39,19 +40,39 @@ export function useResilientImageLoader({
   const handleError = useCallback(
     (err: Error) => {
       setError(err);
-      setLoading(true); // keep spinner
-      if (onError) onError(err);
-      // Next URL (gateway), or loop back
-      setCurrentUrlIndex((idx) => (idx + 1) % urls.length);
-      setRetryCount((count) => count + 1);
-      // Schedule next retry
-      const delay = retryDelays[Math.min(retryCount, retryDelays.length - 1)];
-      if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(() => {
-        if (isMounted.current) setLoading(true);
-      }, delay);
+      setRetryCount((count) => {
+        const nextCount = count + 1;
+        const currentUrl = urls[(currentUrlIndex + 1) % urls.length] || urls[0];
+        if (nextCount >= maxRetries) {
+          // Log when giving up
+          console.error('[NFT IMAGE] Gave up loading image after max retries', {
+            url: currentUrl,
+            error: err,
+            retryCount: nextCount,
+            maxRetries,
+          });
+          setLoading(false);
+          return nextCount;
+        }
+        // Log each retry
+        console.warn('[NFT IMAGE] Failed to load image, retrying', {
+          url: currentUrl,
+          error: err,
+          retryCount: nextCount,
+          maxRetries,
+        });
+        setLoading(true);
+        if (onError) onError(err);
+        setCurrentUrlIndex((idx) => (idx + 1) % urls.length);
+        const delay = retryDelays[Math.min(nextCount, retryDelays.length - 1)];
+        if (timerRef.current) clearTimeout(timerRef.current);
+        timerRef.current = setTimeout(() => {
+          if (isMounted.current) setLoading(true);
+        }, delay);
+        return nextCount;
+      });
     },
-    [urls.length, retryDelays, retryCount, onError]
+    [urls, currentUrlIndex, retryDelays, maxRetries, onError]
   );
 
   const handleLoad = useCallback(() => {
