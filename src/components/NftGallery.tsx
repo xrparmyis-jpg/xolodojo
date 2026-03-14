@@ -101,6 +101,13 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
     const [pendingUnpinTokenId, setPendingUnpinTokenId] = useState<string | null>(null);
     const [isPinActionLoading, setIsPinActionLoading] = useState(false);
     const [isSelectedNftImageLoaded, setIsSelectedNftImageLoaded] = useState(false);
+    // Cache loaded NFT image URLs by tokenId
+    const [loadedNftImageUrls, setLoadedNftImageUrls] = useState<Record<string, string>>({});
+
+    // Helper to handle image load in gallery and cache the URL
+    const handleGalleryImageLoad = (tokenId: string, src: string) => {
+        setLoadedNftImageUrls((prev) => ({ ...prev, [tokenId]: src }));
+    };
     const [pinLocation, setPinLocation] = useState<{ lng: number; lat: number } | null>(null);
     const [pinTitleInput, setPinTitleInput] = useState('');
     const [pinSuccessState, setPinSuccessState] = useState<{
@@ -686,7 +693,10 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
         ? getNftThumbnailUrl(selectedNft.token_id, selectedNft.uri)
         : null;
 
-    const selectedNftThumbnailSrc = getNftThumbnailSrc(selectedNftThumbnailUrl);
+    // Use cached image URL for modal if available
+    const selectedNftThumbnailSrc = selectedNft && loadedNftImageUrls[selectedNft.token_id]
+        ? loadedNftImageUrls[selectedNft.token_id]
+        : getNftThumbnailSrc(selectedNftThumbnailUrl);
 
     useEffect(() => {
         setIsSelectedNftImageLoaded(false);
@@ -936,6 +946,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                                             alt="NFT thumbnail"
                                             className="h-full w-full"
                                             style={{ minHeight: 40 }}
+                                            onLoad={e => handleGalleryImageLoad(nft.token_id, (e.target as HTMLImageElement).src)}
                                         />
                                     </div>
                                 );
