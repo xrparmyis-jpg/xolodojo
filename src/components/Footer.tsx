@@ -45,29 +45,24 @@ function Footer() {
       const rect = footerRef.current.getBoundingClientRect();
       const windowHeight = window.innerHeight;
 
-      // Apply parallax when footer is in viewport
       if (rect.top <= windowHeight && rect.bottom >= 0) {
-        // Calculate scroll progress based on footer's position
         const sectionTop = rect.top;
         const sectionHeight = rect.height;
 
-        // Calculate parallax offset - different speeds for each blob
-        // Green blob moves slower (0.3x speed)
         const scrollProgress = Math.max(0, (windowHeight - sectionTop) / (windowHeight + sectionHeight));
         const greenOffset = scrollProgress * sectionHeight * 0.3;
-        const orangeOffset = scrollProgress * sectionHeight * 0.4; // Orange moves slightly faster (0.4x speed)
+        const orangeOffset = scrollProgress * sectionHeight * 0.4;
 
         setGreenBlobOffset(greenOffset);
         setOrangeBlobOffset(orangeOffset);
       } else {
-        // Reset when footer is out of viewport
         setGreenBlobOffset(0);
         setOrangeBlobOffset(0);
       }
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll(); // Initial calculation
+    handleScroll();
 
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
