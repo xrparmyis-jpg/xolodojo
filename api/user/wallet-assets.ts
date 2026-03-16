@@ -258,9 +258,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const nfts = allNfts;
     const configuredCollectionAddress = await getConfiguredCollectionAddress();
 
-    // TEMPORARY: Show all NFTs in the wallet, no filtering by collection address
-    const filteredNfts = nfts;
-    // (You can revert this change later to restore filtering)
+    // Restore filtering by collection address
+    let filteredNfts = nfts;
+    if (configuredCollectionAddress) {
+      filteredNfts = nfts.filter(
+        (nft) => (nft.Issuer || '').toLowerCase() === configuredCollectionAddress
+      );
+      if (filteredNfts.length === 0) {
+        // Add detailed logs for debugging
+        console.log('[NFT DEBUG] No NFTs found for collection', {
+          walletAddress,
+          configuredCollectionAddress,
+          allNftCount: nfts.length,
+          allNftIds: nfts.map(n => n.NFTokenID),
+          allNftIssuers: nfts.map(n => n.Issuer),
+        });
+      } else {
+        console.log('[NFT DEBUG] Filtered NFTs for collection', {
+          walletAddress,
+          configuredCollectionAddress,
+          filteredCount: filteredNfts.length,
+          filteredNftIds: filteredNfts.map(n => n.NFTokenID),
+        });
+      }
+    } else {
+      console.log('[NFT DEBUG] No collection address configured, returning all NFTs', {
+        walletAddress,
+        allNftCount: nfts.length,
+      });
+    }
 
     return res.status(200).json({
       success: true,
