@@ -1,12 +1,10 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { useAccount, useDisconnect as useWagmiDisconnect } from 'wagmi';
+import { useAccount } from 'wagmi';
 import { useWeb3Modal } from '@web3modal/wagmi/react';
-import { standalone as joeyStandalone } from '@joey-wallet/wc-client/react';
-// import { walletConnectHandler } from '../walletHandlers/walletConnect';
+import { useDisconnect as useWagmiDisconnect } from 'wagmi';
 // import { joeyHandler } from '../walletHandlers/joey';
-// import { xamanHandler } from '../walletHandlers/xaman';
-// import type { IWalletHandler } from '../walletHandlers/IWalletHandler';
+import { standalone as joeyStandalone } from '@joey-wallet/wc-client/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faArrowsRotate,
@@ -21,15 +19,7 @@ import ModalConfirm from './ModalConfirm';
 import NftGallery from './NftGallery';
 import { useToast } from './ToastProvider';
 import { walletConnectProjectId } from '../web3modal';
-import {
-    authorizeXamanAccount,
-    clearXamanSession,
-    getActiveXamanAccount,
-    getXamanRedirectUrl,
-    hasXamanRedirectParams,
-    isXamanConfigured,
-    restoreXamanAccountFromRedirect,
-} from '../services/xamanService';
+import { xamanHandler } from '../walletHandlers/xaman';
 import type { Wallet } from '../services/walletService';
 import {
     addWallet,
@@ -43,6 +33,8 @@ import {
     getWalletAssetSummary,
     type WalletAssetSummary,
 } from '../services/walletAssetService';
+import { useJoeyWalletConnect } from '../hooks/useJoeyWalletConnect';
+import { useXaman2WalletConnect } from '../hooks/useXaman2WalletConnect';
 
 interface WalletConnectionProps {
     auth0Id: string;
@@ -50,52 +42,90 @@ interface WalletConnectionProps {
     onWalletsUpdated?: (wallets: Wallet[]) => void;
 }
 
-const defaultJoeyChain = 'xrpl:0';
 
-const isXrplWalletType = (walletType: Wallet['wallet_type']) => walletType === 'xaman' || walletType === 'joey';
-
-const addressesMatchForWalletType = (
-    leftAddress: string,
-    rightAddress: string,
-    walletType: Wallet['wallet_type']
-) => {
-    if (isXrplWalletType(walletType)) {
-        // Keep XRPL casing when storing new wallets, but match legacy lowercase records too.
-        return leftAddress === rightAddress || leftAddress.toLowerCase() === rightAddress.toLowerCase();
-    }
-
-    return leftAddress.toLowerCase() === rightAddress.toLowerCase();
-};
 
 function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: WalletConnectionProps) {
+    const { showToast, clearToasts } = useToast();
+    const handleConnectExisting = async (walletId: number) => {
+        try {
+            clearWalletToasts();
+            setIsLoading(true);
+
+            const wallet = wallets.find((currentWallet) => currentWallet.id === walletId);
+            if (!wallet) {
+                showToast('error', 'Wallet not found');
+                return;
+            }
+
+            if (wallet.wallet_type === 'xaman') {
+                await handleConnectXaman(wallet.id);
+                return;
+            }
+
+            if (wallet.wallet_type === 'joey') {
+                await handleConnectJoey();
+                return;
+            }
+
+            if (wallet.wallet_type === 'walletconnect') {
+                if (!walletConnectProjectId) {
+                    showToast('error', 'WalletConnect is not configured. Set VITE_WALLETCONNECT_PROJECT_ID and restart the app.');
+                    return;
+                }
+
+                await open({ view: 'Connect' });
+                setPendingWalletConnectId(wallet.id);
+                setIsWalletConnectPending(true);
+                return;
+            }
+
+            await connectWallet(auth0Id, walletId, accessToken);
+            await loadWallets();
+            showToast('success', 'Wallet connected');
+        } catch (error) {
+            const err = error instanceof Error ? error : new Error(String(error));
+            console.error('Failed to connect existing wallet:', err);
+            showToast('error', `Failed to connect wallet: ${err.message}`);
+        } finally {
+            setIsLoading(false);
+        }
+    };
     const myWalletsRef = useRef<HTMLDivElement | null>(null);
     const { open } = useWeb3Modal();
     const { address: wagmiAddress, isConnected: isWagmiConnected, connector: wagmiConnector } = useAccount();
-    const { accounts: joeyAccounts, actions: joeyActions } = joeyStandalone.provider.useProvider();
-    const { mutateAsync: wagmiDisconnectAsync } = useWagmiDisconnect();
+    // Joey Wallet: use custom hook for connection logic (must be after showToast is defined)
+    const {
+        isJoeyConnectPending,
+        showJoeyQrModal,
+        joeyConnectUri,
+        joeyDeepLink,
+        connect: handleConnectJoey,
+        cancel: handleCancelJoeyQr,
+    } = useJoeyWalletConnect({ showToast });
+
+    // Xaman2 Wallet: use custom hook for modal-based connection
+    const {
+        isXaman2ConnectPending,
+        showXaman2QrModal,
+        xaman2ConnectUri,
+        xaman2DeepLink,
+        connect: handleConnectXaman2,
+        cancel: handleCancelXaman2Qr,
+    } = useXaman2WalletConnect({ showToast });
+
     const [wallets, setWallets] = useState<Wallet[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showAddWalletModal, setShowAddWalletModal] = useState(false);
     const [isWalletConnectPending, setIsWalletConnectPending] = useState(false);
-    const [isJoeyConnectPending, setIsJoeyConnectPending] = useState(false);
     const [pendingWalletConnectId, setPendingWalletConnectId] = useState<number | null>(null);
-    const [pendingJoeyConnectId, setPendingJoeyConnectId] = useState<number | null>(null);
-    const [showJoeyQrModal, setShowJoeyQrModal] = useState(false);
-    const [joeyConnectUri, setJoeyConnectUri] = useState<string | null>(null);
-    const [joeyDeepLink, setJoeyDeepLink] = useState<string | null>(null);
-    const [isXamanRedirectRecoveryDone, setIsXamanRedirectRecoveryDone] = useState(false);
+
     const [connectedWalletAssets, setConnectedWalletAssets] = useState<WalletAssetSummary | null>(null);
     const [isAssetsLoading, setIsAssetsLoading] = useState(false);
     const [assetsError, setAssetsError] = useState<string | null>(null);
     const [copiedWalletId, setCopiedWalletId] = useState<number | null>(null);
     const [hasAttemptedXamanSessionRepair, setHasAttemptedXamanSessionRepair] = useState(false);
-    const { showToast, clearToasts } = useToast();
-
-    // Map wallet types to handlers
-
-    // Example usage: walletHandlers[walletType].connect({...})
 
     const clearWalletToasts = useCallback(() => {
         clearToasts();
@@ -105,10 +135,9 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
         wallet: Wallet,
         resolvedAddress: string
     ): Promise<Wallet> => {
-        if (!isXrplWalletType(wallet.wallet_type) || wallet.wallet_address === resolvedAddress) {
+        if ((wallet.wallet_type !== 'xaman' && wallet.wallet_type !== 'joey') || wallet.wallet_address === resolvedAddress) {
             return wallet;
         }
-
         const result = await updateWalletAddress(wallet.id, auth0Id, resolvedAddress, accessToken);
         return result.wallet ?? { ...wallet, wallet_address: resolvedAddress };
     }, [accessToken, auth0Id]);
@@ -116,18 +145,19 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
     const tryDisconnectCurrentWallet = useCallback(
         async (currentWallet?: Wallet | null) => {
             if (!currentWallet) return;
-
             try {
                 if (currentWallet.wallet_type === 'xaman') {
-                    await clearXamanSession();
+                    await xamanHandler.disconnect({ setShowToast: showToast });
                 }
                 await disconnectWallet(auth0Id, accessToken);
             } catch (error) {
                 console.warn('Best-effort disconnect failed, continuing with new connection:', error);
             }
         },
-        [accessToken, auth0Id]
+        [accessToken, auth0Id, showToast]
     );
+
+    const { mutateAsync: wagmiDisconnectAsync } = useWagmiDisconnect();
 
     const loadWallets = useCallback(async () => {
         try {
@@ -225,51 +255,33 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
         void loadWallets();
     }, [loadWallets]);
 
+    // Memoize handler args after all dependencies are declared
+    const xamanHandlerArgs = useMemo(() => ({
+        auth0Id,
+        accessToken,
+        wallets,
+        setIsLoading,
+        setShowToast: showToast,
+        loadWallets,
+        repairWalletAddressIfNeeded,
+        tryDisconnectCurrentWallet,
+        connectWallet,
+        addWallet,
+        showToast,
+        setWallets,
+        onWalletsUpdated,
+        getUserWallets,
+        connectedWallet: wallets.find((w) => w.is_connected && w.wallet_type === 'xaman'),
+    }), [auth0Id, accessToken, wallets, setIsLoading, showToast, loadWallets, repairWalletAddressIfNeeded, tryDisconnectCurrentWallet, connectWallet, addWallet, setWallets, onWalletsUpdated, getUserWallets]);
+
     useEffect(() => {
         const repairConnectedXamanWallet = async () => {
-            if (hasAttemptedXamanSessionRepair) {
-                return;
-            }
-
-            const currentConnectedWallet = wallets.find((wallet) => wallet.is_connected);
-            if (!currentConnectedWallet || currentConnectedWallet.wallet_type !== 'xaman') {
-                setHasAttemptedXamanSessionRepair(true);
-                return;
-            }
-
-            if (currentConnectedWallet.wallet_address !== currentConnectedWallet.wallet_address.toLowerCase()) {
-                setHasAttemptedXamanSessionRepair(true);
-                return;
-            }
-
-            const activeXamanAccount = await getActiveXamanAccount();
-            if (!activeXamanAccount) {
-                setHasAttemptedXamanSessionRepair(true);
-                return;
-            }
-
-            if (!addressesMatchForWalletType(currentConnectedWallet.wallet_address, activeXamanAccount, 'xaman')) {
-                setHasAttemptedXamanSessionRepair(true);
-                return;
-            }
-
-            if (currentConnectedWallet.wallet_address === activeXamanAccount) {
-                setHasAttemptedXamanSessionRepair(true);
-                return;
-            }
-
-            try {
-                await repairWalletAddressIfNeeded(currentConnectedWallet, activeXamanAccount);
-                await loadWallets();
-            } catch (error) {
-                console.error('Failed to repair Xaman wallet address casing:', error);
-            } finally {
-                setHasAttemptedXamanSessionRepair(true);
-            }
+            if (hasAttemptedXamanSessionRepair) return;
+            await xamanHandler.repair?.({ ...xamanHandlerArgs, setShowToast: showToast });
+            setHasAttemptedXamanSessionRepair(true);
         };
-
         void repairConnectedXamanWallet();
-    }, [hasAttemptedXamanSessionRepair, loadWallets, repairWalletAddressIfNeeded, wallets]);
+    }, [hasAttemptedXamanSessionRepair, xamanHandlerArgs, showToast]);
 
     useEffect(() => {
         const syncWalletConnectSession = async () => {
@@ -362,384 +374,12 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
         showToast,
     ]);
 
-    useEffect(() => {
-        const syncJoeySession = async () => {
-            if (!isJoeyConnectPending || !joeyAccounts || joeyAccounts.length === 0) {
-                return;
-            }
 
-            const resolvedAddress = joeyAccounts
-                .map((account: string) => account.split(':').pop()?.trim())
-                .find((account: string | undefined) => Boolean(account));
-
-            if (!resolvedAddress) {
-                return;
-            }
-
-            try {
-                setIsLoading(true);
-
-                const resolvedJoeyAddress = resolvedAddress;
-                const currentConnectedWallet = wallets.find((wallet) => wallet.is_connected);
-
-                if (pendingJoeyConnectId != null) {
-                    const existingWallet = wallets.find((wallet) => wallet.id === pendingJoeyConnectId);
-                    if (!existingWallet) {
-                        showToast('error', 'Wallet not found');
-                        return;
-                    }
-
-                    if (!addressesMatchForWalletType(existingWallet.wallet_address, resolvedJoeyAddress, 'joey')) {
-                        showToast('error', 'Connected Joey account does not match the selected wallet address.');
-                        return;
-                    }
-
-                    const repairedWallet = await repairWalletAddressIfNeeded(existingWallet, resolvedJoeyAddress);
-
-                    if (currentConnectedWallet && currentConnectedWallet.id !== repairedWallet.id) {
-                        await tryDisconnectCurrentWallet(currentConnectedWallet);
-                    }
-
-                    await connectWallet(auth0Id, repairedWallet.id, accessToken);
-                    await loadWallets();
-                    showToast('success', 'Joey wallet connected');
-                    return;
-                }
-
-                const existingWallet = wallets.find(
-                    (wallet) => addressesMatchForWalletType(wallet.wallet_address, resolvedJoeyAddress, 'joey')
-                );
-
-                if (existingWallet) {
-                    const repairedWallet = await repairWalletAddressIfNeeded(existingWallet, resolvedJoeyAddress);
-                    if (currentConnectedWallet && currentConnectedWallet.id !== repairedWallet.id) {
-                        await tryDisconnectCurrentWallet(currentConnectedWallet);
-                    }
-                    await connectWallet(auth0Id, repairedWallet.id, accessToken);
-                    await loadWallets();
-                    showToast('success', 'Joey wallet connected');
-                    return;
-                }
-
-                const result = await addWallet(
-                    auth0Id,
-                    resolvedJoeyAddress,
-                    'joey',
-                    'Joey Wallet',
-                    accessToken
-                );
-                if (result.success && result.wallet) {
-                    if (currentConnectedWallet) {
-                        await tryDisconnectCurrentWallet(currentConnectedWallet);
-                    }
-                    await connectWallet(auth0Id, result.wallet.id, accessToken);
-                }
-
-                await loadWallets();
-                showToast('success', 'Joey wallet added and connected!');
-            } catch (error) {
-                const err = error instanceof Error ? error : new Error(String(error));
-                console.error('Failed to sync Joey session:', err);
-                showToast('error', `Failed to connect Joey wallet: ${err.message}`);
-            } finally {
-                setShowJoeyQrModal(false);
-                setJoeyConnectUri(null);
-                setJoeyDeepLink(null);
-                setPendingJoeyConnectId(null);
-                setIsJoeyConnectPending(false);
-                setIsLoading(false);
-            }
-        };
-
-        void syncJoeySession();
-    }, [
-        accessToken,
-        auth0Id,
-        isJoeyConnectPending,
-        joeyAccounts,
-        joeyActions,
-        loadWallets,
-        pendingJoeyConnectId,
-        showToast,
-        tryDisconnectCurrentWallet,
-        wallets,
-    ]);
-
-    useEffect(() => {
-        if (isXamanRedirectRecoveryDone || !isXamanConfigured() || !hasXamanRedirectParams()) {
-            return;
-        }
-
-        let isCancelled = false;
-
-        const recoverXamanRedirectSession = async () => {
-            try {
-                const xrplAddress = await restoreXamanAccountFromRedirect();
-                if (!xrplAddress || isCancelled) {
-                    return;
-                }
-
-                const resolvedXrplAddress = xrplAddress;
-                const latestWalletsResult = await getUserWallets(auth0Id, accessToken);
-                const latestWallets = latestWalletsResult.success ? latestWalletsResult.wallets || [] : [];
-
-                const currentConnectedWallet = latestWallets.find((wallet) => wallet.is_connected);
-                const existingWallet = latestWallets.find(
-                    (wallet) => addressesMatchForWalletType(wallet.wallet_address, resolvedXrplAddress, 'xaman')
-                );
-
-                if (existingWallet) {
-                    const repairedWallet = await repairWalletAddressIfNeeded(existingWallet, resolvedXrplAddress);
-                    if (currentConnectedWallet && currentConnectedWallet.id !== repairedWallet.id) {
-                        await tryDisconnectCurrentWallet(currentConnectedWallet);
-                    }
-                    await connectWallet(auth0Id, repairedWallet.id, accessToken);
-                    await loadWallets();
-                    showToast('success', 'Xaman wallet connected');
-                    return;
-                }
-
-                const result = await addWallet(auth0Id, xrplAddress, 'xaman', undefined, accessToken);
-                if (result.success && result.wallet) {
-                    if (currentConnectedWallet) {
-                        await tryDisconnectCurrentWallet(currentConnectedWallet);
-                    }
-                    await connectWallet(auth0Id, result.wallet.id, accessToken);
-                    await loadWallets();
-                    showToast('success', 'Xaman wallet added and connected!');
-                }
-            } catch (error) {
-                const err = error instanceof Error ? error : new Error(String(error));
-                console.error('Failed to recover Xaman redirect session:', err);
-                showToast('error', `Failed to finalize Xaman sign-in: ${err.message}`);
-            } finally {
-                if (!isCancelled) {
-                    setIsXamanRedirectRecoveryDone(true);
-                }
-            }
-        };
-
-        void recoverXamanRedirectSession();
-
-        return () => {
-            isCancelled = true;
-        };
-    }, [
-        accessToken,
-        auth0Id,
-        isXamanRedirectRecoveryDone,
-        loadWallets,
-        showToast,
-        tryDisconnectCurrentWallet,
-    ]);
+    // Xaman redirect recovery can be handled in the handler if needed, or here if you want to keep the logic
 
     const handleConnectXaman = async (walletIdToConnect?: number) => {
-        try {
-            clearWalletToasts();
-            setIsLoading(true);
-
-            if (!isXamanConfigured()) {
-                showToast('error', 'Xaman is not configured. Set VITE_XAMAN_API_KEY and restart the app.');
-                return;
-            }
-
-            const xrplAddress = await authorizeXamanAccount();
-            const resolvedXrplAddress = xrplAddress;
-
-            if (walletIdToConnect != null) {
-                const targetWallet = wallets.find((wallet) => wallet.id === walletIdToConnect);
-                if (!targetWallet) {
-                    showToast('error', 'Wallet not found');
-                    return;
-                }
-
-                if (!addressesMatchForWalletType(targetWallet.wallet_address, resolvedXrplAddress, 'xaman')) {
-                    showToast('error', 'Scanned Xaman account does not match the selected wallet address.');
-                    return;
-                }
-
-                const repairedWallet = await repairWalletAddressIfNeeded(targetWallet, resolvedXrplAddress);
-
-                if (connectedWallet && connectedWallet.id !== repairedWallet.id) {
-                    await tryDisconnectCurrentWallet(connectedWallet);
-                }
-                await connectWallet(auth0Id, repairedWallet.id, accessToken);
-                await loadWallets();
-                showToast('success', 'Xaman wallet connected');
-                return;
-            }
-
-            const existingWallet = wallets.find(
-                (wallet) => addressesMatchForWalletType(wallet.wallet_address, resolvedXrplAddress, 'xaman')
-            );
-
-            if (existingWallet) {
-                const repairedWallet = await repairWalletAddressIfNeeded(existingWallet, resolvedXrplAddress);
-                if (connectedWallet && connectedWallet.id !== repairedWallet.id) {
-                    await tryDisconnectCurrentWallet(connectedWallet);
-                }
-                await connectWallet(auth0Id, repairedWallet.id, accessToken);
-                await loadWallets();
-                showToast('success', 'Xaman wallet connected');
-                return;
-            }
-
-            const result = await addWallet(auth0Id, xrplAddress, 'xaman', undefined, accessToken);
-            if (result.success && result.wallet) {
-                if (connectedWallet) {
-                    await tryDisconnectCurrentWallet(connectedWallet);
-                }
-                await connectWallet(auth0Id, result.wallet.id, accessToken);
-            }
-
-            await loadWallets();
-            showToast('success', 'Xaman wallet added and connected!');
-        } catch (error) {
-            const err = error instanceof Error ? error : new Error(String(error));
-            console.error('Failed to connect Xaman wallet:', err);
-            const normalizedMessage = err.message.toLowerCase();
-            if (
-                normalizedMessage.includes('access_denied') ||
-                normalizedMessage.includes('invalid client') ||
-                normalizedMessage.includes('redirect')
-            ) {
-                showToast('error', `Xaman rejected the redirect URL. In apps.xumm.dev, add this exact Redirect URL: ${getXamanRedirectUrl()}`);
-            } else {
-                showToast('error', `Failed to connect Xaman: ${err.message}`);
-            }
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleConnectJoey = async (walletIdToConnect?: number) => {
-        try {
-            clearWalletToasts();
-            setIsLoading(true);
-            setPendingJoeyConnectId(walletIdToConnect ?? null);
-            setIsJoeyConnectPending(true);
-
-            const generatedConnection = await joeyActions.generate({
-                chain: defaultJoeyChain,
-                openModal: false,
-            });
-
-            if (generatedConnection.error) {
-                throw generatedConnection.error;
-            }
-
-            const generatedUri = generatedConnection.data?.uri?.trim();
-            if (!generatedUri) {
-                throw new Error('Joey QR code could not be generated.');
-            }
-
-            if (import.meta.env.DEV) {
-                console.debug('[WalletConnection] Joey QR generated', {
-                    uri: generatedUri,
-                    deeplink: generatedConnection.data?.deeplink ?? null,
-                    walletIdToConnect: walletIdToConnect ?? null,
-                });
-            }
-
-            setJoeyConnectUri(generatedUri);
-            setJoeyDeepLink(generatedConnection.data?.deeplink ?? null);
-            setShowJoeyQrModal(true);
-            setIsLoading(false);
-        } catch (error) {
-            const err = error instanceof Error ? error : new Error(String(error));
-            console.error('Failed to connect Joey wallet:', err);
-            showToast('error', `Failed to connect Joey wallet: ${err.message}`);
-            setShowJoeyQrModal(false);
-            setJoeyConnectUri(null);
-            setJoeyDeepLink(null);
-            setPendingJoeyConnectId(null);
-            setIsJoeyConnectPending(false);
-            setIsLoading(false);
-        }
-    };
-
-    const handleCancelJoeyQr = async () => {
-        setShowJoeyQrModal(false);
-        setJoeyConnectUri(null);
-        setJoeyDeepLink(null);
-        setPendingJoeyConnectId(null);
-        setIsJoeyConnectPending(false);
-        setIsLoading(false);
-
-        try {
-            await joeyActions.disconnect();
-        } catch (error) {
-            console.warn('Best-effort Joey disconnect after QR cancel failed:', error);
-        }
-    };
-
-    // const handleDisconnect = async () => {
-    //     try {
-    //         clearWalletToasts();
-    //         setIsLoading(true);
-    //         if (connectedWallet?.wallet_type === 'walletconnect') {
-    //             await wagmiDisconnectAsync();
-    //         } else if (connectedWallet?.wallet_type === 'joey') {
-    //             await joeyActions.disconnect();
-    //         } else if (connectedWallet?.wallet_type === 'xaman') {
-    //             await clearXamanSession();
-    //         }
-    //         // Then disconnect at the database level
-    //         await disconnectWallet(auth0Id, accessToken);
-    //         showToast('success', 'Wallet disconnected');
-    //         await loadWallets();
-    //     } catch (error) {
-    //         const err = error instanceof Error ? error : new Error(String(error));
-    //         console.error('Failed to disconnect wallet:', err);
-    //         showToast('error', `Failed to disconnect: ${err.message}`);
-    //     } finally {
-    //         setIsLoading(false);
-    //     }
-    // };
-
-    const handleConnectExisting = async (walletId: number) => {
-        try {
-            clearWalletToasts();
-            setIsLoading(true);
-
-            const wallet = wallets.find((currentWallet) => currentWallet.id === walletId);
-            if (!wallet) {
-                showToast('error', 'Wallet not found');
-                return;
-            }
-
-            if (wallet.wallet_type === 'xaman') {
-                await handleConnectXaman(wallet.id);
-                return;
-            }
-
-            if (wallet.wallet_type === 'joey') {
-                await handleConnectJoey(wallet.id);
-                return;
-            }
-
-            if (wallet.wallet_type === 'walletconnect') {
-                if (!walletConnectProjectId) {
-                    showToast('error', 'WalletConnect is not configured. Set VITE_WALLETCONNECT_PROJECT_ID and restart the app.');
-                    return;
-                }
-
-                await open({ view: 'Connect' });
-                setPendingWalletConnectId(wallet.id);
-                setIsWalletConnectPending(true);
-                return;
-            }
-
-            await connectWallet(auth0Id, walletId, accessToken);
-            await loadWallets();
-            showToast('success', 'Wallet connected');
-        } catch (error) {
-            const err = error instanceof Error ? error : new Error(String(error));
-            console.error('Failed to connect existing wallet:', err);
-            showToast('error', `Failed to connect wallet: ${err.message}`);
-        } finally {
-            setIsLoading(false);
-        }
+        clearWalletToasts();
+        await xamanHandler.connect({ ...xamanHandlerArgs, walletIdToConnect });
     };
 
     const handleDelete = async (walletId: number) => {
@@ -758,9 +398,9 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                 if (walletToDelete.wallet_type === 'walletconnect') {
                     await wagmiDisconnectAsync();
                 } else if (walletToDelete?.wallet_type === 'joey') {
-                    await joeyActions.disconnect();
+                    // Joey Wallet disconnect is now handled by joeyHandler
                 } else if (walletToDelete.wallet_type === 'xaman') {
-                    await clearXamanSession();
+
                 }
                 // Then disconnect at the database level
                 await disconnectWallet(auth0Id, accessToken);
@@ -1006,41 +646,36 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                 onConfirm={handleConfirmDelete}
             />
 
-            {showAddWalletModal && typeof document !== 'undefined' && createPortal(
-                <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/75 p-4 sm:p-6">
+            {/* Xaman2 Modal */}
+            {showXaman2QrModal && xaman2ConnectUri && typeof document !== 'undefined' && createPortal(
+                <div className="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-black/80 p-4 sm:p-6">
                     <div className="w-full max-w-sm rounded-xl bg-neutral-900 p-6 shadow-xl border border-white/10">
-                        <h3 className="text-white text-lg font-semibold mb-2">Add New Wallet</h3>
-                        <p className="text-sm text-white/70 mb-4">Select the wallet type you want to add.</p>
-                        <div className="grid grid-cols-1 gap-3">
-                            <Button
-                                onClick={() => void handleSelectWalletType('walletconnect')}
-                                disabled={isLoading}
-                                className="w-full bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800"
-                            >
-                                WalletConnect
-                            </Button>
-                            <Button
-                                onClick={() => {
-                                    setShowAddWalletModal(false);
-                                    void handleConnectJoey();
-                                }}
-                                disabled={isLoading}
-                                className="w-full bg-teal-600 hover:bg-teal-700 active:bg-teal-800"
-                            >
-                                Joey Wallet
-                            </Button>
-                            <Button
-                                onClick={() => void handleSelectWalletType('xaman')}
-                                disabled={isLoading}
-                                className="w-full bg-purple-600 hover:bg-purple-700 active:bg-purple-800"
-                            >
-                                Xaman (XUMM)
-                            </Button>
+                        <h3 className="text-white text-lg font-semibold mb-2">Scan With Xaman Wallet</h3>
+                        <p className="text-sm text-white/70 mb-4">
+                            Open Xaman Wallet on your phone and scan this QR code to continue.
+                        </p>
+
+                        <div className="mx-auto mb-4 w-fit rounded-lg bg-white p-3">
+                            <img
+                                src={`https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodeURIComponent(xaman2ConnectUri)}`}
+                                alt="Xaman Wallet connection QR code"
+                                className="h-56 w-56"
+                            />
                         </div>
-                        <div className="flex justify-end mt-4">
+
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                            {xaman2DeepLink ? (
+                                <a
+                                    href={xaman2DeepLink}
+                                    className="inline-flex items-center justify-center rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700"
+                                >
+                                    Open Xaman App
+                                </a>
+                            ) : (
+                                <div />
+                            )}
                             <Button
-                                onClick={() => setShowAddWalletModal(false)}
-                                disabled={isLoading}
+                                onClick={() => void handleCancelXaman2Qr()}
                                 className="bg-gray-600 hover:bg-gray-700 active:bg-gray-800 text-sm"
                             >
                                 Cancel
@@ -1048,6 +683,55 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                         </div>
                     </div>
                 </div>,
+                document.body
+            )}
+
+            {showAddWalletModal && typeof document !== 'undefined' && createPortal(
+                (() => {
+                    // Determine which wallet types the user already has
+                    const walletTypes = wallets.map(w => w.wallet_type);
+                    const offeredWallets = [
+                        { type: 'walletconnect', label: 'WalletConnect', color: 'bg-[#0988F0] hover:bg-[#0666b3] active:bg-[#054a7a]', onClick: () => void handleSelectWalletType('walletconnect') },
+                        { type: 'joey', label: 'Joey Wallet', color: 'bg-[#F76807] hover:bg-[#c94e06] active:bg-[#a13d04]', onClick: () => { setShowAddWalletModal(false); void handleConnectJoey(); } },
+                        { type: 'xaman', label: 'Xaman (XUMM)', color: 'bg-[#0030CF] hover:bg-[#002399] active:bg-[#001966]', onClick: () => void handleSelectWalletType('xaman') },
+                        { type: 'xaman2', label: 'Xaman2 (Modal)', color: 'bg-[#0030CF] hover:bg-[#002399] active:bg-[#001966]', onClick: () => { setShowAddWalletModal(false); void handleConnectXaman2(); } },
+                    ];
+                    // Only show wallet types not already added
+                    const availableWallets = offeredWallets.filter(w => !walletTypes.includes(w.type));
+                    return (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/75 p-4 sm:p-6">
+                            <div className="w-full max-w-sm rounded-xl bg-neutral-900 p-6 shadow-xl border border-white/10">
+                                <h3 className="text-white text-lg font-semibold mb-2">Add New Wallet</h3>
+                                <p className="text-sm text-white/70 mb-4">Select the wallet type you want to add.</p>
+                                <div className="grid grid-cols-1 gap-3">
+                                    {availableWallets.length === 0 ? (
+                                        <div className="text-white/70 text-center py-4">All wallet types have been added.</div>
+                                    ) : (
+                                        availableWallets.map(w => (
+                                            <Button
+                                                key={w.type}
+                                                onClick={w.onClick}
+                                                disabled={isLoading}
+                                                className={`w-full ${w.color}`}
+                                            >
+                                                {w.label}
+                                            </Button>
+                                        ))
+                                    )}
+                                </div>
+                                <div className="flex justify-end mt-4">
+                                    <Button
+                                        onClick={() => setShowAddWalletModal(false)}
+                                        disabled={isLoading}
+                                        className="bg-gray-600 hover:bg-gray-700 active:bg-gray-800 text-sm"
+                                    >
+                                        Cancel
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })(),
                 document.body
             )}
 
@@ -1167,29 +851,13 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
 }
 
 export function WalletConnection({ auth0Id, accessToken, onWalletsUpdated }: WalletConnectionProps) {
+
+    // Joey Wallet provider config
     const joeyProjectId = (import.meta.env.VITE_JOEY_PROJECT_ID || walletConnectProjectId || '717dec7dead15d3a101d504ed3933709').trim();
     const appUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173';
-    const [isJoeyProviderReady, setIsJoeyProviderReady] = useState(!import.meta.env.DEV);
-
-    useEffect(() => {
-        if (!import.meta.env.DEV) {
-            return;
-        }
-
-        // In React StrictMode (dev only), mount/unmount cycles happen twice.
-        // Delay provider mount by one macrotask so Joey Core initializes only on the stable mount.
-        const timer = window.setTimeout(() => {
-            setIsJoeyProviderReady(true);
-        }, 0);
-
-        return () => {
-            window.clearTimeout(timer);
-        };
-    }, []);
-
     const joeyProviderConfig = useMemo(() => ({
         projectId: joeyProjectId,
-        defaultChain: defaultJoeyChain,
+        defaultChain: 'xrpl:0',
         metadata: {
             name: 'Donovan',
             description: 'Donovan Joey wallet connection',
@@ -1200,10 +868,6 @@ export function WalletConnection({ auth0Id, accessToken, onWalletsUpdated }: Wal
             },
         },
     }), [appUrl, joeyProjectId]);
-
-    if (!isJoeyProviderReady) {
-        return null;
-    }
 
     return (
         <joeyStandalone.provider.Provider config={joeyProviderConfig}>

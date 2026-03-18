@@ -1,20 +1,13 @@
-// import { IWalletHandler } from './IWalletHandler';
-
-// export const joeyHandler: IWalletHandler = {
-//   async connect() {
-//     // TODO: Implement Joey connect logic
-//     // Example: await joeyActions.connect(...)
-//     // await connectWallet(auth0Id, walletId, accessToken);
-//     // await loadWallets();
-//     // showToast('success', 'Joey wallet connected');
-//   },
-//   async disconnect() {
-//     // TODO: Implement Joey disconnect logic
-//     // Example: await joeyActions.disconnect(...)
-//     // await loadWallets();
-//     // showToast('success', 'Joey wallet disconnected');
-//   },
-//   async repair() {
-//     // TODO: Implement Joey repair logic if needed
-//   }
-// };
+import type { IWalletHandler } from './IWalletHandler';
+import { disconnectWallet } from '../services/walletService';
+// Joey Wallet handler implementation
+export const joeyHandler: IWalletHandler = {
+  // No connect method: all hook-using logic must be in the component
+  async disconnect({ auth0Id, accessToken }: { auth0Id: string; accessToken?: string }) {
+    // Implement Joey disconnect logic if needed
+    await disconnectWallet(auth0Id, accessToken);
+  },
+	async repair() {
+		// Implement Joey repair logic if needed
+	},
+};
