@@ -16,9 +16,7 @@ export function useXaman2WalletConnect({ showToast }: { showToast: (type: 'succe
             const xumm = new Xumm(apiKey);
             // Create a sign-in payload (minimal tx for login)
             const payload = {
-                txjson: {
-                    TransactionType: 'SignIn',
-                },
+                TransactionType: 'SignIn' as const,
             };
             const result = await xumm.payload?.create(payload);
             if (!result) throw new Error('Failed to create Xaman payload');

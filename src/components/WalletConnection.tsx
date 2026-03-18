@@ -105,7 +105,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
 
     // Xaman2 Wallet: use custom hook for modal-based connection
     const {
-        isXaman2ConnectPending,
+        // isXaman2ConnectPending, // unused
         showXaman2QrModal,
         xaman2ConnectUri,
         xaman2DeepLink,
