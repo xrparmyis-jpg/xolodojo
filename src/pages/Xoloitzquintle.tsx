@@ -1,5 +1,6 @@
 import GsapHeroParallax from "../components/GsapHeroParallax";
 import GsapPageHeading from "../components/GsapPageHeading";
+import GsapPageSubHeading from "../components/GsapPageSubHeading";
 import SectionParallaxBlobs from "../components/SectionParallaxBlobs";
 import { useSectionParallaxOffsets } from "../hooks/useSectionParallaxOffsets";
 
@@ -23,7 +24,7 @@ function Xoloitzquintle() {
                     <div className="max-w-4xl mx-auto [&_p]:text-[#decee9] [&_ul]:text-[#decee9] [&_li]:text-[#decee9] [&_li>span]:text-[#decee9]">
                         <GsapPageHeading
                             eyebrow="The Xoloitzquintle Collection"
-                            heading="A Mythic Journey of the Xolo:"
+                            heading="A Sacred Legacy of"
                             accent="Gods, Guardians, & Eternal Bonds"
                             iconType="star"
                             iconCount={1}
@@ -39,6 +40,7 @@ function Xoloitzquintle() {
                             </div>
                         </div>
                         <div className="space-y-6">
+                            <GsapPageSubHeading heading="Journey of the Xolo" />
                             <p className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.6s_forwards]">
                                 Picture this: the Aztec cosmos is basically a chaotic family reunion that never ends. At the center? The ultimate twin duo—Quetzalcoatl, the chill, feathered-serpent genius of wind, wisdom, creation, and "let's make everything better," and his rowdy, dog-headed brother Xolotl, the lightning-fast trickster god of fire, transformation, deformities, and "hold my conch shell while I pull off the impossible."
                             </p>

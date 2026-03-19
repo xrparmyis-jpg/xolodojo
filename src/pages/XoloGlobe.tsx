@@ -14,9 +14,9 @@ function XoloGlobe() {
             >
                 <div className="container mx-auto mb-8 px-4 sm:px-6 lg:px-8">
                     <GsapPageHeading
-                        eyebrow="The Xoloitzquintle Collection"
+                        eyebrow="The Xoloitzquintle's Global Stage"
                         heading="A Sacred Legacy of"
-                        accent="Art, Culture, & XRPL"
+                        accent="Discovery, Adventure, & Shared Experiences"
                         iconType="star"
                         iconCount={1}
                         centered
@@ -60,68 +60,59 @@ function XoloGlobe() {
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:items-start">
-                            <div>
-                                <div className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.6s_forwards] mt-4">
-                                    <h3 className="text-lg md:text-xl font-semibold text-[#891387] mb-3">
-                                        How It Works
-                                    </h3>
+                        <div>
+                            <div className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.6s_forwards] mt-4">
+                                <h3 className="text-lg md:text-xl font-semibold text-[#891387] mb-3">
+                                    How It Works
+                                </h3>
 
-                                    <ul className="list-items">
-                                        <li>
-                                            <span><strong className="text-[#f7eab7]">Connect Your Wallet</strong> — Click "Connect Wallet," select your XRPL wallet (Xaman Wallet, Xoge's MadLabs, etc.), and sign. We verify your Xolo NFT ownership instantly on the XRP Ledger.</span>
-                                        </li>
-                                        <li>
-                                            <span><strong className="text-[#f7eab7]">Pin Your Location</strong> — Drop your pin anywhere meaningful — your home base, current travels, or a dream destination you're open to sharing.</span>
-                                        </li>
-                                        <li>
-                                            <span><strong className="text-[#f7eab7]">Showcase Your Xolo</strong> — Choose which Xolo NFT to feature. Your pin displays its artwork, letting your personality shine through to the community.</span>
-                                        </li>
-                                        <li>
-                                            <span><strong className="text-[#f7eab7]">Discover & Connect</strong> — Explore pins worldwide. Click any to view their Xolo, profile, and current offerings. Reach out directly to:</span>
-                                        </li>
-                                    </ul>
-                                </div>
-                                <div className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.8s_forwards] mt-4">
-                                    <h4 className="text-lg md:text-xl font-semibold text-[#891387] mb-3">
-                                        Why the Xolo Globe Matters
-                                    </h4>
-                                    <ul className="list-items">
-                                        <li>
-                                            <span>Keeps our community genuine and safe through token-gating</span>
-                                        </li>
-                                        <li>
-                                            <span>Lets your Xolo NFT become a beacon for real-world connection</span>
-                                        </li>
-                                        <li>
-                                            <span>Turns strangers into allies, travelers into locals, and shared pins into shared experiences</span>
-                                        </li>
-                                        <li>
-                                            <span>Grows the living XoloGlobe — one pin, one message, one new friendship at a time</span>
-                                        </li>
-                                    </ul>
-                                </div>
-
-                                <div className="opacity-0 animate-[fadeInUp_0.6s_ease-out_1.0s_forwards] mt-4">
-                                    <h4 className="text-lg md:text-xl font-semibold text-[#891387] mb-3">A platform for more than one tribe</h4>
-                                    <p className="text-white/90">
-                                        Over time, the XoloGlobe will open its doors to
-                                        other verified, values-aligned NFT communities who
-                                        share our vision of trust-based human connection.
-                                    </p>
-                                    <p className="text-white/90 mt-4">
-                                        Just as our Mission states: we're cultivating a
-                                        global dojo where shared experiences weave a
-                                        stronger, more connected world. Connect your wallet and join the XoloGlobe today!
-                                    </p>
-                                </div>
+                                <ul className="list-items">
+                                    <li>
+                                        <span><strong className="text-[#28aae4]">Connect Your Wallet</strong> — Click "Connect Wallet," select your XRPL wallet (Xaman Wallet, Joey Wallet, etc.), and sign. We verify your Xolo NFT ownership instantly on the XRP Ledger.</span>
+                                    </li>
+                                    <li>
+                                        <span><strong className="text-[#28aae4]">Pin Your Location</strong> — Drop your pin anywhere meaningful — your home base, current travels, or a dream destination you're open to sharing.</span>
+                                    </li>
+                                    <li>
+                                        <span><strong className="text-[#28aae4]">Showcase Your Xolo</strong> — Choose which Xolo NFT to feature. Your pin displays its artwork, letting your personality shine through to the community.</span>
+                                    </li>
+                                    <li>
+                                        <span><strong className="text-[#28aae4]">Discover & Connect</strong> — Explore pins worldwide. Click on a pinned Xolo to view their profile.  Reach out directly as needed, a brief chat, a meetup, a local product exchange, or a collaborative opportunity.</span>
+                                    </li>
+                                </ul>
                             </div>
-                            <div className="flex justify-center opacity-0 animate-[fadeInUp_0.6s_ease-out_0.5s_forwards] lg:justify-end">
-                                <img
-                                    src="/01a.png"
-                                    alt="Xolo Globe Map"
-                                    className="w-full max-w-md"
-                                />
+                            <div className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.8s_forwards] mt-4">
+                                <h4 className="text-lg md:text-xl font-semibold text-[#891387] mb-3">
+                                    Why the Xolo Globe Matters
+                                </h4>
+                                <ul className="list-items">
+                                    <li>
+                                        <span>Keeps our community genuine and safe through token-gating</span>
+                                    </li>
+                                    <li>
+                                        <span>Lets your Xolo NFT become a beacon for real-world connection</span>
+                                    </li>
+                                    <li>
+                                        <span>Turns strangers into allies, travelers into locals, and shared pins into shared experiences</span>
+                                    </li>
+                                    <li>
+                                        <span>Grows the living XoloGlobe — one pin, one message, one new friendship at a time</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div className="opacity-0 animate-[fadeInUp_0.6s_ease-out_1.0s_forwards] mt-4">
+                                <h4 className="text-lg md:text-xl font-semibold text-[#891387] mb-3">A platform for more than one community</h4>
+                                <p className="text-white/90">
+                                    Over time, the XoloGlobe will open its doors to
+                                    other verified, values-aligned NFT communities who
+                                    share our vision of trust-based human connection.
+                                </p>
+                                <p className="text-white/90 mt-4">
+                                    Just as our Mission states: we're cultivating a
+                                    global dojo where shared experiences weave a
+                                    stronger, more connected world. Connect your wallet and join the XoloGlobe today!
+                                </p>
                             </div>
                         </div>
                     </div>

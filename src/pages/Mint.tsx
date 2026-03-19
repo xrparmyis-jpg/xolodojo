@@ -26,9 +26,9 @@ function Mint() {
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="max-w-4xl mx-auto [&_p]:text-[#decee9] [&_ul]:text-[#decee9] [&_li]:text-[#decee9] [&_li>span]:text-[#decee9]">
                         <GsapPageHeading
-                            eyebrow="The Xoloitzquintle Collection"
-                            heading="The Xoloitzquintle Mint"
-                            accent="Art, Culture, & XRPL"
+                            eyebrow="The Xoloitzquintle Mint"
+                            heading="A Sacred Legacy of"
+                            accent="Community, Support, & Degeneracy"
                             iconType="star"
                             iconCount={1}
                             centered
@@ -44,7 +44,7 @@ function Mint() {
                             Prepare now to own your loyal Xolo guardian and unlock the XoloGlobe: a token-gated world map for holders to connect, share locations, plan travel or good swaps, and build community IRL.
                         </GsapPageContent>
                         <GsapPageContent as="p" className="mb-4" delay={0.1}>
-                            One Mint, One NFT, One Pin at a time
+                            One Mint, One Pin, One Friendship at a time
                         </GsapPageContent>
                         <div className="container mx-auto max-w-7xl px-4">                            <div className="flex flex-col items-center text-center">
                             <GsapHeroParallax
@@ -54,17 +54,16 @@ function Mint() {
                             />
                         </div>
                         </div>
-                        <GsapPageSubHeading heading="Prepare to Mint – 4 Simple Steps" />
+                        <GsapPageSubHeading heading="Prepare to Mint – 3 Simple Steps" />
                         <GsapPageContent>
                             <ul className="list-items">
                                 <li>
                                     <span>
-                                        <strong className="text-[#f7eab7]">Set Up Your XRPL Wallet</strong>
-                                        Download a trusted, XRPL-compatible wallet:
+                                        <strong className="text-[#28aae4]">Set Up Your XRPL Wallet</strong>
                                     </span>
                                     <ul className="list-items mt-2 ml-4">
                                         <li>
-                                            Create or use an existing wallet.  Xaman and Joey wallet are user-friendly options for beginners, offering seamless XRPL integration and secure key management.
+                                            Create or use an existing XRPL wallet.  Xaman and Joey wallet are user-friendly options for beginners, offering seamless XRPL integration and secure key management.
                                         </li>
                                         <li>
                                             Back up your seed phrase securely — never share it.
@@ -73,56 +72,39 @@ function Mint() {
                                 </li>
                                 <li>
                                     <span>
-                                        <strong className="text-[#f7eab7]">Fund with XRP (Minimum 20+ Recommended)</strong>
+                                        <strong className="text-[#28aae4]">Fund with XRP</strong>
                                     </span>
                                     <p className="mt-2">
-                                        The XRP Ledger requires a base reserve of 1 XRP to interact with it, with nominal fees for transactions and minting. To ensure a smooth minting experience, we recommend having at least 20 XRP in your wallet. This allows for wallet activation, transaction costs, and mint fees without needing to worry about running out of funds during the process.
+                                        The XRP Ledger requires a base reserve of 1 XRP to interact with it, with nominal fees for transactions and minting. To ensure a smooth minting experience, we recommend having 20 XRP in your wallet. This allows for wallet activation, transaction costs, and mint fees.
                                     </p>
                                     <ul className="list-items mt-2 ml-4">
                                         <li>
-                                            Wallet activation/reserve
+                                            Buy XRP on exchanges like Uphold, Crypto.com, Coinbase, or via the XRPL DEX.                                        </li>
+                                        <li>
+                                            Wallet activation/XRPL reserve
                                         </li>
                                         <li>
-                                            Transaction costs
-                                        </li>
-                                        <li>
-                                            Mint fees (typically very low on XRPL)
-                                            Buy XRP on exchanges like Uphold, Bitrue, or via the XRPL DEX.
+                                            Transaction costs/Mint fees
                                         </li>
                                     </ul>
                                 </li>
+
                                 <li>
                                     <span>
-                                        <strong className="text-[#f7eab7]">Connect to xrp.cafe</strong>
+                                        <strong className="text-[#28aae4]">Mint Your XOLO</strong>
                                     </span>
                                     <ul className="list-items mt-2 ml-4">
                                         <li>
-                                            Go to <a href="https://xrp.cafe" target="_blank" rel="noopener noreferrer" className="text-[#b7e9f7] hover:text-white transition-all duration-300 ease-in-out no-underline hover:no-underline">XRP Cafe</a>
+                                            On launch: Navigate right back here to The XoloDojo Mint page. Click on the Mint button below to be directed to the mint in the xrp.cafe.
                                         </li>
                                         <li>
-                                            Click "Connect Wallet" → Choose your XRPL wallet → Sign the secure request.
+                                            In the xrp.cafe, connect your wallet, click the mint button, select your mint quantity, and confirm the transaction in your wallet. Your unique XoloNFT will arrive in seconds.
                                         </li>
                                         <li>
-                                            Once connected, you'll see the official Xoloitzquintle collection when it drops.
-                                        </li>
-                                    </ul>
-                                </li>
-                                <li>
-                                    <span>
-                                        <strong className="text-[#f7eab7]">Mint Your Xolo When Live</strong>
-                                    </span>
-                                    <ul className="list-items mt-2 ml-4">
-                                        <li>
-                                            On launch: Navigate to the Xoloitzquintle collection page.
+                                            Once Minted and viewable in your wallet, you're ready to pin on the XGlobe, where you can manage your collection, view your traits, and share your Xolo  profile!
                                         </li>
                                         <li>
-                                            Select your mint quantity (if allowed), confirm the transaction.
-                                        </li>
-                                        <li>
-                                            Your unique NFT arrives in seconds on the ledger.
-                                        </li>
-                                        <li>
-                                            Then verify ownership on xolodojo.io to access XoloGlobe perks!
+                                            Need help? Visit our FAQ or join our community on Discord for support.
                                         </li>
                                     </ul>
                                 </li>

@@ -11,6 +11,7 @@ import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import GsapPageHeading from "../components/GsapPageHeading";
 import GsapSocialLinks from "../components/GsapSocialLinks";
 import { getSocialProfileUrl } from "../common/getSocialProfileUrl";
+import GsapPageSubHeading from "../components/GsapPageSubHeading";
 
 interface Owner {
     id: number;
@@ -200,9 +201,11 @@ function Team() {
 
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="max-w-4xl mx-auto">
+                        <GsapPageSubHeading heading="Meet the XoloDojo Team" />
+
                         <div className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.3s_forwards] mb-8">
                             <p className="mb-4 text-center">
-                                United by culture, art, and crypto, we're forging XoloDojo and XoloGlobe: a token-gated global tribe for trust, travel, skill-sharing, and real-world adventures.
+                                United by culture, art, and crypto, we're forging XoloDojo and XoloGlobe: a token-gated global tribe for trust, travel, skill-sharing, and real-world adventures. Together, we're not just minting NFTs — we're building a network of passionate individuals ready to connect, collaborate, and build the future.
                             </p>
                         </div>
 
@@ -231,7 +234,7 @@ function Team() {
                             <h3 className="text-2xl text-center md:text-left md:text-3xl font-bold text-[#28aae4]">
                                 RedShadow
                             </h3>
-                            <h4 className="text-lg text-center md:text-left md:text-xl font-semibold text-[#891387] mb-4">
+                            <h4 className="text-lg text-center md:text-left md:text-xl font-semibold text-[#642ff8] mb-4">
                                 Visionary Artist & Cultural Alchemist
                             </h4>
                             <div>
@@ -251,7 +254,7 @@ function Team() {
                             <h3 className="text-2xl text-center md:text-left md:text-3xl font-bold text-[#28aae4]">
                                 Code
                             </h3>
-                            <h4 className="text-lg text-center md:text-left md:text-xl font-semibold text-[#a32ca1] mb-4">
+                            <h4 className="text-lg text-center md:text-left md:text-xl font-semibold text-[#642ff8] mb-4">
                                 Lead Builder & Degen Architect
                             </h4>
                             <div>
@@ -260,12 +263,6 @@ function Team() {
                                     Code is a battle-hardened degen from the golden Clubhouse days on Ethereum, a seasoned crypto trader with razor-sharp market instincts and hands-on building experience. Fluid in React.js and battle-tested in high-stakes web development, he's shipped name-brand websites (under NDA) for top players in the space. Now building with the Xolo pack on XRPL, Code delivers the technical backbone for XoloDojo and XoloGlobe — turning visionary ideas into seamless, secure, token-gated experiences. From smart community tools to immersive interfaces, he ensures the dojo runs smoothly, the globe connects flawlessly, and the pack thrives in Web3. Degen roots. Builder soul. Xolo loyalty.
                                 </p>
                             </div>
-                        </div>
-
-                        <div className="opacity-0 animate-[fadeInUp_0.6s_ease-out_1.1s_forwards] mt-8 clear-both">
-                            <p className="mb-4 text-center">
-                                Together, we're not just minting NFTs — we're building a network of passionate individuals ready to connect, collaborate, and build the future.
-                            </p>
                         </div>
                     </div>
                 </div>

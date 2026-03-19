@@ -10,7 +10,7 @@ const counterData = [
     },
     {
         icon: '/01.svg',
-        end: 7,
+        end: 11,
         label: 'Distinct Traits',
         delay: 0.5,
     },
