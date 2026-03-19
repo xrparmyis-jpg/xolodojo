@@ -297,25 +297,32 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
         if (!showJoeyQrModal && (joeyAccount || joeySession)) {
             // Extract address from account or session.namespaces
             let joeyAddress: string | null = null;
-            if (joeyAccount && typeof joeyAccount.address === 'string') {
-                joeyAddress = joeyAccount.address;
+
+            // joeyAccount from the hook is already a string address (if present)
+            if (typeof joeyAccount === 'string' && joeyAccount.trim().length > 0) {
+                joeyAddress = joeyAccount.trim();
             }
-            if (!joeyAddress && joeySession && typeof joeySession === 'object' && joeySession.namespaces) {
-                // Always log namespaces structure if present
-                // eslint-disable-next-line no-console
-                console.log('[JoeyWallet][Effect] joeySession.namespaces:', joeySession.namespaces);
-                // Try to find the first account in any namespace
-                const namespaces = joeySession.namespaces;
-                for (const nsKey of Object.keys(namespaces)) {
-                    const ns = namespaces[nsKey];
-                    if (Array.isArray(ns.accounts) && ns.accounts.length > 0) {
-                        // WalletConnect accounts are in format 'chain:address', e.g. 'xrpl:0:rw...'
-                        const accountString = ns.accounts[0];
-                        // eslint-disable-next-line no-console
-                        console.log('[JoeyWallet][Effect] Found account string:', accountString);
-                        const parts = accountString.split(':');
-                        joeyAddress = parts[parts.length - 1];
-                        break;
+
+            // Fallback: inspect WalletConnect-style namespaces from the Joey session object
+            if (!joeyAddress && joeySession && typeof joeySession === 'object') {
+                const sessionAny = joeySession as any;
+                if (sessionAny.namespaces) {
+                    // Always log namespaces structure if present
+                    // eslint-disable-next-line no-console
+                    console.log('[JoeyWallet][Effect] joeySession.namespaces:', sessionAny.namespaces);
+                    // Try to find the first account in any namespace
+                    const namespaces = sessionAny.namespaces as Record<string, { accounts?: string[] }>;
+                    for (const nsKey of Object.keys(namespaces)) {
+                        const ns = namespaces[nsKey];
+                        if (Array.isArray(ns.accounts) && ns.accounts.length > 0) {
+                            // WalletConnect accounts are in format 'chain:address', e.g. 'xrpl:0:rw...'
+                            const accountString = ns.accounts[0];
+                            // eslint-disable-next-line no-console
+                            console.log('[JoeyWallet][Effect] Found account string:', accountString);
+                            const parts = accountString.split(':');
+                            joeyAddress = parts[parts.length - 1];
+                            break;
+                        }
                     }
                 }
             }
