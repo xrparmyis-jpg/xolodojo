@@ -101,8 +101,14 @@ export const xamanHandler: IWalletHandler = {
 				return;
 			}
 			const client = getXamanClient();
-			const flow = await client.authorize();
-			const resolvedXrplAddress = flow?.me?.account;
+			// First try to read existing PKCE state (important for mobile redirects)
+			let flow = await client.state();
+			let resolvedXrplAddress = flow?.me?.account as string | undefined;
+			// If no active account in state, start a new authorize() flow (desktop or first-time mobile)
+			if (!resolvedXrplAddress) {
+				flow = await client.authorize();
+				resolvedXrplAddress = flow?.me?.account as string | undefined;
+			}
 			if (!resolvedXrplAddress) {
 				setShowToast?.('error', 'No XRPL account returned from Xaman sign-in.');
 				return;
