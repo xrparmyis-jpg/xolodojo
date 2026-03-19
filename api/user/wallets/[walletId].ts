@@ -3,6 +3,16 @@ import mysql from 'mysql2/promise';
 
 let pool: mysql.Pool | null = null;
 
+function getDbDebugInfo() {
+  return {
+    host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT || '3308'),
+    database: process.env.DB_NAME || 'donovan_db',
+    nodeEnv: process.env.NODE_ENV || 'development',
+    vercelEnv: process.env.VERCEL_ENV || 'local',
+  };
+}
+
 function getPool(): mysql.Pool {
   if (!pool) {
     pool = mysql.createPool({
@@ -175,7 +185,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         message: 'Wallet connected',
       });
     } catch (error: any) {
-      console.error('Error connecting wallet:', error);
+      console.error('Error connecting wallet:', {
+        message: error?.message,
+        code: error?.code,
+        errno: error?.errno,
+        sqlState: error?.sqlState,
+        sqlMessage: error?.sqlMessage,
+        address: error?.address,
+        port: error?.port,
+        db: getDbDebugInfo(),
+      });
       return res
         .status(500)
         .json({ error: 'Internal server error', details: error.message });
@@ -251,7 +270,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         message: 'Wallet updated successfully',
       });
     } catch (error: any) {
-      console.error('Error updating wallet:', error);
+      console.error('Error updating wallet:', {
+        message: error?.message,
+        code: error?.code,
+        errno: error?.errno,
+        sqlState: error?.sqlState,
+        sqlMessage: error?.sqlMessage,
+        address: error?.address,
+        port: error?.port,
+        db: getDbDebugInfo(),
+      });
       return res
         .status(500)
         .json({ error: 'Internal server error', details: error.message });
@@ -322,7 +350,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         message: 'Wallet deleted successfully',
       });
     } catch (error: any) {
-      console.error('Error deleting wallet:', error);
+      console.error('Error deleting wallet:', {
+        message: error?.message,
+        code: error?.code,
+        errno: error?.errno,
+        sqlState: error?.sqlState,
+        sqlMessage: error?.sqlMessage,
+        address: error?.address,
+        port: error?.port,
+        db: getDbDebugInfo(),
+      });
       return res
         .status(500)
         .json({ error: 'Internal server error', details: error.message });
