@@ -213,7 +213,8 @@ async function upsertPreferences(
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET' && req.method !== 'POST' && req.method !== 'DELETE') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
   }
 
   try {
@@ -234,7 +235,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       : undefined;
 
     if (!auth0Id) {
-      return res.status(400).json({ error: 'Missing auth0_id' });
+      res.status(400).json({ error: 'Missing auth0_id' });
+      return;
     }
 
     const { userId, preferences } = await getUserAndPreferences(auth0Id);
@@ -242,9 +244,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const scopedPinnedNfts = filterPinnedByWallet(pinnedNfts, walletAddress);
 
     if (req.method === 'GET') {
-      return res
-        .status(200)
-        .json({ success: true, pinned_nfts: scopedPinnedNfts });
+      res.status(200).json({ success: true, pinned_nfts: scopedPinnedNfts });
+      return;
     }
 
     if (req.method === 'POST') {
@@ -265,7 +266,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const tokenId = nft?.token_id?.trim();
       if (!tokenId) {
-        return res.status(400).json({ error: 'Missing nft.token_id' });
+        res.status(400).json({ error: 'Missing nft.token_id' });
+        return;
       }
 
       const pinWalletAddress =
@@ -274,9 +276,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           : walletAddress;
 
       if (!pinWalletAddress) {
-        return res
-          .status(400)
-          .json({ error: 'Missing wallet_address for pin operation' });
+        res.status(400).json({ error: 'Missing wallet_address for pin operation' });
+        return;
       }
 
       const existing = pinnedNfts.find(
@@ -290,11 +291,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const socials = parsePinnedNftSocials(nft?.socials);
 
       if (latitude == null || longitude == null) {
-        return res.status(400).json({ error: 'Missing valid nft.latitude or nft.longitude' });
+        res.status(400).json({ error: 'Missing valid nft.latitude or nft.longitude' });
+        return;
       }
 
       if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
-        return res.status(400).json({ error: 'Invalid nft latitude/longitude range' });
+        res.status(400).json({ error: 'Invalid nft latitude/longitude range' });
+        return;
       }
 
       const nextPinnedNfts = existing

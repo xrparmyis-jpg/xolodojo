@@ -193,15 +193,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return new Date(right.pinned_at).getTime() - new Date(left.pinned_at).getTime();
     });
 
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       pins: uniquePins,
     });
+    return;
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error));
     console.error('Error loading XoloGlobe pins:', err);
-    return res
-      .status(500)
-      .json({ error: 'Internal server error', details: err.message });
+    res.status(500).json({ error: 'Internal server error', details: err.message });
+    return;
   }
 }

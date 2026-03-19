@@ -10,6 +10,7 @@ import {
     faArrowsRotate,
     faCopy,
     faLink,
+    faLinkSlash,
     faSpinner,
     faThumbtack,
     faXmark,
@@ -40,12 +41,15 @@ interface WalletConnectionProps {
     auth0Id: string;
     accessToken?: string;
     onWalletsUpdated?: (wallets: Wallet[]) => void;
+    // When true (e.g. after Xaman redirect on mobile), auto-attempt a Xaman connect once on mount
+    resumeXamanOnMount?: boolean;
 }
 
 
 
-function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: WalletConnectionProps) {
+function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resumeXamanOnMount }: WalletConnectionProps) {
     const { showToast, clearToasts } = useToast();
+
     const handleConnectExisting = async (walletId: number) => {
         try {
             clearWalletToasts();
@@ -64,6 +68,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
 
             if (wallet.wallet_type === 'joey') {
                 await handleConnectJoey();
+                // The effect above will handle DB add/connect after session
                 return;
             }
 
@@ -101,7 +106,13 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
         joeyDeepLink,
         connect: handleConnectJoey,
         cancel: handleCancelJoeyQr,
+        account: joeyAccount,
+        session: joeySession,
     } = useJoeyWalletConnect({ showToast });
+
+    // Debug: Log Joey Wallet hook values every render
+    // eslint-disable-next-line no-console
+    console.log('[JoeyWallet][Render] joeyAccount:', joeyAccount, 'joeySession:', joeySession, 'showJoeyQrModal:', showJoeyQrModal);
 
     // Xaman2 Wallet: use custom hook for modal-based connection
     const {
@@ -126,6 +137,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
     const [assetsError, setAssetsError] = useState<string | null>(null);
     const [copiedWalletId, setCopiedWalletId] = useState<number | null>(null);
     const [hasAttemptedXamanSessionRepair, setHasAttemptedXamanSessionRepair] = useState(false);
+    const [hasResumedXamanOnMount, setHasResumedXamanOnMount] = useState(false);
 
     const clearWalletToasts = useCallback(() => {
         clearToasts();
@@ -185,6 +197,34 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
             //setHasAttemptedInitialWalletLoad(true);
         }
     }, [accessToken, auth0Id, onWalletsUpdated, showToast]);
+
+    const handleDisconnectExisting = useCallback(async (walletId: number) => {
+        const wallet = wallets.find((currentWallet) => currentWallet.id === walletId);
+        if (!wallet) {
+            showToast('error', 'Wallet not found');
+            return;
+        }
+
+        try {
+            clearWalletToasts();
+            setIsLoading(true);
+
+            // Disconnect provider/session where applicable
+            if (wallet.wallet_type === 'walletconnect') {
+                await wagmiDisconnectAsync();
+            }
+
+            await tryDisconnectCurrentWallet(wallet);
+            await loadWallets();
+            showToast('success', 'Wallet disconnected');
+        } catch (error) {
+            const err = error instanceof Error ? error : new Error(String(error));
+            console.error('Failed to disconnect wallet:', err);
+            showToast('error', `Failed to disconnect wallet: ${err.message}`);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [wallets, showToast, clearWalletToasts, wagmiDisconnectAsync, tryDisconnectCurrentWallet, loadWallets]);
 
     const getWalletConnectSessionLabel = useCallback(async (): Promise<string | undefined> => {
         if (!wagmiConnector || wagmiConnector.id !== 'walletConnect') {
@@ -249,7 +289,81 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
             return undefined;
         }
     }, [wagmiConnector]);
-
+    // Joey Wallet: Add to DB and connect on session/account
+    useEffect(() => {
+        // Debug: Log effect always, with all values
+        // eslint-disable-next-line no-console
+        console.log('[JoeyWallet][Effect][TOP] showJoeyQrModal:', showJoeyQrModal, 'joeyConnectUri:', joeyConnectUri, 'joeyDeepLink:', joeyDeepLink, 'joeyAccount:', joeyAccount, 'joeySession:', joeySession, 'wallets:', wallets);
+        if (!showJoeyQrModal && (joeyAccount || joeySession)) {
+            // Extract address from account or session.namespaces
+            let joeyAddress: string | null = null;
+            if (joeyAccount && typeof joeyAccount.address === 'string') {
+                joeyAddress = joeyAccount.address;
+            }
+            if (!joeyAddress && joeySession && typeof joeySession === 'object' && joeySession.namespaces) {
+                // Always log namespaces structure if present
+                // eslint-disable-next-line no-console
+                console.log('[JoeyWallet][Effect] joeySession.namespaces:', joeySession.namespaces);
+                // Try to find the first account in any namespace
+                const namespaces = joeySession.namespaces;
+                for (const nsKey of Object.keys(namespaces)) {
+                    const ns = namespaces[nsKey];
+                    if (Array.isArray(ns.accounts) && ns.accounts.length > 0) {
+                        // WalletConnect accounts are in format 'chain:address', e.g. 'xrpl:0:rw...'
+                        const accountString = ns.accounts[0];
+                        // eslint-disable-next-line no-console
+                        console.log('[JoeyWallet][Effect] Found account string:', accountString);
+                        const parts = accountString.split(':');
+                        joeyAddress = parts[parts.length - 1];
+                        break;
+                    }
+                }
+            }
+            // Debug: Log extracted address
+            // eslint-disable-next-line no-console
+            console.log('[JoeyWallet][Effect] Extracted address:', joeyAddress);
+            if (!joeyAddress) {
+                // eslint-disable-next-line no-console
+                console.warn('[JoeyWallet][Effect] No address found, aborting add/connect.');
+                return;
+            }
+            const normalizedAddress = joeyAddress.toLowerCase();
+            const existingWallet = wallets.find(w => w.wallet_address.toLowerCase() === normalizedAddress && w.wallet_type === 'joey');
+            const currentConnectedWallet = wallets.find(w => w.is_connected);
+            (async () => {
+                setIsLoading(true);
+                try {
+                    let walletId: number | undefined;
+                    if (!existingWallet) {
+                        // Add new Joey wallet
+                        // eslint-disable-next-line no-console
+                        console.log('[JoeyWallet][Effect] Adding wallet:', normalizedAddress);
+                        const result = await addWallet(auth0Id, normalizedAddress, 'joey', 'Joey Wallet', accessToken);
+                        // eslint-disable-next-line no-console
+                        console.log('[JoeyWallet][Effect] addWallet result:', result);
+                        if (!result.success || !result.wallet) throw new Error('Failed to add Joey Wallet');
+                        walletId = result.wallet.id;
+                    } else {
+                        walletId = existingWallet.id;
+                    }
+                    if (walletId) {
+                        if (currentConnectedWallet && currentConnectedWallet.id !== walletId) {
+                            await disconnectWallet(auth0Id, accessToken);
+                        }
+                        await connectWallet(auth0Id, walletId, accessToken);
+                        await loadWallets();
+                        showToast('success', 'Joey Wallet added and connected!');
+                    }
+                } catch (err) {
+                    // eslint-disable-next-line no-console
+                    console.error('[JoeyWallet][Effect] Failed to add/connect:', err);
+                    showToast('error', `Failed to add/connect Joey Wallet: ${err instanceof Error ? err.message : String(err)}`);
+                } finally {
+                    setIsLoading(false);
+                }
+            })();
+        }
+    }, [showJoeyQrModal, joeyConnectUri, joeyDeepLink, joeyAccount, joeySession, wallets, auth0Id, accessToken, loadWallets, showToast]);
     // Load wallets on mount
     useEffect(() => {
         void loadWallets();
@@ -381,6 +495,13 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
         clearWalletToasts();
         await xamanHandler.connect({ ...xamanHandlerArgs, walletIdToConnect });
     };
+
+    // When coming back from a Xaman redirect on mobile, optionally resume the Xaman connect flow once.
+    useEffect(() => {
+        if (!resumeXamanOnMount || hasResumedXamanOnMount) return;
+        setHasResumedXamanOnMount(true);
+        void handleConnectXaman();
+    }, [resumeXamanOnMount, hasResumedXamanOnMount, handleConnectXaman]);
 
     const handleDelete = async (walletId: number) => {
         try {
@@ -603,7 +724,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    {!wallet.is_connected && (
+                                    {!wallet.is_connected ? (
                                         <button
                                             type="button"
                                             title="Connect wallet"
@@ -611,6 +732,15 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated }: Wal
                                             onClick={() => handleConnectExisting(wallet.id)}
                                         >
                                             <FontAwesomeIcon icon={faLink} />
+                                        </button>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            title="Disconnect wallet"
+                                            className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full bg-yellow-600 hover:bg-yellow-700 text-white text-lg"
+                                            onClick={() => void handleDisconnectExisting(wallet.id)}
+                                        >
+                                            <FontAwesomeIcon icon={faLinkSlash} />
                                         </button>
                                     )}
                                     <button

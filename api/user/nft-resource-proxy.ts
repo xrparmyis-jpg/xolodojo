@@ -32,7 +32,8 @@ function isPrivateHostname(hostname: string): boolean {
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
   }
 
   const targetUrlParam = getSingleQueryParam(req.query.url);
@@ -51,26 +52,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   };
 
   if (!targetUrlParam) {
-    return res.status(400).json({ error: 'Missing url query parameter' });
+    res.status(400).json({ error: 'Missing url query parameter' });
+    return;
   }
 
   if (targetUrlParam.length > 2048) {
-    return res.status(400).json({ error: 'URL too long' });
+    res.status(400).json({ error: 'URL too long' });
+    return;
   }
 
   let targetUrl: URL;
   try {
     targetUrl = new URL(targetUrlParam);
   } catch {
-    return res.status(400).json({ error: 'Invalid URL' });
+    res.status(400).json({ error: 'Invalid URL' });
+    return;
   }
 
   if (!['http:', 'https:'].includes(targetUrl.protocol)) {
-    return res.status(400).json({ error: 'Only http/https URLs are allowed' });
+    res.status(400).json({ error: 'Only http/https URLs are allowed' });
+    return;
   }
 
   if (isPrivateHostname(targetUrl.hostname)) {
-    return res.status(400).json({ error: 'Private or local hosts are not allowed' });
+    res.status(400).json({ error: 'Private or local hosts are not allowed' });
+    return;
   }
 
   try {
@@ -99,12 +105,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const blankPng = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/w8AAgMBAp6n1wAAAABJRU5ErkJggg==', 'base64');
         res.setHeader('Content-Type', 'image/png');
         res.setHeader('Content-Length', String(blankPng.length));
-        return res.status(200).send(blankPng);
+        res.status(200).send(blankPng);
+        return;
       }
       // Otherwise, return JSON error
-      return res.status(upstreamResponse.status).json({
+      res.status(upstreamResponse.status).json({
         error: `Upstream request failed with status ${upstreamResponse.status}`,
       });
+      return;
     }
 
     res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=600');
@@ -112,7 +120,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (modeParam === 'json') {
       const data = (await upstreamResponse.json()) as unknown;
       logDebug('Returning JSON payload');
-      return res.status(200).json(data);
+      res.status(200).json(data);
+      return;
     }
 
     const contentType = upstreamResponse.headers.get('content-type') || 'application/octet-stream';
@@ -122,14 +131,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.setHeader('Content-Type', contentType);
     res.setHeader('Content-Length', String(body.length));
     logDebug('Returning binary payload', { bytes: body.length, contentType });
-    return res.status(200).send(body);
+    res.status(200).send(body);
+    return;
   } catch (error: any) {
     logDebug('Proxy error', {
       message: error?.message || 'Unknown error',
     });
-    return res.status(500).json({
+    res.status(500).json({
       error: 'Failed to fetch upstream resource',
       details: error?.message || 'Unknown error',
     });
+    return;
   }
 }

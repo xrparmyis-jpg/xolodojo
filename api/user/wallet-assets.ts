@@ -305,8 +305,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   } catch (error: any) {
     console.error('Error fetching wallet assets:', error);
-    return res
-      .status(500)
-      .json({ error: 'Internal server error', details: error.message });
+      res.status(500).json({ error: 'Internal server error', details: error.message });
+      return;
   }
 }

@@ -37,6 +37,7 @@ function Profile() {
     const [pendingRemoveSocial, setPendingRemoveSocial] = useState<SocialPlatformKey | null>(null);
     const [showRemoveSocialModal, setShowRemoveSocialModal] = useState(false);
     const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+    const [resumeXamanOnMount, setResumeXamanOnMount] = useState(false);
     const { showToast } = useToast();
 
     const socialsHook = useSocials({
@@ -79,6 +80,24 @@ function Profile() {
         };
         loadProfile();
     }, [isAuthenticated, user, getAccessTokenSilently, setProfile]);
+
+    // Detect Xaman redirect flag in the URL (e.g. ?xaman_return=1) and
+    // trigger a one-time resume of the Xaman connect flow when the wallet
+    // section renders. This fixes mobile-to-mobile Xaman flows without
+    // changing the existing desktop popup behavior.
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        if (!isAuthenticated || !user) return;
+
+        const url = new URL(window.location.href);
+        const returnFlag = url.searchParams.get('xaman_return');
+        if (returnFlag === '1') {
+            setResumeXamanOnMount(true);
+            url.searchParams.delete('xaman_return');
+            const newUrl = `${url.pathname}${url.search}${url.hash}`;
+            window.history.replaceState({}, '', newUrl);
+        }
+    }, [isAuthenticated, user]);
 
     const handleActivateSocial = (key: SocialPlatformKey) => {
         setVisibleSocialInputs((current) => ({
@@ -278,6 +297,7 @@ function Profile() {
                                         auth0Id={profile.auth0Id}
                                         accessToken={profile.accessToken}
                                         onWalletsUpdated={setWallets}
+                                        resumeXamanOnMount={resumeXamanOnMount}
                                     />
                                 )}
                             </div>

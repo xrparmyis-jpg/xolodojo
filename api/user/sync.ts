@@ -35,7 +35,8 @@ interface Auth0User {
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Only allow POST requests
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
   }
 
   try {
@@ -50,7 +51,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
     if (!userData.sub) {
-      return res.status(400).json({ error: 'Missing user.sub (Auth0 ID)' });
+      res.status(400).json({ error: 'Missing user.sub (Auth0 ID)' });
+      return;
     }
 
     const pool = getPool();
@@ -132,7 +134,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         [userId]
       )) as [any[], any];
 
-      return res.status(200).json({
+      res.status(200).json({
         success: true,
         user:
           Array.isArray(userResult) && userResult.length > 0
@@ -140,6 +142,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             : null,
         isNewUser: !Array.isArray(existingUser) || existingUser.length === 0,
       });
+      return;
     } catch (dbError: any) {
       console.error('API sync: Database error:', dbError);
       console.error('API sync: Database error details:', {
@@ -157,11 +160,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         user: process.env.DB_USER,
         hasPassword: !!process.env.DB_PASSWORD,
       });
-      return res.status(500).json({
+      res.status(500).json({
         error: 'Database error',
         details: dbError.message,
         code: dbError.code,
-        // Only include sensitive info in development
         ...(process.env.NODE_ENV !== 'production' && {
           config: {
             host: process.env.DB_HOST,
@@ -171,11 +173,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           },
         }),
       });
+      return;
     }
   } catch (error: any) {
     console.error('API error:', error);
-    return res
-      .status(500)
-      .json({ error: 'Internal server error', details: error.message });
+    res.status(500).json({ error: 'Internal server error', details: error.message });
+    return;
   }
 }

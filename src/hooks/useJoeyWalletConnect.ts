@@ -1,8 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { standalone as joeyStandalone } from '@joey-wallet/wc-client/react';
 
 export function useJoeyWalletConnect({ showToast }: { showToast: (type: 'success' | 'error', message: string, durationMs?: number) => void }) {
-    const { actions: joeyActions } = joeyStandalone.provider.useProvider();
+    const { actions: joeyActions, session, account } = joeyStandalone.provider.useProvider();
     const [isJoeyConnectPending, setIsJoeyConnectPending] = useState(false);
     const [showJoeyQrModal, setShowJoeyQrModal] = useState(false);
     const [joeyConnectUri, setJoeyConnectUri] = useState<string | null>(null);
@@ -38,6 +38,18 @@ export function useJoeyWalletConnect({ showToast }: { showToast: (type: 'success
         setIsJoeyConnectPending(false);
     }, []);
 
+    // Close modal on successful connection (session/account present)
+    useEffect(() => {
+        if (showJoeyQrModal && (session || account)) {
+            setShowJoeyQrModal(false);
+            setJoeyConnectUri(null);
+            setJoeyDeepLink(null);
+            setIsJoeyConnectPending(false);
+            // Optionally, show a success toast
+            showToast('success', 'Joey Wallet connected!');
+        }
+    }, [showJoeyQrModal, session, account, showToast]);
+
     return {
         isJoeyConnectPending,
         showJoeyQrModal,
@@ -45,5 +57,7 @@ export function useJoeyWalletConnect({ showToast }: { showToast: (type: 'success
         joeyDeepLink,
         connect,
         cancel,
+        account,
+        session,
     };
 }
