@@ -123,6 +123,15 @@ If you see database errors, make sure you ran the schema:
 docker exec -i donovan-db mysql -udonovan_user -pdonovan_password donovan_db < database/schema.sql
 ```
 
+### Mobile browser debug (on-screen console)
+
+If USB remote debugging (`chrome://inspect`) stays stuck on “Pending authentication”, use the built-in **VConsole** overlay:
+
+1. Open your deployed URL with: `?debugConsole=1`  
+   Example: `https://your-app.vercel.app/profile?debugConsole=1`
+2. A green **vConsole** panel appears; open the **Log** tab and filter for `[Xaman]`.
+3. It stays enabled for that site until you visit with `?debugConsole=0` or remove the `vite_debug_console_enabled` key in Local Storage.
+
 ## Project Structure
 
 - `src/` - React frontend code
