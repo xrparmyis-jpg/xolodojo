@@ -89,19 +89,16 @@ function Profile() {
         if (typeof window === 'undefined') return;
         if (!isAuthenticated || !user) return;
 
-        const url = new URL(window.location.href);
-        const returnFlag = url.searchParams.get('xaman_return');
+        const returnFlag = new URL(window.location.href).searchParams.get('xaman_return');
         if (returnFlag === '1') {
             // eslint-disable-next-line no-console
-            console.log('[Profile][Xaman] Detected xaman_return=1; will resume Xaman connect after URL cleanup', {
-                before: window.location.href,
+            console.log('[Profile][Xaman] Detected xaman_return=1; will resume Xaman connect', {
+                href: window.location.href,
             });
             setResumeXamanOnMount(true);
-            url.searchParams.delete('xaman_return');
-            const newUrl = `${url.pathname}${url.search}${url.hash}`;
-            window.history.replaceState({}, '', newUrl);
-            // eslint-disable-next-line no-console
-            console.log('[Profile][Xaman] URL cleaned (xaman_return removed)', { after: newUrl });
+            // Do NOT strip the URL here. xumm-oauth2-pkce reads OAuth params from
+            // location.search in its constructor; clearing too early breaks mobile redirect.
+            // We remove only `xaman_return` in xamanHandler.connect finally (stripXamanReturnQueryParam).
         }
     }, [isAuthenticated, user]);
 

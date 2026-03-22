@@ -43,6 +43,13 @@ function toApiErrorMessage(status: number, body: ApiErrorBody): string {
   return baseMessage;
 }
 
+function isTransientNetworkError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return /ECONNRESET|ETIMEDOUT|ECONNREFUSED|network|fetch failed|Failed to fetch/i.test(
+    msg
+  );
+}
+
 /**
  * Get all wallets for a user
  */
@@ -50,29 +57,44 @@ export async function getUserWallets(
   auth0Id: string,
   accessToken?: string
 ): Promise<{ success: boolean; wallets: Wallet[] }> {
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/user/wallets?auth0_id=${encodeURIComponent(auth0Id)}`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
-        },
+  const maxAttempts = 3;
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/user/wallets?auth0_id=${encodeURIComponent(auth0Id)}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const error = await parseApiError(response);
+        throw new Error(toApiErrorMessage(response.status, error));
       }
-    );
 
-    if (!response.ok) {
-      const error = await parseApiError(response);
-      throw new Error(toApiErrorMessage(response.status, error));
+      const data: { success: boolean; wallets: Wallet[] } = await response.json();
+      return data;
+    } catch (error) {
+      lastError = error;
+      console.error('Error fetching wallets:', error);
+      if (
+        attempt < maxAttempts &&
+        isTransientNetworkError(error)
+      ) {
+        await new Promise((r) => setTimeout(r, 350 * attempt));
+        continue;
+      }
+      throw error;
     }
-
-    const data: { success: boolean; wallets: Wallet[] } = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error fetching wallets:', error);
-    throw error;
   }
+
+  throw lastError;
 }
 
 /**

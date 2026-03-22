@@ -1,6 +1,7 @@
 
 import { XummPkce } from 'xumm-oauth2-pkce';
 import type { IWalletHandler } from './IWalletHandler';
+import { stripXamanReturnQueryParam } from '../utils/xamanOAuthLanding';
 
 const xamanApiKey =
 	import.meta.env.VITE_XAMAN_API_KEY || import.meta.env.VITE_XUMM_API_KEY || '';
@@ -161,6 +162,19 @@ export const xamanHandler: IWalletHandler = {
 				return;
 			}
 			const client = getXamanClient();
+			client.on('retrieved', () => {
+				// eslint-disable-next-line no-console
+				console.log('[Xaman][SDK] event: retrieved (mobile redirect / session restore)');
+			});
+			client.on('error', (err: unknown) => {
+				// eslint-disable-next-line no-console
+				console.error('[Xaman][SDK] event: error', err);
+			});
+			client.on('success', () => {
+				// eslint-disable-next-line no-console
+				console.log('[Xaman][SDK] event: success');
+			});
+
 			const urlStillHasReturnFlag = shouldUseRedirectResumePolling();
 			// URL flag is often stripped in Profile before connect runs — use resumeFromRedirect from WalletConnection too
 			const usePolling = urlStillHasReturnFlag || resumeFromRedirect === true;
@@ -279,6 +293,7 @@ export const xamanHandler: IWalletHandler = {
 			console.error('[Xaman][connect] Failed:', error);
 			setShowToast?.('error', `Failed to connect Xaman: ${readableMessage}`);
 		} finally {
+			stripXamanReturnQueryParam();
 			setIsLoading?.(false);
 		}
 	},
@@ -291,6 +306,10 @@ export const xamanHandler: IWalletHandler = {
 			setShowToast?.('error', 'Failed to clear Xaman session');
 		} finally {
 			xamanPkce = null;
+			// Library singleton lives on window; clear so next connect gets a fresh PKCE thread
+			if (typeof window !== 'undefined') {
+				delete (window as unknown as { _XummPkce?: unknown })._XummPkce;
+			}
 		}
 	},
 	async repair({ wallets, repairWalletAddressIfNeeded, loadWallets, setShowToast }) {

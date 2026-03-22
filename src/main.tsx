@@ -1,5 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { purgeStaleXummPkceJwtIfOauthCallback } from './utils/xamanOAuthLanding'
 import App from './App.tsx'
 import { UserProvider } from './providers/UserContext';
 import './index.css'
@@ -13,6 +14,9 @@ import { wagmiConfig } from './web3modal'
 import { initMobileDebugConsole } from './utils/initMobileDebugConsole'
 
 const queryClient = new QueryClient()
+
+// Before React / XummPkce: avoid rememberJwt + OAuth callback race on mobile return
+purgeStaleXummPkceJwtIfOauthCallback()
 
 const domain = import.meta.env.VITE_AUTH0_DOMAIN
 const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID
