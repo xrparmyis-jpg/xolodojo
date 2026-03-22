@@ -2,6 +2,7 @@
 import { XummPkce } from 'xumm-oauth2-pkce';
 import type { IWalletHandler } from './IWalletHandler';
 import { stripXamanReturnQueryParam } from '../utils/xamanOAuthLanding';
+import { isLikelyXummPkceOAuthReturn } from '../utils/oauthCallbackGuards';
 
 const xamanApiKey =
 	import.meta.env.VITE_XAMAN_API_KEY || import.meta.env.VITE_XUMM_API_KEY || '';
@@ -40,6 +41,23 @@ export function getXamanClient() {
 		});
 	}
 	return xamanPkce;
+}
+
+/**
+ * Call once after prepareXamanOAuthLanding() if the URL still has OAuth params.
+ * Starts the Xumm singleton immediately so the PKCE thread reads `location.search`
+ * before React runs (defensive; App.tsx no longer strips Xaman params on /profile).
+ */
+export function primeXamanPkceIfOAuthLanding(): void {
+	if (typeof window === 'undefined' || !xamanApiKey) return;
+	try {
+		if (!isLikelyXummPkceOAuthReturn(window.location.search)) return;
+		getXamanClient();
+		// eslint-disable-next-line no-console
+		console.log('[Xaman][prime] XummPkce constructed at startup (OAuth params present)');
+	} catch {
+		// ignore
+	}
 }
 
 function shouldUseRedirectResumePolling() {

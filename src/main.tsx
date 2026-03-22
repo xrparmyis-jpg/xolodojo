@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { prepareXamanOAuthLanding } from './utils/xamanOAuthLanding'
+import { primeXamanPkceIfOAuthLanding } from './walletHandlers/xaman'
 import App from './App.tsx'
 import { UserProvider } from './providers/UserContext';
 import './index.css'
@@ -18,6 +19,7 @@ const queryClient = new QueryClient()
 // Before React / XummPkce: move OAuth tokens from #hash → ?query (SDK only reads search),
 // then clear stale JWT so rememberJwt doesn't race the redirect.
 prepareXamanOAuthLanding()
+primeXamanPkceIfOAuthLanding()
 
 const domain = import.meta.env.VITE_AUTH0_DOMAIN
 const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID

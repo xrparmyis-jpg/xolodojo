@@ -72,12 +72,14 @@ export const wagmiConfig = defaultWagmiConfig({
   enableCoinbase: allowInjectedWallets,
 });
 
+// Web3Modal calls searchWalletByIds when excludeWalletIds is set; an empty array
+// is still truthy in their `if (excludeWalletIds)` check → 400 from WalletConnect API.
 createWeb3Modal({
   wagmiConfig,
   projectId: walletConnectProjectId || 'missing_project_id',
   enableAnalytics: false,
   allWallets: showAllWallets ? 'SHOW' : 'HIDE',
-  includeWalletIds,
-  featuredWalletIds,
-  excludeWalletIds,
+  ...(includeWalletIds.length > 0 ? { includeWalletIds } : {}),
+  ...(featuredWalletIds.length > 0 ? { featuredWalletIds } : {}),
+  ...(excludeWalletIds.length > 0 ? { excludeWalletIds } : {}),
 });
