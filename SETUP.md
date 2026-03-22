@@ -134,6 +134,8 @@ If USB remote debugging (`chrome://inspect`) stays stuck on “Pending authentic
 
 **Xaman mobile redirect:** `xumm-oauth2-pkce` only reads OAuth params from the **query string** (`?`). If Xaman returns tokens in the **hash** (`#access_token=...`), the app moves them into the query at startup (`prepareXamanOAuthLanding` in `main.tsx`). Look for `[Xaman][landing]` logs.
 
+**Auth0 vs Xaman OAuth:** Auth0 uses `redirect_uri = site origin` (callback on `/`). Xaman OAuth also returns `code` and `state`. The app only strips those for **Auth0** when the path is `/` and the query is not a Xumm return (`oauthCallbackGuards.ts`). Prefer registering your Xaman app **redirect URL** to `https://your-domain.com/profile` (or another path), not only the site root, to avoid any ambiguity.
+
 ## Project Structure
 
 - `src/` - React frontend code

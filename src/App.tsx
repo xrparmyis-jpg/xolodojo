@@ -20,6 +20,7 @@ import Vision from "./pages/Vision";
 import Team from "./pages/Team";
 import XoloGlobe from "./pages/XoloGlobe";
 import Mint from "./pages/Mint";
+import { isAuth0SpaCallbackUrl } from "./utils/oauthCallbackGuards";
 
 function AppContent() {
   const { isAuthenticated, isLoading } = useAuth0();
@@ -47,33 +48,34 @@ function AppContent() {
     return () => window.clearTimeout(timeoutId);
   }, []);
 
-  // Redirect to profile ONLY after successful login (Auth0 callback)
+  // Redirect to profile ONLY after Auth0 login callback at `/` (redirect_uri = origin).
+  // Do NOT strip query params for Xaman/Xumm OAuth returns — they also use code/state
+  // (or authorization_code / scope=XummPkce) and land on /profile or other paths.
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      // Check if we're coming from Auth0 callback (URL has code/state params)
-      const urlParams = new URLSearchParams(window.location.search);
-      const hasAuthParams = urlParams.has('code') || urlParams.has('state');
-
-      if (hasAuthParams) {
-        const appState = sessionStorage.getItem('auth0_app_state');
-        let returnTo = '/profile';
-
-        if (appState) {
-          try {
-            const parsed = JSON.parse(appState);
-            returnTo = parsed.returnTo || '/profile';
-            sessionStorage.removeItem('auth0_app_state');
-          } catch (e) {
-            // Ignore parse errors
-          }
-        }
-
-        window.history.replaceState({}, '', returnTo);
-
-        setTimeout(() => {
-          navigate(returnTo, { replace: true });
-        }, 300);
+      const { pathname, search } = window.location;
+      if (!isAuth0SpaCallbackUrl(pathname, search)) {
+        return;
       }
+
+      const appState = sessionStorage.getItem('auth0_app_state');
+      let returnTo = '/profile';
+
+      if (appState) {
+        try {
+          const parsed = JSON.parse(appState);
+          returnTo = parsed.returnTo || '/profile';
+          sessionStorage.removeItem('auth0_app_state');
+        } catch {
+          // Ignore parse errors
+        }
+      }
+
+      window.history.replaceState({}, '', returnTo);
+
+      window.setTimeout(() => {
+        navigate(returnTo, { replace: true });
+      }, 300);
     }
   }, [isAuthenticated, isLoading, navigate]);
 
