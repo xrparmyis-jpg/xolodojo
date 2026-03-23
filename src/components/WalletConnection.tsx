@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import { useAccount } from 'wagmi';
 import { useWeb3Modal } from '@web3modal/wagmi/react';
 import { useDisconnect as useWagmiDisconnect } from 'wagmi';
-// import { joeyHandler } from '../walletHandlers/joey';
 import { standalone as joeyStandalone } from '@joey-wallet/wc-client/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -36,6 +35,8 @@ import {
     type WalletAssetSummary,
 } from '../services/walletAssetService';
 import { useJoeyWalletConnect } from '../hooks/useJoeyWalletConnect';
+import { useJoeyWalletPersistence } from '../hooks/useJoeyWalletPersistence';
+import { JoeyWalletQrModal } from './joey/JoeyWalletQrModal';
 import { LOADING_WALLET_SUMMARY_MESSAGE } from '../constants/walletUiMessages';
 
 interface WalletConnectionProps {
@@ -64,10 +65,6 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
         account: joeyAccount,
         session: joeySession,
     } = useJoeyWalletConnect({ showToast });
-
-    // Debug: Log Joey Wallet hook values every render
-    // eslint-disable-next-line no-console
-    console.log('[JoeyWallet][Render] joeyAccount:', joeyAccount, 'joeySession:', joeySession, 'showJoeyQrModal:', showJoeyQrModal);
 
     const [wallets, setWallets] = useState<Wallet[]>([]);
     /** Specific overlay text for wallet operations (load, connect, disconnect, remove, etc.) */
@@ -247,91 +244,20 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
             return undefined;
         }
     }, [wagmiConnector]);
-    // Joey Wallet: Add to DB and connect on session/account
-    useEffect(() => {
-        // Debug: Log effect always, with all values
-        // eslint-disable-next-line no-console
-        console.log('[JoeyWallet][Effect][TOP] showJoeyQrModal:', showJoeyQrModal, 'joeyConnectUri:', joeyConnectUri, 'joeyDeepLink:', joeyDeepLink, 'joeyAccount:', joeyAccount, 'joeySession:', joeySession, 'wallets:', wallets);
-        if (!showJoeyQrModal && (joeyAccount || joeySession)) {
-            // Extract address from account or session.namespaces
-            let joeyAddress: string | null = null;
 
-            // joeyAccount from the hook is already a string address (if present)
-            if (typeof joeyAccount === 'string' && joeyAccount.trim().length > 0) {
-                joeyAddress = joeyAccount.trim();
-            }
+    useJoeyWalletPersistence({
+        showJoeyQrModal,
+        joeyAccount,
+        joeySession: joeySession,
+        wallets,
+        auth0Id,
+        accessToken,
+        loadWallets,
+        applyConnectedWalletFromApi,
+        setWalletBusyMessage,
+        showToast,
+    });
 
-            // Fallback: inspect WalletConnect-style namespaces from the Joey session object
-            if (!joeyAddress && joeySession && typeof joeySession === 'object') {
-                const sessionAny = joeySession as any;
-                if (sessionAny.namespaces) {
-                    // Always log namespaces structure if present
-                    // eslint-disable-next-line no-console
-                    console.log('[JoeyWallet][Effect] joeySession.namespaces:', sessionAny.namespaces);
-                    // Try to find the first account in any namespace
-                    const namespaces = sessionAny.namespaces as Record<string, { accounts?: string[] }>;
-                    for (const nsKey of Object.keys(namespaces)) {
-                        const ns = namespaces[nsKey];
-                        if (Array.isArray(ns.accounts) && ns.accounts.length > 0) {
-                            // WalletConnect accounts are in format 'chain:address', e.g. 'xrpl:0:rw...'
-                            const accountString = ns.accounts[0];
-                            // eslint-disable-next-line no-console
-                            console.log('[JoeyWallet][Effect] Found account string:', accountString);
-                            const parts = accountString.split(':');
-                            joeyAddress = parts[parts.length - 1];
-                            break;
-                        }
-                    }
-                }
-            }
-            // Debug: Log extracted address
-            // eslint-disable-next-line no-console
-            console.log('[JoeyWallet][Effect] Extracted address:', joeyAddress);
-            if (!joeyAddress) {
-                // eslint-disable-next-line no-console
-                console.warn('[JoeyWallet][Effect] No address found, aborting add/connect.');
-                return;
-            }
-            const normalizedAddress = joeyAddress.toLowerCase();
-            const existingWallet = wallets.find(w => w.wallet_address.toLowerCase() === normalizedAddress && w.wallet_type === 'joey');
-            const currentConnectedWallet = wallets.find(w => w.is_connected);
-            (async () => {
-                setWalletBusyMessage('Saving Joey wallet...');
-                try {
-                    let walletId: number | undefined;
-                    if (!existingWallet) {
-                        // Add new Joey wallet
-                        // eslint-disable-next-line no-console
-                        console.log('[JoeyWallet][Effect] Adding wallet:', normalizedAddress);
-                        const result = await addWallet(auth0Id, normalizedAddress, 'joey', 'Joey Wallet', accessToken);
-                        // eslint-disable-next-line no-console
-                        console.log('[JoeyWallet][Effect] addWallet result:', result);
-                        if (!result.success || !result.wallet) throw new Error('Failed to add Joey Wallet');
-                        walletId = result.wallet.id;
-                    } else {
-                        walletId = existingWallet.id;
-                    }
-                    if (walletId) {
-                        if (currentConnectedWallet && currentConnectedWallet.id !== walletId) {
-                            await disconnectWallet(auth0Id, accessToken);
-                        }
-                        const connectRes = await connectWallet(auth0Id, walletId, accessToken);
-                        if (connectRes.wallet) {
-                            applyConnectedWalletFromApi(connectRes.wallet);
-                        }
-                        await loadWallets({ silent: true });
-                        showToast('success', 'Joey Wallet added and connected!');
-                    }
-                } catch (err) {
-                    // eslint-disable-next-line no-console
-                    console.error('[JoeyWallet][Effect] Failed to add/connect:', err);
-                    showToast('error', `Failed to add/connect Joey Wallet: ${err instanceof Error ? err.message : String(err)}`);
-                } finally {
-                    setWalletBusyMessage(null);
-                }
-            })();
-        }
-    }, [showJoeyQrModal, joeyConnectUri, joeyDeepLink, joeyAccount, joeySession, wallets, auth0Id, accessToken, loadWallets, showToast, applyConnectedWalletFromApi]);
     // Load wallets on mount
     useEffect(() => {
         void loadWallets();
@@ -897,44 +823,12 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                 document.body
             )}
 
-            {showJoeyQrModal && joeyConnectUri && typeof document !== 'undefined' && createPortal(
-                <div className="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-black/80 p-4 sm:p-6">
-                    <div className="w-full max-w-sm rounded-xl bg-neutral-900 p-6 shadow-xl border border-white/10">
-                        <h3 className="text-white text-lg font-semibold mb-2">Scan With Joey Wallet</h3>
-                        <p className="text-sm text-white/70 mb-4">
-                            Open Joey Wallet on your phone and scan this QR code to continue.
-                        </p>
-
-                        <div className="mx-auto mb-4 w-fit rounded-lg bg-white p-3">
-                            <img
-                                src={`https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodeURIComponent(joeyConnectUri)}`}
-                                alt="Joey Wallet connection QR code"
-                                className="h-56 w-56"
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                            {joeyDeepLink ? (
-                                <a
-                                    href={joeyDeepLink}
-                                    className="inline-flex items-center justify-center rounded-md bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700"
-                                >
-                                    Open Joey App
-                                </a>
-                            ) : (
-                                <div />
-                            )}
-                            <Button
-                                onClick={() => void handleCancelJoeyQr()}
-                                className="bg-gray-600 hover:bg-gray-700 active:bg-gray-800 text-sm"
-                            >
-                                Cancel
-                            </Button>
-                        </div>
-                    </div>
-                </div>,
-                document.body
-            )}
+            <JoeyWalletQrModal
+                open={showJoeyQrModal}
+                connectionUri={joeyConnectUri}
+                deepLink={joeyDeepLink}
+                onCancel={handleCancelJoeyQr}
+            />
 
             <Button
                 onClick={() => {
