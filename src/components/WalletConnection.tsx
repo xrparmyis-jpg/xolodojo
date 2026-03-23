@@ -28,6 +28,7 @@ import {
     disconnectWallet,
     deleteWallet,
     getUserWallets,
+    mergeWalletIntoList,
     updateWalletAddress,
 } from '../services/walletService';
 import {
@@ -49,54 +50,6 @@ interface WalletConnectionProps {
 function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resumeXamanOnMount }: WalletConnectionProps) {
     const { showToast, clearToasts } = useToast();
 
-    const handleConnectExisting = async (walletId: number) => {
-        try {
-            clearWalletToasts();
-
-            const wallet = wallets.find((currentWallet) => currentWallet.id === walletId);
-            if (!wallet) {
-                showToast('error', 'Wallet not found');
-                return;
-            }
-
-            if (wallet.wallet_type === 'xaman') {
-                setWalletBusyMessage('Connecting to Xaman...');
-                await handleConnectXaman(wallet.id);
-                return;
-            }
-
-            if (wallet.wallet_type === 'joey') {
-                setWalletBusyMessage('Opening Joey Wallet...');
-                await handleConnectJoey();
-                // The effect above will handle DB add/connect after session
-                return;
-            }
-
-            if (wallet.wallet_type === 'walletconnect') {
-                if (!walletConnectProjectId) {
-                    showToast('error', 'WalletConnect is not configured. Set VITE_WALLETCONNECT_PROJECT_ID and restart the app.');
-                    return;
-                }
-
-                setWalletBusyMessage('Opening WalletConnect...');
-                await open({ view: 'Connect' });
-                setPendingWalletConnectId(wallet.id);
-                setIsWalletConnectPending(true);
-                return;
-            }
-
-            setWalletBusyMessage('Connecting wallet...');
-            await connectWallet(auth0Id, walletId, accessToken);
-            await loadWallets();
-            showToast('success', 'Wallet connected');
-        } catch (error) {
-            const err = error instanceof Error ? error : new Error(String(error));
-            console.error('Failed to connect existing wallet:', err);
-            showToast('error', `Failed to connect wallet: ${err.message}`);
-        } finally {
-            setWalletBusyMessage(null);
-        }
-    };
     const { open } = useWeb3Modal();
     const { address: wagmiAddress, isConnected: isWagmiConnected, connector: wagmiConnector } = useAccount();
     // Joey Wallet: use custom hook for connection logic (must be after showToast is defined)
@@ -163,9 +116,12 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
 
     const { mutateAsync: wagmiDisconnectAsync } = useWagmiDisconnect();
 
-    const loadWallets = useCallback(async () => {
+    const loadWallets = useCallback(async (opts?: { silent?: boolean }) => {
+        const silent = opts?.silent === true;
         try {
-            setWalletBusyMessage('Loading wallets...');
+            if (!silent) {
+                setWalletBusyMessage('Loading wallets...');
+            }
             const result = await getUserWallets(auth0Id, accessToken);
             if (result.success) {
                 // Filter out wallets with empty address or invalid type
@@ -180,10 +136,24 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
             const err = error instanceof Error ? error : new Error(String(error));
             showToast('error', `Failed to load wallets: ${err.message}`);
         } finally {
-            setWalletBusyMessage(null);
+            if (!silent) {
+                setWalletBusyMessage(null);
+            }
             //setHasAttemptedInitialWalletLoad(true);
         }
     }, [accessToken, auth0Id, onWalletsUpdated, showToast]);
+
+    /** Apply connect API row immediately so the list updates before the silent refetch finishes. */
+    const applyConnectedWalletFromApi = useCallback(
+        (connectedRow: Wallet) => {
+            setWallets((prev) => {
+                const next = mergeWalletIntoList(prev, connectedRow);
+                onWalletsUpdated?.(next);
+                return next;
+            });
+        },
+        [onWalletsUpdated]
+    );
 
     const handleDisconnectExisting = useCallback(async (walletId: number) => {
         const wallet = wallets.find((currentWallet) => currentWallet.id === walletId);
@@ -202,7 +172,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
             }
 
             await tryDisconnectCurrentWallet(wallet);
-            await loadWallets();
+            await loadWallets({ silent: true });
             showToast('success', 'Wallet disconnected');
         } catch (error) {
             const err = error instanceof Error ? error : new Error(String(error));
@@ -344,8 +314,11 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                         if (currentConnectedWallet && currentConnectedWallet.id !== walletId) {
                             await disconnectWallet(auth0Id, accessToken);
                         }
-                        await connectWallet(auth0Id, walletId, accessToken);
-                        await loadWallets();
+                        const connectRes = await connectWallet(auth0Id, walletId, accessToken);
+                        if (connectRes.wallet) {
+                            applyConnectedWalletFromApi(connectRes.wallet);
+                        }
+                        await loadWallets({ silent: true });
                         showToast('success', 'Joey Wallet added and connected!');
                     }
                 } catch (err) {
@@ -357,7 +330,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                 }
             })();
         }
-    }, [showJoeyQrModal, joeyConnectUri, joeyDeepLink, joeyAccount, joeySession, wallets, auth0Id, accessToken, loadWallets, showToast]);
+    }, [showJoeyQrModal, joeyConnectUri, joeyDeepLink, joeyAccount, joeySession, wallets, auth0Id, accessToken, loadWallets, showToast, applyConnectedWalletFromApi]);
     // Load wallets on mount
     useEffect(() => {
         void loadWallets();
@@ -376,6 +349,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
         setIsLoading: setLoadingForXamanHandler,
         setShowToast: showToast,
         loadWallets,
+        applyConnectedWalletFromApi,
         repairWalletAddressIfNeeded,
         tryDisconnectCurrentWallet,
         connectWallet,
@@ -385,7 +359,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
         onWalletsUpdated,
         getUserWallets,
         connectedWallet: wallets.find((w) => w.is_connected && w.wallet_type === 'xaman'),
-    }), [auth0Id, accessToken, wallets, setLoadingForXamanHandler, showToast, loadWallets, repairWalletAddressIfNeeded, tryDisconnectCurrentWallet, connectWallet, addWallet, setWallets, onWalletsUpdated, getUserWallets]);
+    }), [auth0Id, accessToken, wallets, setLoadingForXamanHandler, showToast, loadWallets, applyConnectedWalletFromApi, repairWalletAddressIfNeeded, tryDisconnectCurrentWallet, connectWallet, addWallet, setWallets, onWalletsUpdated, getUserWallets]);
 
     useEffect(() => {
         const repairConnectedXamanWallet = async () => {
@@ -424,8 +398,11 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                         await tryDisconnectCurrentWallet(currentConnectedWallet);
                     }
 
-                    await connectWallet(auth0Id, existingWallet.id, accessToken);
-                    await loadWallets();
+                    const connectResPending = await connectWallet(auth0Id, existingWallet.id, accessToken);
+                    if (connectResPending.wallet) {
+                        applyConnectedWalletFromApi(connectResPending.wallet);
+                    }
+                    await loadWallets({ silent: true });
                     showToast('success', 'Wallet connected');
                     return;
                 }
@@ -438,8 +415,11 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                     if (currentConnectedWallet && currentConnectedWallet.id !== existingWallet.id) {
                         await tryDisconnectCurrentWallet(currentConnectedWallet);
                     }
-                    await connectWallet(auth0Id, existingWallet.id, accessToken);
-                    await loadWallets();
+                    const connectResExisting = await connectWallet(auth0Id, existingWallet.id, accessToken);
+                    if (connectResExisting.wallet) {
+                        applyConnectedWalletFromApi(connectResExisting.wallet);
+                    }
+                    await loadWallets({ silent: true });
                     showToast('success', 'Wallet connected');
                     return;
                 }
@@ -456,10 +436,13 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                     if (currentConnectedWallet) {
                         await tryDisconnectCurrentWallet(currentConnectedWallet);
                     }
-                    await connectWallet(auth0Id, result.wallet.id, accessToken);
+                    const connectResNew = await connectWallet(auth0Id, result.wallet.id, accessToken);
+                    if (connectResNew.wallet) {
+                        applyConnectedWalletFromApi(connectResNew.wallet);
+                    }
                 }
 
-                await loadWallets();
+                await loadWallets({ silent: true });
                 showToast('success', 'WalletConnect wallet added and connected!');
             } catch (error) {
                 const err = error instanceof Error ? error : new Error(String(error));
@@ -485,6 +468,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
         wallets,
         loadWallets,
         showToast,
+        applyConnectedWalletFromApi,
     ]);
 
 
@@ -507,6 +491,72 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
             });
         },
         [xamanHandlerArgs]
+    );
+
+    const handleConnectExisting = useCallback(
+        async (walletId: number) => {
+            try {
+                clearWalletToasts();
+
+                const wallet = wallets.find((currentWallet) => currentWallet.id === walletId);
+                if (!wallet) {
+                    showToast('error', 'Wallet not found');
+                    return;
+                }
+
+                if (wallet.wallet_type === 'xaman') {
+                    setWalletBusyMessage('Connecting to Xaman...');
+                    await handleConnectXaman(wallet.id);
+                    return;
+                }
+
+                if (wallet.wallet_type === 'joey') {
+                    setWalletBusyMessage('Opening Joey Wallet...');
+                    await handleConnectJoey();
+                    return;
+                }
+
+                if (wallet.wallet_type === 'walletconnect') {
+                    if (!walletConnectProjectId) {
+                        showToast('error', 'WalletConnect is not configured. Set VITE_WALLETCONNECT_PROJECT_ID and restart the app.');
+                        return;
+                    }
+
+                    setWalletBusyMessage('Opening WalletConnect...');
+                    await open({ view: 'Connect' });
+                    setPendingWalletConnectId(wallet.id);
+                    setIsWalletConnectPending(true);
+                    return;
+                }
+
+                setWalletBusyMessage('Connecting wallet...');
+                const res = await connectWallet(auth0Id, walletId, accessToken);
+                if (res.wallet) {
+                    applyConnectedWalletFromApi(res.wallet);
+                }
+                await loadWallets({ silent: true });
+                showToast('success', 'Wallet connected');
+            } catch (error) {
+                const err = error instanceof Error ? error : new Error(String(error));
+                console.error('Failed to connect existing wallet:', err);
+                showToast('error', `Failed to connect wallet: ${err.message}`);
+            } finally {
+                setWalletBusyMessage(null);
+            }
+        },
+        [
+            auth0Id,
+            accessToken,
+            applyConnectedWalletFromApi,
+            clearWalletToasts,
+            connectWallet,
+            handleConnectJoey,
+            handleConnectXaman,
+            loadWallets,
+            open,
+            showToast,
+            wallets,
+        ]
     );
 
     // After Xaman mobile redirect: wait for Auth0 access token before hitting the API (add/connect wallet).
@@ -561,7 +611,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
             // Now delete the wallet
             await deleteWallet(walletId, auth0Id, accessToken);
             showToast('success', 'Wallet deleted successfully');
-            await loadWallets();
+            await loadWallets({ silent: true });
         } catch (error) {
             const err = error instanceof Error ? error : new Error(String(error));
             console.error('Failed to delete wallet:', err);

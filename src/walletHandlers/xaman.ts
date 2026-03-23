@@ -179,6 +179,7 @@ export const xamanHandler: IWalletHandler = {
 		setIsLoading,
 		setShowToast,
 		loadWallets,
+		applyConnectedWalletFromApi,
 		walletIdToConnect,
 		repairWalletAddressIfNeeded,
 		tryDisconnectCurrentWallet,
@@ -329,8 +330,11 @@ export const xamanHandler: IWalletHandler = {
 				if (currentConnectedWallet && currentConnectedWallet.id !== repairedWallet.id) {
 					await tryDisconnectCurrentWallet(currentConnectedWallet);
 				}
-				await connectWallet(auth0Id, repairedWallet.id, accessToken);
-				await loadWallets();
+				const connectResPick = await connectWallet(auth0Id, repairedWallet.id, accessToken);
+				if (connectResPick.wallet) {
+					applyConnectedWalletFromApi?.(connectResPick.wallet);
+				}
+				await loadWallets({ silent: true });
 				setShowToast?.('success', 'Xaman wallet connected');
 				return;
 			}
@@ -345,8 +349,11 @@ export const xamanHandler: IWalletHandler = {
 				if (currentConnectedWallet && currentConnectedWallet.id !== repairedWallet.id) {
 					await tryDisconnectCurrentWallet(currentConnectedWallet);
 				}
-				await connectWallet(auth0Id, repairedWallet.id, accessToken);
-				await loadWallets();
+				const connectResExisting = await connectWallet(auth0Id, repairedWallet.id, accessToken);
+				if (connectResExisting.wallet) {
+					applyConnectedWalletFromApi?.(connectResExisting.wallet);
+				}
+				await loadWallets({ silent: true });
 				setShowToast?.('success', 'Xaman wallet connected');
 				return;
 			}
@@ -363,8 +370,11 @@ export const xamanHandler: IWalletHandler = {
 			if (currentConnectedWallet) {
 				await tryDisconnectCurrentWallet(currentConnectedWallet);
 			}
-			await connectWallet(auth0Id, result.wallet.id, accessToken);
-			await loadWallets();
+			const connectResNew = await connectWallet(auth0Id, result.wallet.id, accessToken);
+			if (connectResNew.wallet) {
+				applyConnectedWalletFromApi?.(connectResNew.wallet);
+			}
+			await loadWallets({ silent: true });
 			setShowToast?.('success', 'Xaman wallet added and connected!');
 		} catch (error) {
 			const readableMessage = toReadableErrorMessage(error);
@@ -402,7 +412,7 @@ export const xamanHandler: IWalletHandler = {
 			if (!activeXamanAccount) return;
 			if (currentConnectedWallet.wallet_address !== activeXamanAccount) {
 				await repairWalletAddressIfNeeded(currentConnectedWallet, activeXamanAccount);
-				await loadWallets();
+				await loadWallets({ silent: true });
 				setShowToast?.('success', 'Xaman wallet address repaired');
 			}
 		} catch (error) {

@@ -12,6 +12,16 @@ export interface Wallet {
   updated_at: string;
 }
 
+/**
+ * Apply a wallet row returned from connect (or add) APIs: upsert this row and mark every other wallet disconnected.
+ * Matches server behavior after PUT .../connect.
+ */
+export function mergeWalletIntoList(previous: Wallet[], updated: Wallet): Wallet[] {
+  const without = previous.filter((w) => w.id !== updated.id);
+  const othersDisconnected = without.map((w) => ({ ...w, is_connected: false }));
+  return [...othersDisconnected, updated];
+}
+
 interface WalletResponse {
   success: boolean;
   wallet?: Wallet;
