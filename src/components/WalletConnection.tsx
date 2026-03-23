@@ -36,6 +36,7 @@ import {
     type WalletAssetSummary,
 } from '../services/walletAssetService';
 import { useJoeyWalletConnect } from '../hooks/useJoeyWalletConnect';
+import { LOADING_WALLET_SUMMARY_MESSAGE } from '../constants/walletUiMessages';
 
 interface WalletConnectionProps {
     auth0Id: string;
@@ -336,17 +337,12 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
         void loadWallets();
     }, [loadWallets]);
 
-    /** xumm-oauth2-pkce handler only exposes boolean; map to a clear label */
-    const setLoadingForXamanHandler = useCallback((busy: boolean) => {
-        setWalletBusyMessage(busy ? 'Connecting to Xaman...' : null);
-    }, []);
-
     // Memoize handler args after all dependencies are declared
     const xamanHandlerArgs = useMemo(() => ({
         auth0Id,
         accessToken,
         wallets,
-        setIsLoading: setLoadingForXamanHandler,
+        setWalletBusyMessage,
         setShowToast: showToast,
         loadWallets,
         applyConnectedWalletFromApi,
@@ -359,7 +355,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
         onWalletsUpdated,
         getUserWallets,
         connectedWallet: wallets.find((w) => w.is_connected && w.wallet_type === 'xaman'),
-    }), [auth0Id, accessToken, wallets, setLoadingForXamanHandler, showToast, loadWallets, applyConnectedWalletFromApi, repairWalletAddressIfNeeded, tryDisconnectCurrentWallet, connectWallet, addWallet, setWallets, onWalletsUpdated, getUserWallets]);
+    }), [auth0Id, accessToken, wallets, showToast, loadWallets, applyConnectedWalletFromApi, repairWalletAddressIfNeeded, tryDisconnectCurrentWallet, connectWallet, addWallet, setWallets, onWalletsUpdated, getUserWallets]);
 
     useEffect(() => {
         const repairConnectedXamanWallet = async () => {
@@ -679,6 +675,10 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
             setConnectedWalletAssets(null);
             setAssetsError(null);
             setIsAssetsLoading(false);
+            // End Xaman "summary" bridge if we never ran a fetch (e.g. brief null wallet).
+            setWalletBusyMessage((prev) =>
+                prev === LOADING_WALLET_SUMMARY_MESSAGE ? null : prev
+            );
             return;
         }
 
@@ -697,6 +697,10 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
             setAssetsError(err.message);
         } finally {
             setIsAssetsLoading(false);
+            // Clear overlay copy set by xamanHandler when the summary request completes.
+            setWalletBusyMessage((prev) =>
+                prev === LOADING_WALLET_SUMMARY_MESSAGE ? null : prev
+            );
         }
     }, [accessToken, auth0Id, connectedWallet]);
 
@@ -732,7 +736,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
 
     const overlayMessage =
         walletBusyMessage
-        ?? (isAssetsLoading ? 'Loading wallet summary...' : null)
+        ?? (isAssetsLoading ? LOADING_WALLET_SUMMARY_MESSAGE : null)
         ?? (isWalletConnectPending || isJoeyConnectPending ? 'Connecting to wallet...' : null);
     const isInteractionBlocked = overlayMessage !== null;
     const shouldUseSummaryMinHeight = isAssetsLoading || ((connectedWalletAssets?.nft_count ?? 0) > 0);

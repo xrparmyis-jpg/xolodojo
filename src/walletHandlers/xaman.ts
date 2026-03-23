@@ -3,6 +3,7 @@ import { XummPkce } from 'xumm-oauth2-pkce';
 import type { IWalletHandler } from './IWalletHandler';
 import { stripXamanReturnQueryParam } from '../utils/xamanOAuthLanding';
 import { isLikelyXummPkceOAuthReturn } from '../utils/oauthCallbackGuards';
+import { LOADING_WALLET_SUMMARY_MESSAGE } from '../constants/walletUiMessages';
 import { getUserWallets, type Wallet } from '../services/walletService';
 
 const xamanApiKey =
@@ -176,7 +177,7 @@ export const xamanHandler: IWalletHandler = {
 		auth0Id,
 		accessToken,
 		wallets,
-		setIsLoading,
+		setWalletBusyMessage,
 		setShowToast,
 		loadWallets,
 		applyConnectedWalletFromApi,
@@ -193,8 +194,9 @@ export const xamanHandler: IWalletHandler = {
 		// getUserWallets,
 		// connectedWallet,
 	}) {
+		let connectSucceeded = false;
 		try {
-			setIsLoading?.(true);
+			setWalletBusyMessage?.('Connecting to Xaman...');
 			if (!isXamanConfigured()) {
 				setShowToast?.('error', 'Xaman is not configured. Set VITE_XAMAN_API_KEY and restart the app.');
 				return;
@@ -314,6 +316,20 @@ export const xamanHandler: IWalletHandler = {
 			// eslint-disable-next-line no-console
 			console.log('[Xaman][connect] resolved XRPL address', resolvedXrplAddress);
 			let currentConnectedWallet = walletsForMatch.find((wallet: Wallet) => wallet.is_connected);
+
+			// Phased copy: signing is done; now we persist / connect on the server (can take several seconds).
+			const existingWallet = walletsForMatch.find(
+				(wallet: Wallet) =>
+					normalizeXrplAddress(wallet.wallet_address) === normalizeXrplAddress(resolvedXrplAddress)
+			);
+			if (walletIdToConnect != null) {
+				setWalletBusyMessage?.('Connecting your wallet…');
+			} else if (existingWallet) {
+				setWalletBusyMessage?.('Reconnecting your wallet…');
+			} else {
+				setWalletBusyMessage?.('Adding wallet and connecting…');
+			}
+
 			if (walletIdToConnect != null) {
 				// eslint-disable-next-line no-console
 				console.log('[Xaman][connect] branch: walletIdToConnect', walletIdToConnect);
@@ -336,12 +352,9 @@ export const xamanHandler: IWalletHandler = {
 				}
 				await loadWallets({ silent: true });
 				setShowToast?.('success', 'Xaman wallet connected');
+				connectSucceeded = true;
 				return;
 			}
-			const existingWallet = walletsForMatch.find(
-				(wallet: Wallet) =>
-					normalizeXrplAddress(wallet.wallet_address) === normalizeXrplAddress(resolvedXrplAddress)
-			);
 			if (existingWallet) {
 				// eslint-disable-next-line no-console
 				console.log('[Xaman][connect] branch: existing wallet', existingWallet.id, existingWallet.wallet_address);
@@ -355,6 +368,7 @@ export const xamanHandler: IWalletHandler = {
 				}
 				await loadWallets({ silent: true });
 				setShowToast?.('success', 'Xaman wallet connected');
+				connectSucceeded = true;
 				return;
 			}
 			// eslint-disable-next-line no-console
@@ -376,13 +390,19 @@ export const xamanHandler: IWalletHandler = {
 			}
 			await loadWallets({ silent: true });
 			setShowToast?.('success', 'Xaman wallet added and connected!');
+			connectSucceeded = true;
 		} catch (error) {
 			const readableMessage = toReadableErrorMessage(error);
 			console.error('[Xaman][connect] Failed:', error);
 			setShowToast?.('error', `Failed to connect Xaman: ${readableMessage}`);
 		} finally {
 			stripXamanReturnQueryParam();
-			setIsLoading?.(false);
+			if (connectSucceeded) {
+				// Stay covered until NFT summary fetch finishes (see WalletConnection.refreshConnectedWalletAssets).
+				setWalletBusyMessage?.(LOADING_WALLET_SUMMARY_MESSAGE);
+			} else {
+				setWalletBusyMessage?.(null);
+			}
 		}
 	},
 	async disconnect({ setShowToast }) {
