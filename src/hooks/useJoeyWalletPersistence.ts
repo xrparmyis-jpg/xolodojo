@@ -3,6 +3,7 @@ import type { Wallet } from '../services/walletService';
 import { addWallet, connectWallet, disconnectWallet } from '../services/walletService';
 import { extractJoeyWalletAddress } from '../wallets/joey/extractJoeyWalletAddress';
 import { clearJoeyConnectIntent, hasJoeyConnectIntent } from '../wallets/joey/joeyConnectIntent';
+import { SAVING_WALLET_MESSAGE } from '../constants/walletUiMessages';
 
 type ShowToast = (type: 'success' | 'error', message: string, durationMs?: number) => void;
 
@@ -76,7 +77,7 @@ export function useJoeyWalletPersistence({
 				runningRef.current = false;
 				return;
 			}
-			setWalletBusyMessage('Saving Joey wallet...');
+			setWalletBusyMessage(SAVING_WALLET_MESSAGE);
 			try {
 				let walletId: number | undefined;
 				if (!existingWallet) {

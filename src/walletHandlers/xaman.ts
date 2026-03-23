@@ -3,7 +3,13 @@ import { XummPkce } from 'xumm-oauth2-pkce';
 import type { IWalletHandler } from './IWalletHandler';
 import { stripXamanReturnQueryParam } from '../utils/xamanOAuthLanding';
 import { isLikelyXummPkceOAuthReturn } from '../utils/oauthCallbackGuards';
-import { LOADING_WALLET_SUMMARY_MESSAGE } from '../constants/walletUiMessages';
+import {
+	ADDING_WALLET_AND_CONNECTING_MESSAGE,
+	CONNECTING_YOUR_WALLET_MESSAGE,
+	LOADING_WALLET_SUMMARY_MESSAGE,
+	RECONNECTING_WALLET_MESSAGE,
+	XAMAN_CONNECTING_MESSAGE,
+} from '../constants/walletUiMessages';
 import { getUserWallets, type Wallet } from '../services/walletService';
 
 const xamanApiKey =
@@ -196,7 +202,7 @@ export const xamanHandler: IWalletHandler = {
 	}) {
 		let connectSucceeded = false;
 		try {
-			setWalletBusyMessage?.('Connecting to Xaman...');
+			setWalletBusyMessage?.(XAMAN_CONNECTING_MESSAGE);
 			if (!isXamanConfigured()) {
 				setShowToast?.('error', 'Xaman is not configured. Set VITE_XAMAN_API_KEY and restart the app.');
 				return;
@@ -323,11 +329,11 @@ export const xamanHandler: IWalletHandler = {
 					normalizeXrplAddress(wallet.wallet_address) === normalizeXrplAddress(resolvedXrplAddress)
 			);
 			if (walletIdToConnect != null) {
-				setWalletBusyMessage?.('Connecting your wallet…');
+				setWalletBusyMessage?.(CONNECTING_YOUR_WALLET_MESSAGE);
 			} else if (existingWallet) {
-				setWalletBusyMessage?.('Reconnecting your wallet…');
+				setWalletBusyMessage?.(RECONNECTING_WALLET_MESSAGE);
 			} else {
-				setWalletBusyMessage?.('Adding wallet and connecting…');
+				setWalletBusyMessage?.(ADDING_WALLET_AND_CONNECTING_MESSAGE);
 			}
 
 			if (walletIdToConnect != null) {

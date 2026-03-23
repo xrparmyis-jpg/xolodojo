@@ -12,8 +12,6 @@ import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { WagmiProvider } from 'wagmi'
 import { wagmiConfig } from './web3modal'
-import { initMobileDebugConsole } from './utils/initMobileDebugConsole'
-
 const queryClient = new QueryClient()
 
 // Before React / XummPkce: move OAuth tokens from #hash → ?query (SDK only reads search),
@@ -36,37 +34,33 @@ if (!domain || !clientId) {
   )
 }
 
-void (async () => {
-  await initMobileDebugConsole()
-
-  createRoot(document.getElementById('root')!).render(
-    <StrictMode>
-      <BrowserRouter>
-        <Auth0Provider
-          domain={domain}
-          clientId={clientId}
-          authorizationParams={{
-            redirect_uri: window.location.origin,
-          }}
-          useRefreshTokens={true}
-          cacheLocation="localstorage"
-          onRedirectCallback={(appState) => {
-            // This will be handled by the navigate in App.tsx
-            // Store returnTo for use in App component
-            if (appState?.returnTo) {
-              sessionStorage.setItem('auth0_app_state', JSON.stringify({ returnTo: appState.returnTo }));
-            }
-          }}
-        >
-          <WagmiProvider config={wagmiConfig}>
-            <QueryClientProvider client={queryClient}>
-              <UserProvider>
-                <App />
-              </UserProvider>
-            </QueryClientProvider>
-          </WagmiProvider>
-        </Auth0Provider>
-      </BrowserRouter>
-    </StrictMode>,
-  )
-})()
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <BrowserRouter>
+      <Auth0Provider
+        domain={domain}
+        clientId={clientId}
+        authorizationParams={{
+          redirect_uri: window.location.origin,
+        }}
+        useRefreshTokens={true}
+        cacheLocation="localstorage"
+        onRedirectCallback={(appState) => {
+          // This will be handled by the navigate in App.tsx
+          // Store returnTo for use in App component
+          if (appState?.returnTo) {
+            sessionStorage.setItem('auth0_app_state', JSON.stringify({ returnTo: appState.returnTo }));
+          }
+        }}
+      >
+        <WagmiProvider config={wagmiConfig}>
+          <QueryClientProvider client={queryClient}>
+            <UserProvider>
+              <App />
+            </UserProvider>
+          </QueryClientProvider>
+        </WagmiProvider>
+      </Auth0Provider>
+    </BrowserRouter>
+  </StrictMode>,
+)
