@@ -10,7 +10,6 @@ import {
     faCopy,
     faLink,
     faLinkSlash,
-    faSpinner,
     faThumbtack,
     faXmark,
 } from '@fortawesome/free-solid-svg-icons';
@@ -37,7 +36,19 @@ import {
 import { useJoeyWalletConnect } from '../hooks/useJoeyWalletConnect';
 import { useJoeyWalletPersistence } from '../hooks/useJoeyWalletPersistence';
 import { JoeyWalletQrModal } from './joey/JoeyWalletQrModal';
-import { LOADING_WALLET_SUMMARY_MESSAGE } from '../constants/walletUiMessages';
+import { WalletBusyOverlay } from './WalletBusyOverlay';
+import {
+    CONNECTING_JOEY_WALLET_MESSAGE,
+    CONNECTING_WALLET_GENERIC_MESSAGE,
+    CONNECTING_WITH_WALLETCONNECT_MESSAGE,
+    DISCONNECTING_WALLET_MESSAGE,
+    JOEY_WAITING_FOR_WALLET_MESSAGE,
+    LOADING_WALLETS_MESSAGE,
+    LOADING_WALLET_SUMMARY_MESSAGE,
+    OPENING_WALLETCONNECT_MESSAGE,
+    REMOVING_WALLET_MESSAGE,
+    XAMAN_CONNECTING_MESSAGE,
+} from '../constants/walletUiMessages';
 import { clearJoeyConnectIntent } from '../wallets/joey/joeyConnectIntent';
 
 interface WalletConnectionProps {
@@ -74,6 +85,9 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
 
     /** Blocks Joey persistence while disconnecting/deleting so it cannot reconnect or re-add. */
     const joeyPersistenceSuppressedRef = useRef(false);
+    /** Latest overlay message — used to defer NFT summary fetch during Joey save without bloating refresh deps. */
+    const walletBusyMessageRef = useRef(walletBusyMessage);
+    walletBusyMessageRef.current = walletBusyMessage;
 
     const {
         isJoeyConnectPending,
@@ -87,7 +101,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
         disconnectFromProvider: disconnectJoeyFromProvider,
     } = useJoeyWalletConnect({
         showToast,
-        onConnectStart: () => setWalletBusyMessage('Waiting for Joey Wallet…'),
+        onConnectStart: () => setWalletBusyMessage(JOEY_WAITING_FOR_WALLET_MESSAGE),
         onConnectError: () => setWalletBusyMessage(null),
     });
 
@@ -132,7 +146,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
         const silent = opts?.silent === true;
         try {
             if (!silent) {
-                setWalletBusyMessage('Loading wallets...');
+                setWalletBusyMessage(LOADING_WALLETS_MESSAGE);
             }
             const result = await getUserWallets(auth0Id, accessToken);
             if (result.success) {
@@ -176,7 +190,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
 
         try {
             clearWalletToasts();
-            setWalletBusyMessage('Disconnecting wallet...');
+            setWalletBusyMessage(DISCONNECTING_WALLET_MESSAGE);
 
             // Disconnect provider/session where applicable
             if (wallet.wallet_type === 'walletconnect') {
@@ -317,7 +331,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
             }
 
             try {
-                setWalletBusyMessage('Connecting with WalletConnect...');
+                setWalletBusyMessage(CONNECTING_WITH_WALLETCONNECT_MESSAGE);
 
                 const normalizedAddress = wagmiAddress.toLowerCase();
                 const currentConnectedWallet = wallets.find((wallet) => wallet.is_connected);
@@ -447,13 +461,13 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                 walletKind = wallet.wallet_type;
 
                 if (wallet.wallet_type === 'xaman') {
-                    setWalletBusyMessage('Connecting to Xaman...');
+                    setWalletBusyMessage(XAMAN_CONNECTING_MESSAGE);
                     await handleConnectXaman(wallet.id);
                     return;
                 }
 
                 if (wallet.wallet_type === 'joey') {
-                    // Overlay: onConnectStart → "Waiting…", then persistence → "Saving Joey wallet…"
+                    // Overlay: onConnectStart → waiting copy, then persistence → saving-your-wallet copy
                     await handleConnectJoey();
                     return;
                 }
@@ -464,14 +478,14 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                         return;
                     }
 
-                    setWalletBusyMessage('Opening WalletConnect...');
+                    setWalletBusyMessage(OPENING_WALLETCONNECT_MESSAGE);
                     await open({ view: 'Connect' });
                     setPendingWalletConnectId(wallet.id);
                     setIsWalletConnectPending(true);
                     return;
                 }
 
-                setWalletBusyMessage('Connecting wallet...');
+                setWalletBusyMessage(CONNECTING_WALLET_GENERIC_MESSAGE);
                 const res = await connectWallet(auth0Id, walletId, accessToken);
                 if (res.wallet) {
                     applyConnectedWalletFromApi(res.wallet);
@@ -527,7 +541,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
 
         try {
             clearWalletToasts();
-            setWalletBusyMessage('Removing wallet...');
+            setWalletBusyMessage(REMOVING_WALLET_MESSAGE);
 
             if (walletToDelete.is_connected) {
                 if (walletToDelete.wallet_type === 'walletconnect') {
@@ -628,6 +642,16 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
             return;
         }
 
+        // `connectedWallet` can update mid-flight (applyConnectedWalletFromApi) while overlay copy
+        // is still "Adding wallet…", "Saving your wallet…", etc. Starting the NFT summary fetch
+        // then sets isAssetsLoading and makes the overlay jump to "Loading wallet summary…"
+        // before those phases end. Defer the summary fetch until no other busy message is shown.
+        // Exception: LOADING_WALLET_SUMMARY_MESSAGE is the Xaman handoff to this same fetch.
+        const busy = walletBusyMessageRef.current;
+        if (busy != null && busy !== LOADING_WALLET_SUMMARY_MESSAGE) {
+            return;
+        }
+
         try {
             setIsAssetsLoading(true);
             setAssetsError(null);
@@ -650,9 +674,10 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
         }
     }, [accessToken, auth0Id, connectedWallet]);
 
+    // Re-run when overlay copy changes so we fetch summary after deferral (e.g. save/add finishes).
     useEffect(() => {
         void refreshConnectedWalletAssets();
-    }, [refreshConnectedWalletAssets]);
+    }, [refreshConnectedWalletAssets, walletBusyMessage]);
 
     const sortedWallets = useMemo(
         () => [...wallets].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()),
@@ -683,8 +708,8 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
     const overlayMessage =
         walletBusyMessage
         ?? (isAssetsLoading ? LOADING_WALLET_SUMMARY_MESSAGE : null)
-        ?? (isJoeyConnectPending ? 'Connecting to Joey Wallet…' : null)
-        ?? (isWalletConnectPending ? 'Connecting to wallet...' : null);
+        ?? (isJoeyConnectPending ? CONNECTING_JOEY_WALLET_MESSAGE : null)
+        ?? (isWalletConnectPending ? CONNECTING_WALLET_GENERIC_MESSAGE : null);
     const isInteractionBlocked = overlayMessage !== null;
     const shouldUseSummaryMinHeight = isAssetsLoading || ((connectedWalletAssets?.nft_count ?? 0) > 0);
 
@@ -860,7 +885,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                 className="w-full text-center bg-blue-600 hover:bg-blue-700 active:bg-blue-800"
             >
                 {isWalletConnectPending ? (
-                    'Opening WalletConnect...'
+                    OPENING_WALLETCONNECT_MESSAGE
                 ) : wallets.length > 0 ? (
                     'Add Another Wallet'
                 ) : (
@@ -871,7 +896,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
             {wallets.length > 0 && connectedWallet && (
                 <div className={`mt-4 rounded-lg border border-white/10 bg-black/20 p-4 ${shouldUseSummaryMinHeight ? 'min-h-[300px]' : ''}`}>
                     {isAssetsLoading ? (
-                        <p className="hidden text-white/60 text-sm">Loading wallet summary...</p>
+                        <p className="hidden text-white/60 text-sm">{LOADING_WALLET_SUMMARY_MESSAGE}</p>
                     ) : assetsError ? (
                         <p className="text-red-300 text-sm">Wallet summary unavailable: {assetsError}</p>
                     ) : connectedWalletAssets ? (
@@ -915,14 +940,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                 </div>
             )}
 
-            {isInteractionBlocked && (
-                <div className="absolute inset-0 z-40 flex items-center justify-center rounded-lg bg-black/55 backdrop-blur-[1px]">
-                    <div className="inline-flex items-center gap-2 rounded-md border border-white/20 bg-black/75 px-3 py-2 text-sm text-white">
-                        <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
-                        <span>{overlayMessage}</span>
-                    </div>
-                </div>
-            )}
+            <WalletBusyOverlay message={isInteractionBlocked ? overlayMessage : null} />
         </div>
     );
 }

@@ -90,7 +90,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         <ToastContext.Provider value={value}>
             {children}
 
-            <div className="pointer-events-none fixed right-4 top-4 z-[10000] flex w-[min(92vw,420px)] flex-col gap-2">
+            {/* Centered so success/error aligns with modal-style feedback (same focal area as WalletBusyOverlay intent) */}
+            <div className="pointer-events-none fixed left-1/2 top-1/2 z-[10000] flex w-[min(92vw,420px)] -translate-x-1/2 -translate-y-1/2 flex-col gap-2">
                 {toasts.map((toast) => (
                     <div
                         key={toast.id}
