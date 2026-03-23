@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useAccount } from 'wagmi';
 import { useWeb3Modal } from '@web3modal/wagmi/react';
@@ -72,6 +72,9 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
     const [hasAttemptedXamanSessionRepair, setHasAttemptedXamanSessionRepair] = useState(false);
     const [hasResumedXamanOnMount, setHasResumedXamanOnMount] = useState(false);
 
+    /** Blocks Joey persistence while disconnecting/deleting so it cannot reconnect or re-add. */
+    const joeyPersistenceSuppressedRef = useRef(false);
+
     const {
         isJoeyConnectPending,
         showJoeyQrModal,
@@ -111,6 +114,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                     await xamanHandler.disconnect({ setShowToast: showToast });
                 }
                 if (currentWallet.wallet_type === 'joey') {
+                    joeyPersistenceSuppressedRef.current = true;
                     clearJoeyConnectIntent();
                     await disconnectJoeyFromProvider();
                 }
@@ -187,6 +191,9 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
             console.error('Failed to disconnect wallet:', err);
             showToast('error', `Failed to disconnect wallet: ${err.message}`);
         } finally {
+            if (wallet.wallet_type === 'joey') {
+                joeyPersistenceSuppressedRef.current = false;
+            }
             setWalletBusyMessage(null);
         }
     }, [wallets, showToast, clearWalletToasts, wagmiDisconnectAsync, tryDisconnectCurrentWallet, loadWallets]);
@@ -266,6 +273,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
         applyConnectedWalletFromApi,
         setWalletBusyMessage,
         showToast,
+        persistenceSuppressedRef: joeyPersistenceSuppressedRef,
     });
 
     // Load wallets on mount
@@ -511,17 +519,16 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
     }, [resumeXamanOnMount, hasResumedXamanOnMount, accessToken, handleConnectXaman]);
 
     const handleDelete = async (walletId: number) => {
+        const walletToDelete = wallets.find(w => w.id === walletId);
+        if (!walletToDelete) {
+            showToast('error', 'Wallet not found');
+            return;
+        }
+
         try {
             clearWalletToasts();
             setWalletBusyMessage('Removing wallet...');
 
-            // Check if this is the connected wallet
-            const walletToDelete = wallets.find(w => w.id === walletId);
-            if (!walletToDelete) {
-                showToast('error', 'Wallet not found');
-                setWalletBusyMessage(null);
-                return;
-            }
             if (walletToDelete.is_connected) {
                 if (walletToDelete.wallet_type === 'walletconnect') {
                     await wagmiDisconnectAsync();
@@ -549,6 +556,9 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
             console.error('Failed to delete wallet:', err);
             showToast('error', `Failed to delete wallet: ${err.message}`);
         } finally {
+            if (walletToDelete.wallet_type === 'joey') {
+                joeyPersistenceSuppressedRef.current = false;
+            }
             setWalletBusyMessage(null);
         }
     };
