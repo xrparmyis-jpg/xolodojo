@@ -1,14 +1,19 @@
 import { useState, useCallback, useEffect } from 'react';
 import { standalone as joeyStandalone } from '@joey-wallet/wc-client/react';
 import { isMobileDevice } from '../utils/device';
+import { clearJoeyConnectIntent, setJoeyConnectIntent } from '../wallets/joey/joeyConnectIntent';
 
 export function useJoeyWalletConnect({
 	showToast,
+	onConnectStart,
+	onConnectError,
 }: {
 	showToast: (type: 'success' | 'error', message: string, durationMs?: number) => void;
+	/** Fires at the very start of connect (set “waiting” overlay before generate/deeplink). */
+	onConnectStart?: () => void;
+	/** Fires if generate/deeplink setup fails (clear overlay). */
+	onConnectError?: () => void;
 }) {
-	// The Joey provider context type doesn't currently expose `account` in its TS definition,
-	// but it is present at runtime. Cast to `any` here so we can safely read it.
 	const joeyContext = joeyStandalone.provider.useProvider() as any;
 	const joeyActions = joeyContext.actions;
 	const session = joeyContext.session as unknown;
@@ -18,8 +23,20 @@ export function useJoeyWalletConnect({
 	const [joeyConnectUri, setJoeyConnectUri] = useState<string | null>(null);
 	const [joeyDeepLink, setJoeyDeepLink] = useState<string | null>(null);
 
+	const disconnectFromProvider = useCallback(async () => {
+		try {
+			if (joeyActions?.disconnect) {
+				await joeyActions.disconnect();
+			}
+		} catch (e) {
+			console.warn('[JoeyWallet] Provider disconnect failed (continuing):', e);
+		}
+	}, [joeyActions]);
+
 	const connect = useCallback(async () => {
 		setIsJoeyConnectPending(true);
+		setJoeyConnectIntent();
+		onConnectStart?.();
 		try {
 			if (!joeyActions?.generate) throw new Error('Joey Wallet generate action not available');
 			const generatedConnection = await joeyActions.generate({ chain: 'xrpl:0', openModal: false });
@@ -30,8 +47,6 @@ export function useJoeyWalletConnect({
 			setJoeyConnectUri(uri);
 			setJoeyDeepLink(deeplink);
 
-			// Mobile: open Joey directly (same idea as skipping an extra modal step for Xaman on phone).
-			// Session completes when the user returns to the browser; persistence runs in useJoeyWalletPersistence.
 			const mobile = isMobileDevice();
 			if (mobile && typeof deeplink === 'string' && deeplink.length > 0) {
 				setShowJoeyQrModal(false);
@@ -41,6 +56,8 @@ export function useJoeyWalletConnect({
 
 			setShowJoeyQrModal(true);
 		} catch (error) {
+			clearJoeyConnectIntent();
+			onConnectError?.();
 			const err = error instanceof Error ? error : new Error(String(error));
 			showToast('error', `Failed to generate Joey QR: ${err.message}`);
 			setShowJoeyQrModal(false);
@@ -49,16 +66,16 @@ export function useJoeyWalletConnect({
 		} finally {
 			setIsJoeyConnectPending(false);
 		}
-	}, [joeyActions, showToast]);
+	}, [joeyActions, showToast, onConnectStart, onConnectError]);
 
 	const cancel = useCallback(() => {
+		clearJoeyConnectIntent();
 		setShowJoeyQrModal(false);
 		setJoeyConnectUri(null);
 		setJoeyDeepLink(null);
 		setIsJoeyConnectPending(false);
 	}, []);
 
-	// Close modal UI when WC session/account appears (success path). Final toast comes from persistence.
 	useEffect(() => {
 		if (showJoeyQrModal && (session || account)) {
 			setShowJoeyQrModal(false);
@@ -73,9 +90,10 @@ export function useJoeyWalletConnect({
 		showJoeyQrModal,
 		joeyConnectUri,
 		joeyDeepLink,
-		connect,
+		connect: connect,
 		cancel,
 		account,
 		session,
+		disconnectFromProvider,
 	};
 }

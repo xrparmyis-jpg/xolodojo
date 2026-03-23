@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import type { Wallet } from '../services/walletService';
 import { addWallet, connectWallet, disconnectWallet } from '../services/walletService';
 import { extractJoeyWalletAddress } from '../wallets/joey/extractJoeyWalletAddress';
+import { clearJoeyConnectIntent, hasJoeyConnectIntent } from '../wallets/joey/joeyConnectIntent';
 
 type ShowToast = (type: 'success' | 'error', message: string, durationMs?: number) => void;
 
@@ -57,6 +58,11 @@ export function useJoeyWalletPersistence({
 			return;
 		}
 
+		// SDK session can outlive our DB disconnect — do not auto-reconnect unless user started a connect flow.
+		if (existingWallet && !existingWallet.is_connected && !hasJoeyConnectIntent()) {
+			return;
+		}
+
 		const currentConnectedWallet = wallets.find((w) => w.is_connected);
 
 		if (runningRef.current) return;
@@ -82,9 +88,11 @@ export function useJoeyWalletPersistence({
 						applyConnectedWalletFromApi(connectRes.wallet);
 					}
 					await loadWallets({ silent: true });
+					clearJoeyConnectIntent();
 					showToast('success', 'Joey Wallet added and connected!');
 				}
 			} catch (err) {
+				clearJoeyConnectIntent();
 				console.error('[JoeyWallet] Failed to add/connect:', err);
 				showToast(
 					'error',

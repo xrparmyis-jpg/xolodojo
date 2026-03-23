@@ -38,6 +38,7 @@ import { useJoeyWalletConnect } from '../hooks/useJoeyWalletConnect';
 import { useJoeyWalletPersistence } from '../hooks/useJoeyWalletPersistence';
 import { JoeyWalletQrModal } from './joey/JoeyWalletQrModal';
 import { LOADING_WALLET_SUMMARY_MESSAGE } from '../constants/walletUiMessages';
+import { clearJoeyConnectIntent } from '../wallets/joey/joeyConnectIntent';
 
 interface WalletConnectionProps {
     auth0Id: string;
@@ -54,17 +55,6 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
 
     const { open } = useWeb3Modal();
     const { address: wagmiAddress, isConnected: isWagmiConnected, connector: wagmiConnector } = useAccount();
-    // Joey Wallet: use custom hook for connection logic (must be after showToast is defined)
-    const {
-        isJoeyConnectPending,
-        showJoeyQrModal,
-        joeyConnectUri,
-        joeyDeepLink,
-        connect: handleConnectJoey,
-        cancel: handleCancelJoeyQr,
-        account: joeyAccount,
-        session: joeySession,
-    } = useJoeyWalletConnect({ showToast });
 
     const [wallets, setWallets] = useState<Wallet[]>([]);
     /** Specific overlay text for wallet operations (load, connect, disconnect, remove, etc.) */
@@ -81,6 +71,22 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
     const [copiedWalletId, setCopiedWalletId] = useState<number | null>(null);
     const [hasAttemptedXamanSessionRepair, setHasAttemptedXamanSessionRepair] = useState(false);
     const [hasResumedXamanOnMount, setHasResumedXamanOnMount] = useState(false);
+
+    const {
+        isJoeyConnectPending,
+        showJoeyQrModal,
+        joeyConnectUri,
+        joeyDeepLink,
+        connect: handleConnectJoey,
+        cancel: handleCancelJoeyQr,
+        account: joeyAccount,
+        session: joeySession,
+        disconnectFromProvider: disconnectJoeyFromProvider,
+    } = useJoeyWalletConnect({
+        showToast,
+        onConnectStart: () => setWalletBusyMessage('Waiting for Joey Wallet…'),
+        onConnectError: () => setWalletBusyMessage(null),
+    });
 
     const clearWalletToasts = useCallback(() => {
         clearToasts();
@@ -104,12 +110,16 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                 if (currentWallet.wallet_type === 'xaman') {
                     await xamanHandler.disconnect({ setShowToast: showToast });
                 }
+                if (currentWallet.wallet_type === 'joey') {
+                    clearJoeyConnectIntent();
+                    await disconnectJoeyFromProvider();
+                }
                 await disconnectWallet(auth0Id, accessToken);
             } catch (error) {
                 console.warn('Best-effort disconnect failed, continuing with new connection:', error);
             }
         },
-        [accessToken, auth0Id, showToast]
+        [accessToken, auth0Id, showToast, disconnectJoeyFromProvider]
     );
 
     const { mutateAsync: wagmiDisconnectAsync } = useWagmiDisconnect();
@@ -417,6 +427,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
 
     const handleConnectExisting = useCallback(
         async (walletId: number) => {
+            let walletKind: string | undefined;
             try {
                 clearWalletToasts();
 
@@ -425,6 +436,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                     showToast('error', 'Wallet not found');
                     return;
                 }
+                walletKind = wallet.wallet_type;
 
                 if (wallet.wallet_type === 'xaman') {
                     setWalletBusyMessage('Connecting to Xaman...');
@@ -433,7 +445,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                 }
 
                 if (wallet.wallet_type === 'joey') {
-                    setWalletBusyMessage('Opening Joey Wallet...');
+                    // Overlay: onConnectStart → "Waiting…", then persistence → "Saving Joey wallet…"
                     await handleConnectJoey();
                     return;
                 }
@@ -462,8 +474,11 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                 const err = error instanceof Error ? error : new Error(String(error));
                 console.error('Failed to connect existing wallet:', err);
                 showToast('error', `Failed to connect wallet: ${err.message}`);
-            } finally {
                 setWalletBusyMessage(null);
+            } finally {
+                if (walletKind !== 'joey') {
+                    setWalletBusyMessage(null);
+                }
             }
         },
         [
@@ -510,13 +525,8 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
             if (walletToDelete.is_connected) {
                 if (walletToDelete.wallet_type === 'walletconnect') {
                     await wagmiDisconnectAsync();
-                } else if (walletToDelete?.wallet_type === 'joey') {
-                    // Joey Wallet disconnect is now handled by joeyHandler
-                } else if (walletToDelete.wallet_type === 'xaman') {
-
                 }
-                // Then disconnect at the database level
-                await disconnectWallet(auth0Id, accessToken);
+                await tryDisconnectCurrentWallet(walletToDelete);
             }
 
             // Delete all pinned NFTs for this wallet
@@ -663,7 +673,8 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
     const overlayMessage =
         walletBusyMessage
         ?? (isAssetsLoading ? LOADING_WALLET_SUMMARY_MESSAGE : null)
-        ?? (isWalletConnectPending || isJoeyConnectPending ? 'Connecting to wallet...' : null);
+        ?? (isJoeyConnectPending ? 'Connecting to Joey Wallet…' : null)
+        ?? (isWalletConnectPending ? 'Connecting to wallet...' : null);
     const isInteractionBlocked = overlayMessage !== null;
     const shouldUseSummaryMinHeight = isAssetsLoading || ((connectedWalletAssets?.nft_count ?? 0) > 0);
 
