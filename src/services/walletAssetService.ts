@@ -5,6 +5,7 @@ export interface WalletAssetSummary {
   is_xrpl: boolean;
   xrp_balance: string | null;
   nft_count: number;
+  /** On-chain summary only. Trait/rarity data is off-chain — fetch JSON from `uri` (see NftGallery). */
   nfts: Array<{
     token_id: string;
     issuer: string | null;

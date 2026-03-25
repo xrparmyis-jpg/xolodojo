@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-// Social icons are now imported in useSocials
 import { faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
 import Button from '../components/Button';
 import ModalConfirm from '../components/ModalConfirm';
@@ -82,8 +81,6 @@ function Profile() {
         loadProfile();
     }, [isAuthenticated, user, getAccessTokenSilently, setProfile]);
 
-    // After Xaman mobile redirect: URL has PKCE `code`+`state`, implicit `access_token`, etc.
-    // Resume connect once so we can addWallet + connect when the user had no wallet row yet.
     useEffect(() => {
         if (typeof window === 'undefined') return;
         if (!isAuthenticated || !user) return;
@@ -91,10 +88,6 @@ function Profile() {
         const { pathname, search } = window.location;
         if (!shouldResumeXamanPkceConnect(pathname, search)) return;
 
-        // eslint-disable-next-line no-console
-        console.log('[Profile][Xaman] OAuth return detected — will resume Xaman connect', {
-            pathname,
-        });
         setResumeXamanOnMount(true);
     }, [isAuthenticated, user]);
 

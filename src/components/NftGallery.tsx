@@ -85,6 +85,92 @@ const parseSocialsFromPreferences = (preferences: unknown): PinnedNftSocials => 
     }, {});
 };
 
+/** Single trait row (OpenSea / Metaplex-style metadata `attributes`). */
+export type NftTrait = { trait_type: string; value: string | number };
+
+type NftMetadataResolution = {
+    url: string | null;
+    isCollectionFallback: boolean;
+    title: string | null;
+    collectionName: string | null;
+    traits: NftTrait[];
+};
+
+function parseAttributeEntry(raw: unknown): NftTrait | null {
+    if (!raw || typeof raw !== 'object') {
+        return null;
+    }
+    const r = raw as Record<string, unknown>;
+    const traitType =
+        typeof r.trait_type === 'string'
+            ? r.trait_type
+            : typeof r.traitType === 'string'
+              ? r.traitType
+              : typeof r.name === 'string'
+                ? r.name
+                : null;
+    const value = r.value;
+    if (!traitType?.trim()) {
+        return null;
+    }
+    if (typeof value === 'number') {
+        return { trait_type: traitType.trim(), value };
+    }
+    if (typeof value === 'string') {
+        return { trait_type: traitType.trim(), value: value.trim() };
+    }
+    if (typeof value === 'boolean') {
+        return { trait_type: traitType.trim(), value: value ? 'Yes' : 'No' };
+    }
+    return null;
+}
+
+/**
+ * Traits are not returned by the wallet API — only `uri` points to off-chain JSON.
+ * Common formats: top-level `attributes`, `properties.attributes`, or `traits`.
+ */
+function extractTraitsFromMetadata(metadata: unknown): NftTrait[] {
+    if (!metadata || typeof metadata !== 'object') {
+        return [];
+    }
+    const o = metadata as Record<string, unknown>;
+    const out: NftTrait[] = [];
+
+    const pushFromArray = (arr: unknown) => {
+        if (!Array.isArray(arr)) {
+            return;
+        }
+        for (const item of arr) {
+            const p = parseAttributeEntry(item);
+            if (p) {
+                out.push(p);
+            }
+        }
+    };
+
+    pushFromArray(o.attributes);
+
+    const props = o.properties;
+    if (props && typeof props === 'object') {
+        pushFromArray((props as Record<string, unknown>).attributes);
+    }
+
+    if (Array.isArray(o.traits)) {
+        for (const t of o.traits) {
+            if (typeof t === 'string' && t.trim()) {
+                out.push({ trait_type: 'Trait', value: t.trim() });
+            } else {
+                const p = parseAttributeEntry(t);
+                if (p) {
+                    out.push(p);
+                }
+            }
+        }
+    }
+
+    return out;
+}
+
 export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, auth0Id, accessToken }: NftGalleryProps) {
     const NFTS_PER_PAGE = 12;
     const navigate = useNavigate();
@@ -93,6 +179,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
     const [resolvedNftThumbnails, setResolvedNftThumbnails] = useState<Record<string, string | null>>({});
     const [resolvedNftTitles, setResolvedNftTitles] = useState<Record<string, string | null>>({});
     const [resolvedNftCollections, setResolvedNftCollections] = useState<Record<string, string | null>>({});
+    const [resolvedNftTraits, setResolvedNftTraits] = useState<Record<string, NftTrait[]>>({});
     const [collectionFallbackTokens, setCollectionFallbackTokens] = useState<Record<string, boolean>>({});
     const [selectedNftTokenId, setSelectedNftTokenId] = useState<string | null>(null);
     const [copiedFieldKey, setCopiedFieldKey] = useState<string | null>(null);
@@ -118,8 +205,8 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
     const [availableProfileSocials, setAvailableProfileSocials] = useState<PinnedNftSocials>({});
     const [selectedPinSocialPlatforms, setSelectedPinSocialPlatforms] = useState<Partial<Record<keyof PinnedNftSocials, boolean>>>({});
     const { showToast } = useToast();
-    const metadataResultCacheRef = useRef<Partial<Record<string, { url: string | null; isCollectionFallback: boolean; title: string | null; collectionName: string | null } | null>>>({});
-    const metadataRequestCacheRef = useRef<Partial<Record<string, Promise<{ url: string | null; isCollectionFallback: boolean; title: string | null; collectionName: string | null } | null>>>>({});
+    const metadataResultCacheRef = useRef<Partial<Record<string, NftMetadataResolution | null>>>({});
+    const metadataRequestCacheRef = useRef<Partial<Record<string, Promise<NftMetadataResolution | null>>>>({});
 
     const ipfsGateways = useMemo(
         () => [
@@ -296,12 +383,13 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
         return cleaned || null;
     };
 
-    const pickNftDetailsFromMetadata = (metadata: unknown): { url: string | null; isCollectionFallback: boolean; title: string | null; collectionName: string | null } | null => {
+    const pickNftDetailsFromMetadata = (metadata: unknown): NftMetadataResolution | null => {
         if (!metadata || typeof metadata !== 'object') {
             return null;
         }
 
         const metadataRecord = metadata as Record<string, unknown>;
+        const traits = extractTraitsFromMetadata(metadata);
         const collectionRecord = metadataRecord.collection as Record<string, unknown> | undefined;
         const titleCandidates = [
             metadataRecord.name,
@@ -343,6 +431,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                     isCollectionFallback: false,
                     title,
                     collectionName,
+                    traits,
                 };
             }
         }
@@ -364,23 +453,25 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                     isCollectionFallback: true,
                     title,
                     collectionName,
+                    traits,
                 };
             }
         }
 
-        if (title || collectionName) {
+        if (title || collectionName || traits.length > 0) {
             return {
                 url: null,
                 isCollectionFallback: false,
                 title,
                 collectionName,
+                traits,
             };
         }
 
         return null;
     };
 
-    const resolveNftDetailsFromMetadata = useCallback(async (uri: string | null): Promise<{ url: string | null; isCollectionFallback: boolean; title: string | null; collectionName: string | null } | null> => {
+    const resolveNftDetailsFromMetadata = useCallback(async (uri: string | null): Promise<NftMetadataResolution | null> => {
         if (!uri) {
             return null;
         }
@@ -415,10 +506,26 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                     }
 
                     const metadata = (await response.json()) as unknown;
+                    const metaObj =
+                        metadata && typeof metadata === 'object'
+                            ? (metadata as Record<string, unknown>)
+                            : null;
+                    debugNft('Metadata JSON top-level keys', {
+                        metadataUrl,
+                        keys: metaObj ? Object.keys(metaObj) : [],
+                    });
+                    debugNft('Raw metadata sample (truncated)', {
+                        metadataUrl,
+                        sample:
+                            typeof metadata === 'object'
+                                ? JSON.stringify(metadata).slice(0, 1200)
+                                : String(metadata).slice(0, 400),
+                    });
                     const resolvedDetails = pickNftDetailsFromMetadata(metadata);
                     debugNft('Resolved NFT details from metadata', {
                         metadataUrl,
                         resolvedDetails,
+                        traitCount: resolvedDetails?.traits?.length ?? 0,
                     });
                     if (resolvedDetails) {
                         return resolvedDetails;
@@ -500,6 +607,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
     useEffect(() => {
         setResolvedNftTitles({});
         setResolvedNftCollections({});
+        setResolvedNftTraits({});
     }, [walletAddress]);
 
     useEffect(() => {
@@ -584,6 +692,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
             const titleUpdates: Record<string, string | null> = {};
             const collectionUpdates: Record<string, string | null> = {};
             const fallbackUpdates: Record<string, boolean> = {};
+            const traitUpdates: Record<string, NftTrait[]> = {};
 
             await Promise.all(
                 paginatedNfts.map(async (nft) => {
@@ -627,6 +736,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                         titleUpdates[nft.token_id] = metadataDetails.title;
                         collectionUpdates[nft.token_id] = metadataDetails.collectionName;
                         fallbackUpdates[nft.token_id] = metadataDetails.isCollectionFallback;
+                        traitUpdates[nft.token_id] = metadataDetails.traits;
                     }
                 })
             );
@@ -656,6 +766,13 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                 setResolvedNftCollections((current) => ({
                     ...current,
                     ...collectionUpdates,
+                }));
+            }
+
+            if (!cancelled && Object.keys(traitUpdates).length > 0) {
+                setResolvedNftTraits((current) => ({
+                    ...current,
+                    ...traitUpdates,
                 }));
             }
         };
@@ -689,6 +806,8 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
         || 'Unknown Collection'
         : '';
 
+    const selectedNftTraits = selectedNft ? resolvedNftTraits[selectedNft.token_id] : undefined;
+
     const selectedNftThumbnailUrl = selectedNft
         ? getNftThumbnailUrl(selectedNft.token_id, selectedNft.uri)
         : null;
@@ -701,6 +820,24 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
     useEffect(() => {
         setIsSelectedNftImageLoaded(false);
     }, [selectedNftTokenId, selectedNftThumbnailSrc]);
+
+    // Ensure traits load when opening the detail modal (e.g. direct image URI skipped metadata on the grid).
+    useEffect(() => {
+        if (!selectedNft?.uri) {
+            return;
+        }
+        let cancelled = false;
+        void (async () => {
+            const details = await resolveNftDetailsFromMetadata(selectedNft.uri);
+            if (cancelled || !details) {
+                return;
+            }
+            setResolvedNftTraits((prev) => ({ ...prev, [selectedNft.token_id]: details.traits }));
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, [selectedNft?.token_id, selectedNft?.uri, resolveNftDetailsFromMetadata]);
 
     const pinTargetNft = useMemo(
         () => nfts.find((nft) => nft.token_id === pinTargetTokenId) || null,
@@ -1086,6 +1223,43 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                                     <span className="text-[10px] text-green-300">Copied</span>
                                 )}
                             </div>
+
+                            {selectedNft.uri ? (
+                                <div className="border-t border-white/10 pt-3">
+                                    <p className="text-xs font-semibold uppercase tracking-wide text-white/70 mb-2">
+                                        Traits
+                                    </p>
+                                    {selectedNftTraits === undefined ? (
+                                        <p className="text-white/50 text-sm">Loading traits from metadata…</p>
+                                    ) : selectedNftTraits.length === 0 ? (
+                                        <p className="text-white/60 text-sm leading-relaxed">
+                                            No trait rows found in metadata. Traits usually live in an{' '}
+                                            <code className="rounded bg-white/10 px-1 text-white/90">attributes</code>{' '}
+                                            array in the JSON at the token&apos;s URI. Add{' '}
+                                            <code className="rounded bg-white/10 px-1 text-white/90">?nftDebug=1</code>{' '}
+                                            to the page URL to log keys and a JSON sample in the console.
+                                        </p>
+                                    ) : (
+                                        <ul className="grid gap-2 sm:grid-cols-2">
+                                            {selectedNftTraits.map((trait, index) => (
+                                                <li
+                                                    key={`${trait.trait_type}-${String(trait.value)}-${index}`}
+                                                    className="rounded-md border border-white/15 bg-white/5 px-3 py-2 text-sm"
+                                                >
+                                                    <div className="text-[11px] uppercase tracking-wide text-white/55">
+                                                        {trait.trait_type}
+                                                    </div>
+                                                    <div className="font-medium text-white/95">{String(trait.value)}</div>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </div>
+                            ) : (
+                                <p className="text-white/55 text-sm">
+                                    This token has no URI on ledger — trait metadata is unavailable.
+                                </p>
+                            )}
                         </div>
                     </div>
                 )}
