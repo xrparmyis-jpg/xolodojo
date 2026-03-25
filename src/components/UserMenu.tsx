@@ -76,8 +76,9 @@ function UserMenu({ isSticky = false }: UserMenuProps) {
     return (
         <div ref={dropdownRef} className="relative">
             <button
+                type="button"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className={`user-menu-avatar transition-all duration-300 flex items-center justify-center rounded-full overflow-hidden ${isSticky ? 'h-10 w-10 text-sm' : 'h-12 w-12 text-base md:text-xl'}`}
+                className={`cursor-pointer flex items-center justify-center overflow-hidden rounded-full border-2 border-white/30 bg-gradient-to-br from-[#667eea] to-[#764ba2] p-0 font-bold text-white transition-all duration-300 hover:scale-105 hover:border-white/60 ${isSticky ? 'h-10 w-10 text-sm' : 'h-12 w-12 text-base md:text-xl'}`}
                 aria-label="User menu"
             >
                 {user?.picture ? (
@@ -92,18 +93,21 @@ function UserMenu({ isSticky = false }: UserMenuProps) {
             </button>
 
             {isDropdownOpen && (
-                <div className="user-menu-dropdown">
+                <div className="absolute right-0 top-full z-[1000] mt-2 min-w-[200px] overflow-hidden rounded-lg border border-white/10 bg-[#1a1a1a] shadow-[0_4px_12px_rgba(0,0,0,0.3)]">
                     <Link
                         to="/profile"
                         onClick={() => setIsDropdownOpen(false)}
+                        className="flex w-full items-center gap-3 bg-transparent px-4 py-3 text-left text-sm text-white no-underline transition-colors hover:bg-white/10"
                     >
-                        <FontAwesomeIcon icon={faUser} />
+                        <FontAwesomeIcon icon={faUser} className="h-4 w-4 shrink-0" />
                         <span>Profile</span>
                     </Link>
                     <button
+                        type="button"
                         onClick={handleLogout}
+                        className="flex w-full cursor-pointer items-center gap-3 border-0 border-t border-white/10 bg-transparent px-4 py-3 text-left text-sm text-white transition-colors hover:bg-white/10"
                     >
-                        <FontAwesomeIcon icon={faSignOutAlt} />
+                        <FontAwesomeIcon icon={faSignOutAlt} className="h-4 w-4 shrink-0" />
                         <span>Logout</span>
                     </button>
                 </div>

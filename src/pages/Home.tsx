@@ -1,8 +1,100 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import GsapPageHeading from "../components/GsapPageHeading";
 import { useSectionParallaxOffsets } from "../hooks/useSectionParallaxOffsets";
 import SectionParallaxBlobs from "../components/SectionParallaxBlobs";
 import CounterSection from "../components/CounterSection";
+
+const SERVICE_ROW =
+  "mt-[30px] flex flex-col items-center justify-center gap-4 md:flex-row md:items-start md:gap-6";
+const SERVICE_CONTENT =
+  "flex min-w-0 flex-1 flex-col rounded-[25px] border border-[rgba(207,208,212,0.2)] bg-[#1d1d21] p-[50px] text-center max-w-full w-full md:text-left [&_p]:mb-5 [&_p:last-child]:mb-0";
+
+/** Mobile: always image → copy. At `lg`, alternate columns using `imageAtLg`. Append rows here (up to ~5). */
+type LegacyStoryRow = {
+  id: string;
+  imageAtLg: "left" | "right";
+  imageSrc: string;
+  imageAlt: string;
+  eyebrow: string;
+  title: ReactNode;
+  body: ReactNode;
+};
+
+const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
+  {
+    id: "ancient",
+    imageAtLg: "left",
+    imageSrc: "/01.jpg",
+    imageAlt: "Ancient Xolo Sculpture",
+    eyebrow: "Ancient Mesoamerica",
+    title: (
+      <>
+        A Sacred Heritage
+      </>
+    ),
+    body: (
+      <>
+        Dating back over 3,000 years, the Xoloitzquintle (Show Low eats queentlee) is a living symbol
+        of Mesoamerican heritage, revered as a spiritual guide to
+        Mictlan, the Aztec afterlife.
+      </>
+    ),
+  },
+  {
+    id: "team",
+    imageAtLg: "right",
+    imageSrc: "/02.jpg",
+    imageAlt: "Artist and Creator",
+    eyebrow: "The Team",
+    title: (
+      <>
+        RedShadow, Cryptonite &amp; Code
+      </>
+    ),
+    body: (
+      <>
+        Cryptonite, the global explorer and XRPL enthusiast,
+        partnered with RedShadow, the talented artist,and Code, the skilled developer, to bring
+        to bring the 10,001 Xolo NFTs and XoloGlobe into reality, blending art, culture, and blockchain innovation.
+      </>
+    ),
+  },
+  {
+    id: "utility",
+    imageAtLg: "left",
+    imageSrc: "/03.jpg",
+    imageAlt: "Map and travel icons",
+    eyebrow: "Future Utility",
+    title: (
+      <>
+        Fostering Global Travel &amp; Connection
+      </>
+    ),
+    body: (
+      <>
+        The collection&apos;s long-term vision is to build a decentralized
+        platform for Xolo NFT holders to network and share travel experiences, fostering global connection through
+        wallet-to-wallet networking and person to person experiences on the XRPL.
+      </>
+    ),
+  },
+];
+
+const LEGACY_ROW_ANIM: readonly string[] = [
+  "opacity-0 animate-[fadeInUp_0.6s_ease-out_0.28s_forwards]",
+  "opacity-0 animate-[fadeInUp_0.6s_ease-out_0.32s_forwards]",
+  "opacity-0 animate-[fadeInUp_0.6s_ease-out_0.36s_forwards]",
+  "opacity-0 animate-[fadeInUp_0.6s_ease-out_0.4s_forwards]",
+  "opacity-0 animate-[fadeInUp_0.6s_ease-out_0.44s_forwards]",
+];
+
+const LEGACY_IMAGE_WRAP =
+  "w-full transition-transform duration-300 ease-in-out hover:rotate-[10deg]";
+const LEGACY_IMAGE_IMG =
+  "h-auto w-full rounded-[50px] object-cover max-w-[480px] lg:max-w-full mx-auto";
+const LEGACY_CONTENT_WRAP = "flex min-w-0 flex-col text-left mt-4 lg:mt-0";
+const LEGACY_EYEBROW =
+  "mb-5 inline-block rounded-2xl border border-[rgba(207,208,212,0.2)] px-5 py-2 text-[15px] font-bold leading-none";
 
 function Home() {
   // const parallaxRef = useRef<HTMLDivElement>(null);
@@ -72,28 +164,19 @@ function Home() {
   return (
     <>
       <section
-        className="hero-secton hero-1 bg-cover border-b border-[#36e9e424]"
+        className="relative z-[9] overflow-hidden border-b border-[#36e9e424] bg-cover bg-center bg-no-repeat pt-[210px] pb-0 max-[1199px]:pt-[170px] max-[1199px]:pb-[100px] max-[991px]:pb-20"
         style={{ backgroundImage: "url('/hero-bg-3.png')" }}
       >
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-wrap -mx-4">
-            <div className="w-full px-4">
-              <div className="hero-content">
-                {/* <div className="color-bg">
-                  <img src="/color-bg.png" alt="img" />
-                </div> */}
-              </div>
-            </div>
-          </div>
-        </div>
         <div
-          className="hero-image img-custom-anim-left bg-cover"
+          className="mt-[150px] h-[320px] w-full max-[1199px]:mt-[50px] max-[1199px]:h-[150px] max-[575px]:h-20 bg-cover bg-center bg-no-repeat opacity-0 animate-[heroImgLeft_1.3s_cubic-bezier(0.645,0.045,0.355,1)_0.4s_forwards]"
           style={{ backgroundImage: "url('/hero-1.png')" }}
-        ></div>
+        />
       </section>
 
       <section
-        ref={sectionRef} className="relative overflow-hidden fix py-4 lg:py-12">
+        ref={sectionRef}
+        className="relative overflow-hidden py-4 lg:py-12"
+      >
         <SectionParallaxBlobs
           bgShapeOffset={bgShapeOffset}
           colorBgOffset={colorBgOffset}
@@ -108,14 +191,20 @@ function Home() {
             iconCount={1}
             centered
           />
-          <div className="flex flex-col items-center gap-6 mt-8">
-            <div className="w-full max-w-4xl mx-auto opacity-0 animate-[fadeInUp_0.6s_ease-out_0.2s_forwards]">
-              <div className="service-box-items flex flex-col md:flex-row items-center md:items-start justify-center gap-4 md:gap-6">
-                <div className="service-image shrink-0 max-w-75">
-                  <img src="/xolo-art.png" alt="Xolo NFT Art" className="min-w-25 w-65 md:w-[320px] lg:w-95" />
+          <div className="mt-8 flex flex-col items-center gap-6">
+            <div className="mx-auto w-full max-w-4xl opacity-0 animate-[fadeInUp_0.6s_ease-out_0.2s_forwards]">
+              <div className={SERVICE_ROW}>
+                <div className="max-w-75 shrink-0">
+                  <img
+                    src="/xolo-art.png"
+                    alt="Xolo NFT Art"
+                    className="min-w-25 w-65 rounded-[20px] object-cover md:w-[320px] lg:w-95"
+                  />
                 </div>
-                <div className="service-content text-center md:text-left">
-                  <h3 className="h3-default">10,001 Unique NFT Masterpieces</h3>
+                <div className={SERVICE_CONTENT}>
+                  <h3 className="text-xl font-bold md:text-2xl mb-[15px]">
+                    10,001 Unique NFT Masterpieces
+                  </h3>
                   <p>
                     A meaningful collection featuring 10,001 unique Xolo
                     NFTs with a combination of 11 distinct traits and 311 sub traits, hand-drawn by RedShadow.
@@ -123,13 +212,19 @@ function Home() {
                 </div>
               </div>
             </div>
-            <div className="w-full max-w-4xl mx-auto opacity-0 animate-[fadeInUp_0.6s_ease-out_0.4s_forwards]">
-              <div className="service-box-items flex flex-col md:flex-row items-center md:items-start justify-center gap-4 md:gap-6">
-                <div className="service-image shrink-0 max-w-75">
-                  <img src="/xrpl-blockchain.png" alt="XRPL Blockchain" className="min-w-25 w-65 md:w-[320px] lg:w-95" />
+            <div className="mx-auto w-full max-w-4xl opacity-0 animate-[fadeInUp_0.6s_ease-out_0.4s_forwards]">
+              <div className={SERVICE_ROW}>
+                <div className="max-w-75 shrink-0">
+                  <img
+                    src="/xrpl-blockchain.png"
+                    alt="XRPL Blockchain"
+                    className="min-w-25 w-65 rounded-[20px] object-cover md:w-[320px] lg:w-95"
+                  />
                 </div>
-                <div className="service-content text-center md:text-left">
-                  <h3 className="h3-default">Built on the XRP Ledger (XRPL)</h3>
+                <div className={SERVICE_CONTENT}>
+                  <h3 className="text-xl font-bold md:text-2xl mb-[15px]">
+                    Built on the XRP Ledger (XRPL)
+                  </h3>
                   <p>
                     Hosted on the XRPL for its high speed payments, low-cost
                     transactions, and eco-friendly design.
@@ -137,13 +232,19 @@ function Home() {
                 </div>
               </div>
             </div>
-            <div className="w-full max-w-4xl mx-auto opacity-0 animate-[fadeInUp_0.6s_ease-out_0.6s_forwards]">
-              <div className="service-box-items flex flex-col md:flex-row items-center md:items-start justify-center gap-4 md:gap-6">
-                <div className="service-image shrink-0 max-w-75">
-                  <img src="/xolo-travel.png" alt="Xolo Travel Vision" className="min-w-25 w-65 md:w-[320px] lg:w-95" />
+            <div className="mx-auto w-full max-w-4xl opacity-0 animate-[fadeInUp_0.6s_ease-out_0.6s_forwards]">
+              <div className={SERVICE_ROW}>
+                <div className="max-w-75 shrink-0">
+                  <img
+                    src="/xolo-travel.png"
+                    alt="Xolo Travel Vision"
+                    className="min-w-25 w-65 rounded-[20px] object-cover md:w-[320px] lg:w-95"
+                  />
                 </div>
-                <div className="service-content text-center md:text-left">
-                  <h3 className="h3-default">Decentralized Travel Vision</h3>
+                <div className={SERVICE_CONTENT}>
+                  <h3 className="text-xl font-bold md:text-2xl mb-[15px]">
+                    Decentralized Travel Vision
+                  </h3>
                   <p>
                     Our long-term goal: a platform for holders to network, share skills, and explore the
                     world person to person, interacting wallet-to-wallet to foster global connection through travel
@@ -152,13 +253,17 @@ function Home() {
                 </div>
               </div>
             </div>
-            <div className="w-full max-w-4xl mx-auto opacity-0 animate-[fadeInUp_0.6s_ease-out_0.8s_forwards]">
-              <div className="service-box-items flex flex-col md:flex-row items-center md:items-start justify-center gap-4 md:gap-6 mb-0">
-                <div className="service-image shrink-0 max-w-75">
-                  <img src="/xrp-cafe-mint.png" alt="XRP Cafe Mint" className="min-w-25 w-65 md:w-[320px] lg:w-95" />
+            <div className="mx-auto w-full max-w-4xl opacity-0 animate-[fadeInUp_0.6s_ease-out_0.8s_forwards]">
+              <div className={SERVICE_ROW}>
+                <div className="max-w-75 shrink-0">
+                  <img
+                    src="/xrp-cafe-mint.png"
+                    alt="XRP Cafe Mint"
+                    className="min-w-25 w-65 rounded-[20px] object-cover md:w-[320px] lg:w-95"
+                  />
                 </div>
-                <div className="service-content text-center md:text-left">
-                  <h3 className="h3-default">
+                <div className={SERVICE_CONTENT}>
+                  <h3 className="text-xl font-bold md:text-2xl mb-[15px]">
                     Upcoming Mint in the xrp.cafe
                   </h3>
                   <p>
@@ -174,92 +279,74 @@ function Home() {
 
       <section
         ref={projectSectionRef}
-        className="project-section fix py-8 section-bg bg-cover relative overflow-visible border-t border-[#36e9e424]"
+        className="relative overflow-visible border-t border-[#36e9e424] bg-[var(--bg)] bg-cover py-8"
         style={{ backgroundImage: "url('/line-shape.png')" }}
       >
         <div
           ref={projectColorBgRef}
-          className="color-bg-2 absolute pointer-events-none"
+          className="pointer-events-none absolute -z-10"
           style={{
-            top: '-12%',
-            right: '-50px',
+            top: "-12%",
+            right: "-50px",
             transform: `translateY(${projectBlobOffset}px)`,
-            willChange: 'transform',
-            transition: 'transform 0.1s ease-out',
-            zIndex: -1,
-            filter: 'brightness(1.2)',
+            willChange: "transform",
+            transition: "transform 0.1s ease-out",
+            filter: "brightness(1.2)",
           }}
         >
-          <img src="/color-bg-shape-2.png" alt="Orange blob" />
+          <img src="/color-bg-shape-2.png" alt="" aria-hidden />
         </div>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="project-wrapper">
-            <div className="text-center mb-4">
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold opacity-0 animate-[fadeInUp_0.6s_ease-out_0.3s_forwards]">
-                The Xolo's <br /><img src="/has.png" alt="asterisk" className="inline-block w-5 h-5 md:w-6 md:h-6 mx-1 align-middle" /> Legacy
-              </h2>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center justify-items-center">
-              <div className="w-full opacity-0 animate-[fadeInUp_0.6s_ease-out_0.3s_forwards]">
-                <div className="project-image">
-                  <img src="/01.jpg" alt="Ancient Xolo Sculpture" />
-                </div>
-              </div>
-              <div className="w-full opacity-0 animate-[fadeInUp_0.6s_ease-out_0.5s_forwards]">
-                <div className="project-content">
-                  <span>Ancient Mesoamerica</span>
-                  <h3 className="text-2xl md:text-3xl font-bold mb-3">
-                    A Sacred <br />
-                    Heritage
-                  </h3>
-                  <p>
-                    Dating back over 3,000 years, the Xoloitzquintle (Show Low eats queentlee) is a living symbol
-                    of Mesoamerican heritage, revered as a spiritual guide to
-                    Mictlan, the Aztec afterlife.
-                  </p>
-                </div>
-              </div>
+          <div className="mb-6 text-center lg:mb-8">
+            <h2 className="text-3xl font-bold opacity-0 animate-[fadeInUp_0.6s_ease-out_0.3s_forwards] md:text-4xl lg:text-5xl">
+              The Xolo&apos;s <br />
+              <img
+                src="/has.png"
+                alt="asterisk"
+                className="mx-1 inline-block h-5 w-5 align-middle md:h-6 md:w-6"
+              />{" "}
+              Legacy
+            </h2>
+          </div>
 
-              <div className="w-full opacity-0 animate-[fadeInUp_0.6s_ease-out_0.3s_forwards]">
-                <div className="project-content">
-                  <span>The Team</span>
-                  <h3 className="text-2xl md:text-3xl font-bold mb-3">
-                    RedShadow &amp; <br />
-                    Cryptonite
-                    Code
-                  </h3>
-                  <p>
-                    Cryptonite, the global explorer and XRPL enthusiast,
-                    partnered with RedShadow, the talented artist,and Code, the skilled developer, to bring
-                    to bring the 10,001 Xolo NFTs and XoloGlobe into reality, blending art, culture, and blockchain innovation.
-                  </p>
+          <div className="flex flex-col gap-12 lg:gap-16">
+            {LEGACY_STORY_ROWS.map((row, index) => {
+              const imageLeft = row.imageAtLg === "left";
+              return (
+                <div
+                  key={row.id}
+                  className={`flex w-full flex-col gap-3 sm:gap-4 lg:flex-row lg:items-center lg:gap-5 ${LEGACY_ROW_ANIM[index] ?? LEGACY_ROW_ANIM[4]
+                    }`}
+                >
+                  <div
+                    className={`min-w-0 w-full lg:w-1/2 order-1 ${imageLeft ? "lg:order-1" : "lg:order-2"
+                      }`}
+                  >
+                    <div className={LEGACY_IMAGE_WRAP}>
+                      <img
+                        src={row.imageSrc}
+                        alt={row.imageAlt}
+                        className={LEGACY_IMAGE_IMG}
+                      />
+                    </div>
+                  </div>
+                  <div
+                    className={`min-w-0 w-full lg:w-1/2 order-2 ${imageLeft ? "lg:order-2" : "lg:order-1"
+                      }`}
+                  >
+                    <div className={LEGACY_CONTENT_WRAP}>
+                      <span className={LEGACY_EYEBROW}>{row.eyebrow}</span>
+                      <h3 className="my-2 lg:mb-6 text-2xl font-bold md:text-3xl lg:text-4xl">
+                        {row.title}
+                      </h3>
+                      <div className="max-w-[350px] leading-relaxed">
+                        {row.body}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="w-full opacity-0 animate-[fadeInUp_0.6s_ease-out_0.5s_forwards]">
-                <div className="project-image style-2">
-                  <img src="/02.jpg" alt="Artist and Creator" />
-                </div>
-              </div>
-              <div className="w-full opacity-0 animate-[fadeInUp_0.6s_ease-out_0.3s_forwards]">
-                <div className="project-image">
-                  <img src="/03.jpg" alt="Map and travel icons" />
-                </div>
-              </div>
-              <div className="w-full opacity-0 animate-[fadeInUp_0.6s_ease-out_0.5s_forwards]">
-                <div className="project-content">
-                  <span>Future Utility</span>
-                  <h3 className="text-2xl md:text-3xl font-bold mb-3">
-                    Fostering Global <br />
-                    Travel &amp; Connection
-                  </h3>
-                  <p>
-                    The collection's long-term vision is to build a decentralized
-                    platform for Xolo NFT holders to network and share travel experiences, fostering global connection through
-                    wallet-to-wallet networking and person to person experiences on the XRPL.
-                  </p>
-                </div>
-              </div>
-            </div>
+              );
+            })}
           </div>
         </div>
       </section>

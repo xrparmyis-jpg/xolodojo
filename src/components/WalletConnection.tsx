@@ -728,7 +728,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                         const truncatedAddress = wallet.wallet_address.length > 12
                             ? `${wallet.wallet_address.slice(0, 6)}...${wallet.wallet_address.slice(-6)}`
                             : wallet.wallet_address;
-                        // Custom wallet label logic
+
                         let walletLabel = wallet.wallet_label;
                         if (!walletLabel) {
                             if (wallet.wallet_type === 'xaman') {

@@ -9,7 +9,6 @@ import { ToastProvider } from "./components/ToastProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useUserSync } from "./hooks/useUserSync";
 import Home from "./pages/Home";
-import About from "./pages/About";
 import FAQ from "./pages/FAQ";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/404";
@@ -86,7 +85,6 @@ function AppContent() {
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
           <Route path="/xoloitzquintle" element={<Xoloitzquintle />} />
           <Route path="/vision" element={<Vision />} />
           <Route path="/team" element={<Team />} />

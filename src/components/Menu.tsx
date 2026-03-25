@@ -60,21 +60,17 @@ function Menu({
         { path: '/xologlobe', label: 'XoloGlobe' },
     ];
 
+    const mobileNavLinkClass = ({ isActive }: { isActive: boolean }) =>
+        `flex items-center gap-3 border-b border-white/10 py-3 text-base font-medium capitalize no-underline transition-colors hover:text-[#b7e9f7] ${isActive ? 'font-semibold text-[#b7e9f7]' : 'text-white'}`;
+
     if (variant === 'mobile-toggle') {
         return (
-            <div className="header__hamburger" style={{ display: 'block' }}>
-                <style>{`
-                    @media (min-width: 768px) {
-                        .header__hamburger {
-                            display: none !important;
-                        }
-                    }
-                `}</style>
+            <div className="md:hidden">
                 <button
+                    type="button"
                     onClick={toggleMobileMenu}
                     aria-label="Toggle mobile menu"
-                    style={{ color: 'var(--white)' }}
-                    className='cursor-pointer'
+                    className="cursor-pointer border-0 bg-transparent p-2 text-xl text-white"
                 >
                     <FontAwesomeIcon icon={isMobileMenuOpen ? faTimes : faBars} />
                 </button>
@@ -85,15 +81,17 @@ function Menu({
     // Desktop menu variant
     return (
         <>
-            {/* Desktop Menu - Only show on desktop screens */}
-            <nav className={`main-menu desktop-menu-wrapper ${isSticky ? '-mt-1' : ''}`}>
-                <ul className="flex flex-row gap-6">
+            <nav
+                className={`hidden md:block ${isSticky ? '-mt-1' : ''}`}
+                aria-label="Primary"
+            >
+                <ul className="m-0 flex list-none flex-row gap-6 p-0">
                     {menuItems.map((item) => (
-                        <li key={item.path}>
+                        <li key={item.path} className="relative list-none">
                             <NavLink
                                 to={item.path}
                                 className={({ isActive }) =>
-                                    `inline-block text-lg font-medium capitalize transition-all duration-300 ease-in-out no-underline ${isSticky ? 'py-1.5' : 'py-5'} text-white hover:text-[#b7e9f7] ${isActive ? 'font-bold underline' : ''}`
+                                    `inline-block text-lg font-medium capitalize text-white no-underline transition-all duration-300 ease-in-out hover:text-[#b7e9f7] ${isSticky ? 'py-1.5' : 'py-5'} ${isActive ? `font-bold text-[#b7e9f7] underline` : ''}`
                                 }
                             >
                                 {item.label}
@@ -103,71 +101,69 @@ function Menu({
                 </ul>
             </nav>
 
-
             {variant === 'desktop' && (
                 <>
                     {isMobileMenuOpen && (
                         <div
-                            className="mobile-menu-overlay d-md-none"
+                            className="fixed inset-0 z-[9998] bg-black/50 md:hidden"
                             onClick={closeMobileMenu}
+                            role="presentation"
                             aria-hidden="true"
                         />
                     )}
 
                     <div
-                        className={`mobile-menu-drawer d-md-none ${isMobileMenuOpen ? 'mobile-menu-open' : ''}`}
+                        className={`fixed top-0 right-0 z-[9999] h-screen w-[320px] max-w-[85vw] overflow-hidden bg-[#1d1d21] shadow-[-2px_0_10px_rgba(0,0,0,0.3)] transition-transform duration-300 ease-in-out md:hidden ${isMobileMenuOpen ? 'translate-x-0 pointer-events-auto' : 'translate-x-full pointer-events-none'}`}
                     >
-                        <div className="mobile-menu-drawer-inner">
-                            <div className="mobile-menu-header">
+                        <div className="flex h-full flex-col overflow-hidden">
+                            <div className="flex items-center justify-between border-b border-white/20 px-5 py-5">
                                 <NavLink to="/" onClick={closeMobileMenu} className="no-underline hover:no-underline">
                                     <img
                                         src="/white-logo.png"
                                         alt="logo-img"
-                                        className="mobile-menu-logo"
+                                        className="h-8 w-auto"
                                     />
                                 </NavLink>
                                 <button
+                                    type="button"
                                     onClick={closeMobileMenu}
-                                    className="mobile-menu-close-btn"
+                                    className="cursor-pointer border-0 bg-transparent p-2 text-xl text-white transition-colors hover:text-[#b7e9f7]"
                                     aria-label="Close menu"
                                 >
                                     <FontAwesomeIcon icon={faTimes} />
                                 </button>
                             </div>
 
-                            {/* Mobile Menu Items */}
-                            <nav className="mobile-menu-nav">
-                                <ul>
+                            <nav className="flex-1 overflow-y-auto p-5" aria-label="Mobile primary">
+                                <ul className="m-0 list-none p-0">
                                     {menuItems.map((item) => (
-                                        <li key={item.path}>
+                                        <li key={item.path} className="mb-2">
                                             <NavLink
                                                 to={item.path}
                                                 onClick={closeMobileMenu}
-                                                className={({ isActive }) =>
-                                                    isActive ? 'active no-underline hover:no-underline' : 'no-underline hover:no-underline'
-                                                }
+                                                className={mobileNavLinkClass}
                                             >
                                                 {item.label}
                                             </NavLink>
                                         </li>
                                     ))}
-                                    {/* Auth Menu Items */}
                                     {!isLoading && (
                                         <>
                                             {isAuthenticated ? (
                                                 <>
-                                                    <li>
+                                                    <li className="mb-2">
                                                         <Link
                                                             to="/profile"
                                                             onClick={closeMobileMenu}
-                                                            className="no-underline hover:no-underline"
+                                                            className="flex w-full items-center gap-3 border-b border-white/10 py-3 text-left text-base font-medium text-white no-underline transition-colors hover:text-[#b7e9f7]"
                                                         >
-                                                            <FontAwesomeIcon icon={faUser} />
+                                                            <FontAwesomeIcon icon={faUser} className="h-[18px] w-[18px] shrink-0" />
                                                             <span>Profile</span>
                                                         </Link>
                                                     </li>
-                                                    <li>
+                                                    <li className="mb-2">
                                                         <button
+                                                            type="button"
                                                             onClick={() => {
                                                                 logout({
                                                                     logoutParams: {
@@ -176,23 +172,24 @@ function Menu({
                                                                 });
                                                                 closeMobileMenu();
                                                             }}
-                                                            className="mobile-menu-logout-btn"
+                                                            className="mt-2 flex w-full cursor-pointer items-center gap-3 border-0 border-b border-white/10 bg-transparent py-3 text-left text-base font-medium text-white transition-colors hover:text-[#b7e9f7]"
                                                         >
-                                                            <FontAwesomeIcon icon={faSignOutAlt} />
+                                                            <FontAwesomeIcon icon={faSignOutAlt} className="h-[18px] w-[18px] shrink-0" />
                                                             <span>Logout</span>
                                                         </button>
                                                     </li>
                                                 </>
                                             ) : (
-                                                <li>
+                                                <li className="mb-2">
                                                     <button
+                                                        type="button"
                                                         onClick={() => {
                                                             loginWithRedirect();
                                                             closeMobileMenu();
                                                         }}
-                                                        className="mobile-menu-login-btn"
+                                                        className="mt-2 flex w-full cursor-pointer items-center gap-3 border-0 border-b border-white/10 bg-transparent py-3 text-left text-base font-medium text-white transition-colors hover:text-[#b7e9f7]"
                                                     >
-                                                        <FontAwesomeIcon icon={faSignInAlt} />
+                                                        <FontAwesomeIcon icon={faSignInAlt} className="h-[18px] w-[18px] shrink-0" />
                                                         <span>Login</span>
                                                     </button>
                                                 </li>

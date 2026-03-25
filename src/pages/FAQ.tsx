@@ -35,15 +35,15 @@ const faqItems = [
 ];
 
 function FAQ() {
-  const [openId, setOpenId] = useState<string | null>('');
+  const [openId, setOpenId] = useState<string | null>(null);
 
   return (
     <>
       <section
-        className="relative bg-cover bg-center bg-no-repeat pt-16 pb-4 md:pt-30 border-b border-[#36e9e424]"
+        className="relative border-b border-[#36e9e424] bg-cover bg-center bg-no-repeat pt-16 pb-4 md:pt-[7.5rem]"
         style={{ backgroundImage: "url('/Pattern.png')" }}
       >
-        <div className="container mx-auto max-w-7xl px-4">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center text-center">
             <div className="mb-8">
               <img src="/04a.png" alt="" className="max-h-56 w-auto rounded-md object-contain md:max-h-80" />
@@ -52,13 +52,10 @@ function FAQ() {
         </div>
       </section>
 
-      <section
-        //ref={sectionRef}
-        className="relative overflow-hidden py-8 lg:py-12 bg-(--bg)"
-      >
-        <div className="mx-auto max-w-4xl [&_p]:text-[#decee9]">
+      <section className="relative overflow-hidden bg-[#1a1a1e] py-8 lg:py-12">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 [&_p]:text-[#decee9]">
           <GsapPageSubHeading heading="Frequently Asked Questions" />
-          <div className="mt-8 divide-y divide-white/20 overflow-hidden rounded-xl border border-[#decee9]/20 bg-black/70 mb-4">
+          <div className="mt-8 mb-4 divide-y divide-white/20 overflow-hidden rounded-xl border border-[#decee9]/20 bg-black/70">
             {faqItems.map((item) => {
               const isOpen = openId === item.id;
               return (
@@ -86,7 +83,7 @@ function FAQ() {
                     role="region"
                     aria-labelledby={`${item.id}-head`}
                     hidden={!isOpen}
-                    className="overflow-hidden fade-in-up-visible"
+                    className={isOpen ? 'overflow-hidden animate-fade-in-up' : 'overflow-hidden'}
                   >
                     <div className="border-t border-white/20 bg-white/5 px-5 pb-4 pt-2">
                       <p className="text-sm leading-relaxed text-white/90 md:text-base">
@@ -98,7 +95,8 @@ function FAQ() {
               );
             })}
           </div>
-        </div>  </section>
+        </div>
+      </section>
     </>
   );
 }

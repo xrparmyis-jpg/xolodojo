@@ -32,7 +32,9 @@ function Header() {
     <>
       <button
         id="back-top"
-        className={`back-to-top ${showBackTop ? 'show' : ''}`}
+        type="button"
+        aria-label="Back to top"
+        className={`fixed z-[99] inline-flex h-[38px] w-[38px] cursor-pointer items-center justify-center rounded-full border-0 bg-[#b7e9f7] text-sm text-[#151518] shadow-sm transition-all duration-300 ease-in-out hover:bg-[#151518] hover:text-white right-[30px] bottom-[30px] ${showBackTop ? 'pointer-events-auto translate-y-0 opacity-100 visible' : 'pointer-events-none translate-y-5 opacity-0 invisible'}`}
         onClick={handleBackToTop}
       >
         <FontAwesomeIcon icon={faArrowUp} />

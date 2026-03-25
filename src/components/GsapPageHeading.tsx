@@ -41,6 +41,28 @@ function GsapPageHeading({
             .filter((part) => part.length > 0)
         : [];
 
+    /** Comma between list items, but not before a segment that starts with & (e.g. "Art, Culture & XRPL"). */
+    const separatorAfterPart = (index: number) => {
+        if (index >= accentParts.length - 1) return null;
+        const next = accentParts[index + 1];
+        if (!next) return null;
+        return next.startsWith("&") ? "space" : "comma";
+    };
+
+    /** `&` uses the same white as commas; the rest of the segment stays `.accent-word` for GSAP. */
+    const renderAccentPartBody = (part: string) => {
+        if (!part.startsWith("&")) {
+            return <span className="accent-word inline-block">{part}</span>;
+        }
+        const rest = part.slice(1).trim();
+        return (
+            <span className="inline-flex items-baseline gap-x-1.5">
+                <span className="accent-amp inline-block shrink-0 text-white">&</span>
+                {rest ? <span className="accent-word inline-block">{rest}</span> : null}
+            </span>
+        );
+    };
+
     useGSAP(
         () => {
             const timeline = gsap.timeline({ defaults: { ease: "power2.out" } });
@@ -133,12 +155,21 @@ function GsapPageHeading({
                     <span
                         className={`mt-1 inline-flex w-full flex-wrap items-center gap-x-2 gap-y-1 ${centered ? "justify-center" : "justify-start"}`}
                     >
-                        {accentParts.map((part, index) => (
-                            <span key={`${part}-${index}`} className="accent-item inline-flex items-baseline opacity-0 text-[0.8em] md:text-[0.78em]">
-                                <span className="accent-word inline-block">{part}</span>
-                                {index < accentParts.length - 1 ? <span className="accent-comma inline-block text-white">,</span> : null}
-                            </span>
-                        ))}
+                        {accentParts.map((part, index) => {
+                            const sep = separatorAfterPart(index);
+                            return (
+                                <span key={`${part}-${index}`} className="accent-item inline-flex items-baseline opacity-0 text-[0.8em] md:text-[0.78em]">
+                                    {renderAccentPartBody(part)}
+                                    {sep === "comma" ? (
+                                        <span className="accent-comma inline-block text-white">,</span>
+                                    ) : sep === "space" ? (
+                                        <span className="accent-space-before-amp inline-block" aria-hidden="true">
+                                            {" "}
+                                        </span>
+                                    ) : null}
+                                </span>
+                            );
+                        })}
                     </span>
                 ) : null}
             </h2>

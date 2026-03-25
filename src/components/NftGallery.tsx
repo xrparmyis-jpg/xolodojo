@@ -105,10 +105,10 @@ function parseAttributeEntry(raw: unknown): NftTrait | null {
         typeof r.trait_type === 'string'
             ? r.trait_type
             : typeof r.traitType === 'string'
-              ? r.traitType
-              : typeof r.name === 'string'
-                ? r.name
-                : null;
+                ? r.traitType
+                : typeof r.name === 'string'
+                    ? r.name
+                    : null;
     const value = r.value;
     if (!traitType?.trim()) {
         return null;
@@ -1176,20 +1176,17 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                         </div>
 
                         <div className="space-y-2 text-sm">
-                            <p className="text-white/80">
-                                Collection: <span className="font-medium text-white">{selectedNftCollectionName}</span>
-                            </p>
-                            <div className="flex items-center gap-2 text-white/80">
-                                <span>Collection Address:</span>
-                                <span className="font-mono text-xs text-white/95 break-all">
-                                    {selectedNft.issuer || 'N/A'}
+                            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-white/80">
+                                <span>
+                                    Collection:{' '}
+                                    <span className="font-medium text-white">{selectedNftCollectionName}</span>
                                 </span>
                                 {selectedNft.issuer && (
                                     <button
                                         type="button"
                                         onClick={() => void handleCopyValue(`${selectedNft.token_id}-collection`, selectedNft.issuer)}
                                         title={copiedFieldKey === `${selectedNft.token_id}-collection` ? 'Copied' : 'Copy collection address'}
-                                        className="inline-flex h-5 w-5 items-center justify-center rounded border border-white/35 bg-black/35 p-0.5 text-white/85 hover:bg-black/45 hover:text-white"
+                                        className="cursor-pointer inline-flex h-5 w-5 shrink-0 items-center justify-center rounded border border-white/35 bg-black/35 p-0.5 text-white/85 hover:bg-black/45 hover:text-white"
                                     >
                                         <FontAwesomeIcon
                                             icon={copiedFieldKey === `${selectedNft.token_id}-collection` ? faCheck : faCopy}
@@ -1201,34 +1198,13 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                                 {copiedFieldKey === `${selectedNft.token_id}-collection` && (
                                     <span className="text-[10px] text-green-300">Copied</span>
                                 )}
-                            </div>
-                            <div className="flex items-center gap-2 text-white/80">
-                                <span>NFT:</span>
-                                <span className="font-mono text-xs text-white/95 break-all">
-                                    {selectedNft.token_id}
-                                </span>
-                                <button
-                                    type="button"
-                                    onClick={() => void handleCopyValue(`${selectedNft.token_id}-nft`, selectedNft.token_id)}
-                                    title={copiedFieldKey === `${selectedNft.token_id}-nft` ? 'Copied' : 'Copy NFT address'}
-                                    className="inline-flex h-5 w-5 items-center justify-center rounded border border-white/35 bg-black/35 p-0.5 text-white/85 hover:bg-black/45 hover:text-white"
-                                >
-                                    <FontAwesomeIcon
-                                        icon={copiedFieldKey === `${selectedNft.token_id}-nft` ? faCheck : faCopy}
-                                        className="text-[10px]"
-                                    />
-                                    <span className="sr-only">Copy NFT address</span>
-                                </button>
-                                {copiedFieldKey === `${selectedNft.token_id}-nft` && (
-                                    <span className="text-[10px] text-green-300">Copied</span>
-                                )}
-                            </div>
+                            </p>
 
                             {selectedNft.uri ? (
                                 <div className="border-t border-white/10 pt-3">
-                                    <p className="text-xs font-semibold uppercase tracking-wide text-white/70 mb-2">
+                                    {/* <p className="text-xs font-semibold uppercase tracking-wide text-white/70 mb-2">
                                         Traits
-                                    </p>
+                                    </p> */}
                                     {selectedNftTraits === undefined ? (
                                         <p className="text-white/50 text-sm">Loading traits from metadata…</p>
                                     ) : selectedNftTraits.length === 0 ? (
