@@ -55,7 +55,7 @@ function Mint() {
                         </div>
                         </div>
                         <GsapPageSubHeading heading="Prepare to Mint – 3 Simple Steps" />
-                        <GsapPageContent>
+                        <GsapPageContent staggerChildren>
                             <ul className="list-items">
                                 <li>
                                     <span>
@@ -88,7 +88,6 @@ function Mint() {
                                         </li>
                                     </ul>
                                 </li>
-
                                 <li>
                                     <span>
                                         <strong className="text-[#28aae4]">Mint Your XOLO</strong>

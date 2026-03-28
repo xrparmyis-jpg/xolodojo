@@ -1,15 +1,12 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+
+import GsapPageContent from "../components/GsapPageContent";
 import GsapPageHeading from "../components/GsapPageHeading";
-import { useSectionParallaxOffsets } from "../hooks/useSectionParallaxOffsets";
 import SectionParallaxBlobs from "../components/SectionParallaxBlobs";
 import CounterSection from "../components/CounterSection";
 
-const SERVICE_ROW =
-  "mt-[30px] flex flex-col items-center justify-center gap-4 md:flex-row md:items-start md:gap-6";
-const SERVICE_CONTENT =
-  "flex min-w-0 flex-1 flex-col rounded-[25px] border border-[rgba(207,208,212,0.2)] bg-[#1d1d21] p-[50px] text-center max-w-full w-full md:text-left [&_p]:mb-5 [&_p:last-child]:mb-0";
+import { useSectionParallaxOffsets } from "../hooks/useSectionParallaxOffsets";
 
-/** Mobile: always image → copy. At `lg`, alternate columns using `imageAtLg`. Append rows here (up to ~5). */
 type LegacyStoryRow = {
   id: string;
   imageAtLg: "left" | "right";
@@ -80,60 +77,17 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
   },
 ];
 
-const LEGACY_ROW_ANIM: readonly string[] = [
-  "opacity-0 animate-[fadeInUp_0.6s_ease-out_0.28s_forwards]",
-  "opacity-0 animate-[fadeInUp_0.6s_ease-out_0.32s_forwards]",
-  "opacity-0 animate-[fadeInUp_0.6s_ease-out_0.36s_forwards]",
-  "opacity-0 animate-[fadeInUp_0.6s_ease-out_0.4s_forwards]",
-  "opacity-0 animate-[fadeInUp_0.6s_ease-out_0.44s_forwards]",
-];
-
-const LEGACY_IMAGE_WRAP =
-  "w-full transition-transform duration-300 ease-in-out hover:rotate-[10deg]";
-const LEGACY_IMAGE_IMG =
-  "h-auto w-full rounded-[50px] object-cover max-w-[480px] lg:max-w-full mx-auto";
-const LEGACY_CONTENT_WRAP = "flex min-w-0 flex-col text-left mt-4 lg:mt-0";
-const LEGACY_EYEBROW =
-  "mb-5 inline-block rounded-2xl border border-[rgba(207,208,212,0.2)] px-5 py-2 text-[15px] font-bold leading-none";
+/** Stagger for welcome section service rows (GsapPageContent `delay`). */
+const SERVICE_ROW_DELAY = [0, 0.06, 0.12, 0.18] as const;
 
 function Home() {
-  // const parallaxRef = useRef<HTMLDivElement>(null);
-  // const parallaxSectionRef = useRef<HTMLDivElement>(null);
+
   const projectSectionRef = useRef<HTMLElement>(null);
   const projectColorBgRef = useRef<HTMLDivElement>(null);
-  // const [parallaxOffset, setParallaxOffset] = useState(0);
+
   const [projectBlobOffset, setProjectBlobOffset] = useState(0);
-  // const lastScrollY = useRef(0);
 
   const { sectionRef, bgShapeOffset, colorBgOffset, colorBg2Offset } = useSectionParallaxOffsets();
-
-  // useEffect(() => {
-  //   const handleScroll = () => {
-  //     if (!parallaxSectionRef.current) return;
-
-  //     const rect = parallaxSectionRef.current.getBoundingClientRect();
-  //     const windowHeight = window.innerHeight;
-  //     const currentScrollY = window.scrollY;
-
-  //     lastScrollY.current = currentScrollY;
-
-  //     if (rect.top <= windowHeight && rect.bottom >= 0) {
-  //       const sectionTop = rect.top;
-  //       const sectionHeight = rect.height;
-
-  //       const scrollProgress = Math.max(0, (windowHeight - sectionTop) / (windowHeight + sectionHeight));
-  //       const offset = -scrollProgress * sectionHeight * 0.5;
-  //       setParallaxOffset(offset);
-  //     } else {
-  //       setParallaxOffset(0);
-  //     }
-  //   };
-
-  //   window.addEventListener('scroll', handleScroll, { passive: true });
-  //   handleScroll();
-
-  //   return () => window.removeEventListener('scroll', handleScroll);
-  // }, []);
 
   useEffect(() => {
     const handleProjectScroll = () => {
@@ -167,9 +121,10 @@ function Home() {
         className="relative z-[9] overflow-hidden border-b border-[#36e9e424] bg-cover bg-center bg-no-repeat pt-[210px] pb-0 max-[1199px]:pt-[170px] max-[1199px]:pb-[100px] max-[991px]:pb-20"
         style={{ backgroundImage: "url('/hero-bg-3.png')" }}
       >
-        <div
-          className="mt-[150px] h-[320px] w-full max-[1199px]:mt-[50px] max-[1199px]:h-[150px] max-[575px]:h-20 bg-cover bg-center bg-no-repeat opacity-0 animate-[heroImgLeft_1.3s_cubic-bezier(0.645,0.045,0.355,1)_0.4s_forwards]"
+        <GsapPageContent
+          className="mt-[150px] h-[320px] w-full max-[1199px]:mt-[50px] max-[1199px]:h-[150px] max-[575px]:h-20 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: "url('/hero-1.png')" }}
+          delay={0}
         />
       </section>
 
@@ -192,8 +147,8 @@ function Home() {
             centered
           />
           <div className="mt-8 flex flex-col items-center gap-6">
-            <div className="mx-auto w-full max-w-4xl opacity-0 animate-[fadeInUp_0.6s_ease-out_0.2s_forwards]">
-              <div className={SERVICE_ROW}>
+            <GsapPageContent className="mx-auto w-full max-w-4xl" delay={SERVICE_ROW_DELAY[0]}>
+              <div className="mt-[30px] flex flex-col items-center justify-center gap-4 md:flex-row md:items-start md:gap-6">
                 <div className="max-w-75 shrink-0">
                   <img
                     src="/xolo-art.png"
@@ -201,7 +156,7 @@ function Home() {
                     className="min-w-25 w-65 rounded-[20px] object-cover md:w-[320px] lg:w-95"
                   />
                 </div>
-                <div className={SERVICE_CONTENT}>
+                <div className="flex min-w-0 flex-1 flex-col rounded-[25px] border border-[rgba(207,208,212,0.2)] bg-[#1d1d21] p-[50px] text-center max-w-full w-full md:text-left [&_p]:mb-5 [&_p:last-child]:mb-0">
                   <h3 className="text-xl font-bold md:text-2xl mb-[15px]">
                     10,001 Unique NFT Masterpieces
                   </h3>
@@ -211,9 +166,9 @@ function Home() {
                   </p>
                 </div>
               </div>
-            </div>
-            <div className="mx-auto w-full max-w-4xl opacity-0 animate-[fadeInUp_0.6s_ease-out_0.4s_forwards]">
-              <div className={SERVICE_ROW}>
+            </GsapPageContent>
+            <GsapPageContent className="mx-auto w-full max-w-4xl" delay={SERVICE_ROW_DELAY[1]}>
+              <div className="mt-[30px] flex flex-col items-center justify-center gap-4 md:flex-row md:items-start md:gap-6">
                 <div className="max-w-75 shrink-0">
                   <img
                     src="/xrpl-blockchain.png"
@@ -221,7 +176,7 @@ function Home() {
                     className="min-w-25 w-65 rounded-[20px] object-cover md:w-[320px] lg:w-95"
                   />
                 </div>
-                <div className={SERVICE_CONTENT}>
+                <div className="flex min-w-0 flex-1 flex-col rounded-[25px] border border-[rgba(207,208,212,0.2)] bg-[#1d1d21] p-[50px] text-center max-w-full w-full md:text-left [&_p]:mb-5 [&_p:last-child]:mb-0">
                   <h3 className="text-xl font-bold md:text-2xl mb-[15px]">
                     Built on the XRP Ledger (XRPL)
                   </h3>
@@ -231,9 +186,9 @@ function Home() {
                   </p>
                 </div>
               </div>
-            </div>
-            <div className="mx-auto w-full max-w-4xl opacity-0 animate-[fadeInUp_0.6s_ease-out_0.6s_forwards]">
-              <div className={SERVICE_ROW}>
+            </GsapPageContent>
+            <GsapPageContent className="mx-auto w-full max-w-4xl" delay={SERVICE_ROW_DELAY[2]}>
+              <div className="mt-[30px] flex flex-col items-center justify-center gap-4 md:flex-row md:items-start md:gap-6">
                 <div className="max-w-75 shrink-0">
                   <img
                     src="/xolo-travel.png"
@@ -241,7 +196,7 @@ function Home() {
                     className="min-w-25 w-65 rounded-[20px] object-cover md:w-[320px] lg:w-95"
                   />
                 </div>
-                <div className={SERVICE_CONTENT}>
+                <div className="flex min-w-0 flex-1 flex-col rounded-[25px] border border-[rgba(207,208,212,0.2)] bg-[#1d1d21] p-[50px] text-center max-w-full w-full md:text-left [&_p]:mb-5 [&_p:last-child]:mb-0">
                   <h3 className="text-xl font-bold md:text-2xl mb-[15px]">
                     Decentralized Travel Vision
                   </h3>
@@ -252,9 +207,9 @@ function Home() {
                   </p>
                 </div>
               </div>
-            </div>
-            <div className="mx-auto w-full max-w-4xl opacity-0 animate-[fadeInUp_0.6s_ease-out_0.8s_forwards]">
-              <div className={SERVICE_ROW}>
+            </GsapPageContent>
+            <GsapPageContent className="mx-auto w-full max-w-4xl" delay={SERVICE_ROW_DELAY[3]}>
+              <div className="mt-[30px] flex flex-col items-center justify-center gap-4 md:flex-row md:items-start md:gap-6">
                 <div className="max-w-75 shrink-0">
                   <img
                     src="/xrp-cafe-mint.png"
@@ -262,7 +217,7 @@ function Home() {
                     className="min-w-25 w-65 rounded-[20px] object-cover md:w-[320px] lg:w-95"
                   />
                 </div>
-                <div className={SERVICE_CONTENT}>
+                <div className="flex min-w-0 flex-1 flex-col rounded-[25px] border border-[rgba(207,208,212,0.2)] bg-[#1d1d21] p-[50px] text-center max-w-full w-full md:text-left [&_p]:mb-5 [&_p:last-child]:mb-0">
                   <h3 className="text-xl font-bold md:text-2xl mb-[15px]">
                     Upcoming Mint in the xrp.cafe
                   </h3>
@@ -272,7 +227,7 @@ function Home() {
                   </p>
                 </div>
               </div>
-            </div>
+            </GsapPageContent>
           </div>
         </div>
       </section>
@@ -298,7 +253,11 @@ function Home() {
         </div>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-6 text-center lg:mb-8">
-            <h2 className="text-3xl font-bold opacity-0 animate-[fadeInUp_0.6s_ease-out_0.3s_forwards] md:text-4xl lg:text-5xl">
+            <GsapPageContent
+              as="h2"
+              className="text-3xl font-bold md:text-4xl lg:text-5xl"
+              delay={0}
+            >
               The Xolo&apos;s <br />
               <img
                 src="/has.png"
@@ -306,27 +265,27 @@ function Home() {
                 className="mx-1 inline-block h-5 w-5 align-middle md:h-6 md:w-6"
               />{" "}
               Legacy
-            </h2>
+            </GsapPageContent>
           </div>
 
           <div className="flex flex-col gap-12 lg:gap-16">
             {LEGACY_STORY_ROWS.map((row, index) => {
               const imageLeft = row.imageAtLg === "left";
               return (
-                <div
+                <GsapPageContent
                   key={row.id}
-                  className={`flex w-full flex-col gap-3 sm:gap-4 lg:flex-row lg:items-center lg:gap-5 ${LEGACY_ROW_ANIM[index] ?? LEGACY_ROW_ANIM[4]
-                    }`}
+                  className="flex w-full flex-col gap-3 sm:gap-4 lg:flex-row lg:items-center lg:gap-5"
+                  delay={index * 0.06}
                 >
                   <div
                     className={`min-w-0 w-full lg:w-1/2 order-1 ${imageLeft ? "lg:order-1" : "lg:order-2"
                       }`}
                   >
-                    <div className={LEGACY_IMAGE_WRAP}>
+                    <div className="w-full transition-transform duration-300 ease-in-out hover:rotate-[10deg]">
                       <img
                         src={row.imageSrc}
                         alt={row.imageAlt}
-                        className={LEGACY_IMAGE_IMG}
+                        className="h-auto w-full rounded-[50px] object-cover max-w-[480px] lg:max-w-full mx-auto"
                       />
                     </div>
                   </div>
@@ -334,8 +293,8 @@ function Home() {
                     className={`min-w-0 w-full lg:w-1/2 order-2 ${imageLeft ? "lg:order-2" : "lg:order-1"
                       }`}
                   >
-                    <div className={LEGACY_CONTENT_WRAP}>
-                      <span className={LEGACY_EYEBROW}>{row.eyebrow}</span>
+                    <div className="flex min-w-0 flex-col text-left mt-4 lg:mt-0">
+                      <span className="mb-5 inline-block rounded-2xl border border-[rgba(207,208,212,0.2)] px-5 py-2 text-[15px] font-bold leading-none">{row.eyebrow}</span>
                       <h3 className="my-2 lg:mb-6 text-2xl font-bold md:text-3xl lg:text-4xl">
                         {row.title}
                       </h3>
@@ -344,15 +303,13 @@ function Home() {
                       </div>
                     </div>
                   </div>
-                </div>
+                </GsapPageContent>
               );
             })}
           </div>
         </div>
       </section>
-
       <CounterSection />
-
     </>
   );
 }

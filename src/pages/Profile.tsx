@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
-import Button from '../components/Button';
-import ModalConfirm from '../components/ModalConfirm';
-import { useToast } from '../components/ToastProvider';
-import { WalletConnection } from '../components/WalletConnection';
+
 import { useUserContext } from '../providers/UserContext';
 import {
     getUserProfile,
@@ -13,11 +11,17 @@ import {
     type UserProfile,
 } from '../services/profileService';
 import { parseSocialsFromPreferences, useSocials, getSocialProfileUrl } from '../hooks/useSocials';
-
-type SocialPlatformKey = keyof ProfileSocials;
-
 import { socialPlatformOrder } from '../hooks/useSocials';
 import { shouldResumeXamanPkceConnect } from '../utils/oauthCallbackGuards';
+
+import Button from '../components/Button';
+import GsapPageContent from '../components/GsapPageContent';
+import ModalConfirm from '../components/ModalConfirm';
+import { useToast } from '../components/ToastProvider';
+import { WalletConnection } from '../components/WalletConnection';
+
+
+type SocialPlatformKey = keyof ProfileSocials;
 
 const createEmptyVisibleInputs = () => ({
     twitter: false,
@@ -151,11 +155,11 @@ function Profile() {
     }
 
     return (
-        <section className="fix pt-16 pb-4 md:pt-30 mb-4">
-            <div className="container mx-auto px-4 max-w-7xl">
-                <div className="flex flex-wrap -mx-4 justify-center">
-                    <div className="w-full lg:w-5/6 xl:w-4/5 px-4">
-                        <div className="bg-white/5 rounded-xl p-8 mt-8 opacity-0 animate-[fadeInUp_0.6s_ease-out_0.2s_forwards]">
+        <section className="relative pt-16 pb-4 md:pt-30 mb-4">
+            <div className="container mx-auto max-w-7xl px-4">
+                <div className="-mx-4 flex flex-wrap justify-center">
+                    <div className="w-full px-4 lg:w-5/6 xl:w-4/5">
+                        <GsapPageContent className="mt-8 rounded-xl bg-white/5 p-8" delay={0.06}>
                             <div className="flex flex-col items-center gap-6">
                                 {user.picture && (
                                     <img
@@ -293,7 +297,7 @@ function Profile() {
                                     />
                                 )}
                             </div>
-                        </div>
+                        </GsapPageContent>
                     </div>
                 </div>
             </div>

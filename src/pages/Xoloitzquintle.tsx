@@ -1,7 +1,9 @@
 import GsapHeroParallax from "../components/GsapHeroParallax";
 import GsapPageHeading from "../components/GsapPageHeading";
+import GsapPageContent from "../components/GsapPageContent";
 import GsapPageSubHeading from "../components/GsapPageSubHeading";
 import SectionParallaxBlobs from "../components/SectionParallaxBlobs";
+
 import { useSectionParallaxOffsets } from "../hooks/useSectionParallaxOffsets";
 
 function Xoloitzquintle() {
@@ -41,45 +43,45 @@ function Xoloitzquintle() {
                         </div>
                         <div className="space-y-6">
                             <GsapPageSubHeading heading="Journey of the Xolo" />
-                            <p className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.6s_forwards]">
+                            <GsapPageContent as="p" className="mb-4">
                                 Picture this: the Aztec cosmos is basically a chaotic family reunion that never ends. At the center? The ultimate twin duo—Quetzalcoatl, the chill, feathered-serpent genius of wind, wisdom, creation, and "let's make everything better," and his rowdy, dog-headed brother Xolotl, the lightning-fast trickster god of fire, transformation, deformities, and "hold my conch shell while I pull off the impossible."
-                            </p>
+                            </GsapPageContent>
 
-                            <p className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.7s_forwards]">
+                            <GsapPageContent as="p" className="mb-4" delay={0.08}>
                                 These two aren't just siblings; they're the original dynamic duo who literally rebuilt humanity after the world got wrecked four times (because ancient gods apparently loved a good reset button). Quetzalcoatl, ever the visionary, decides it's time for round five: populate the earth with actual people. But plot twist—he needs the sacred bones from the previous eras, stashed deep in Mictlan, the shadowy, nine-level underworld ruled by the skeletal party-pooper Mictlantecuhtli (the Lord of the Dead) and his queen Mictecacihuatl.
-                            </p>
+                            </GsapPageContent>
 
-                            <p className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.8s_forwards]">
+                            <GsapPageContent as="p" className="mb-4" delay={0.16}>
                                 Quetzalcoatl can't solo this dungeon crawl. Enter Xolotl: dog-faced, shape-shifting, lightning-charged, and 100% ride-or-die. His name literally echoes in the word xoloitzcuintle—the sacred hairless dog bred in his image. Xolotl's like, "Bro, I've been guiding the sun through the underworld every night. I know the shortcuts. Let's go steal some bones."
-                            </p>
+                            </GsapPageContent>
 
-                            <p className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.9s_forwards]">
+                            <GsapPageContent as="p" className="mb-4" delay={0.24}>
                                 They descend into Mictlan's nightmare levels: rivers of blood, screaming winds, mountains of obsidian knives, jaguars that don't play fetch. Mictlantecuhtli isn't handing over the goods without a fight. He sets impossible trials—like blowing a conch shell with no holes. Xolotl, being the ultimate degen trickster, summons worms to drill openings. Boom—impossible becomes "done." They grab the bones and bolt, with the skeletal hordes chasing them like bad exes.
-                            </p>
+                            </GsapPageContent>
 
-                            <p className="opacity-0 animate-[fadeInUp_0.6s_ease-out_1.0s_forwards]">
+                            <GsapPageContent as="p" className="mb-4" delay={0.32}>
                                 In the getaway chaos, Quetzalcoatl trips (because even gods have off days), and some bones shatter. That's why humans come in every shape, size, and weird quirk—thanks, cosmic clumsiness!
-                            </p>
+                            </GsapPageContent>
 
-                            <p className="opacity-0 animate-[fadeInUp_0.6s_ease-out_1.1s_forwards]">
+                            <GsapPageContent as="p" className="mb-4" delay={0.4}>
                                 Back topside, Quetzalcoatl mixes the bones with his own divine blood, breathing life into the current era. But Xolotl's gig doesn't stop there. He becomes the eternal soul-guide: escorting the dead through Mictlan's perils, warding off evil spirits, and making sure no one gets lost in the afterlife. That's why the Aztecs buried real xoloitzcuintles with their loved ones—loyal companions in life, healers (their body heat was legendary), and furry psychopomps in death. One Xolo to rule the journey, one soul to guide.
-                            </p>
+                            </GsapPageContent>
 
-                            <p className="opacity-0 animate-[fadeInUp_0.6s_ease-out_1.2s_forwards]">
+                            <GsapPageContent as="p" className="mb-4" delay={0.48}>
                                 Fast-forward to today: in the Xolo Dojo, we're resurrecting this epic saga on the XRPL. Your XoloNFT isn't just a pretty (or gloriously wrinkly) piece of digital art—it's a sacred guardian reborn, channeling Xolotl's fierce loyalty, trickster smarts, and unbreakable bonds. Mint one, pin it, and unlock XoloGlobe—where holders reach out P2P, turn strangers into allies, share skills, trade services, or plan real-world adventures. Just like the gods' twin pact: no middleman, no limits, eternal vibes.
-                            </p>
+                            </GsapPageContent>
 
-                            <p className="opacity-0 animate-[fadeInUp_0.6s_ease-out_1.4s_forwards]">
+                            <GsapPageContent as="p" className="mb-4" delay={0.56}>
                                 Why the quirky spelling "Xoloitzquintle" (with that "qu" instead of "cu")? It's a loving nod to old-school Nahuatl orthography and how Spanish chroniclers/translators rendered the original xōlōitzcuintli (pronounced roughly "show-low-eats-QUEENT-lee"). The "qu" captures the guttural, ancient Aztec sound more faithfully in some traditional texts and codex styles—think of it as the mythic equivalent of using "ye olde" English for flair. We chose it to honor the deep cultural roots, keep the lore authentic, and give our guardians that extra layer of timeless mystery.
-                            </p>
+                            </GsapPageContent>
 
-                            <p className="opacity-0 animate-[fadeInUp_0.6s_ease-out_1.5s_forwards]">
+                            <GsapPageContent as="p" className="mb-4" delay={0.64}>
                                 Own your Xolo. Own your journey. Own your destination.
-                            </p>
+                            </GsapPageContent>
                         </div>
-                        <div className="mt-10 flex justify-center opacity-0 animate-[fadeInUp_0.6s_ease-out_0.3s_forwards]">
+                        <GsapPageContent className="mt-10 flex justify-center" delay={0.09}>
                             <img src="/xolo-art.png" alt="img" className="w-full max-w-md rounded-md" />
-                        </div>
+                        </GsapPageContent>
                     </div>
                 </div>
             </section>

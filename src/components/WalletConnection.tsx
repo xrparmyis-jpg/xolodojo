@@ -55,11 +55,8 @@ interface WalletConnectionProps {
     auth0Id: string;
     accessToken?: string;
     onWalletsUpdated?: (wallets: Wallet[]) => void;
-    // When true (e.g. after Xaman redirect on mobile), auto-attempt a Xaman connect once on mount
     resumeXamanOnMount?: boolean;
 }
-
-
 
 function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resumeXamanOnMount }: WalletConnectionProps) {
     const { showToast, clearToasts } = useToast();
@@ -68,14 +65,12 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
     const { address: wagmiAddress, isConnected: isWagmiConnected, connector: wagmiConnector } = useAccount();
 
     const [wallets, setWallets] = useState<Wallet[]>([]);
-    /** Specific overlay text for wallet operations (load, connect, disconnect, remove, etc.) */
     const [walletBusyMessage, setWalletBusyMessage] = useState<string | null>(null);
     const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showAddWalletModal, setShowAddWalletModal] = useState(false);
     const [isWalletConnectPending, setIsWalletConnectPending] = useState(false);
     const [pendingWalletConnectId, setPendingWalletConnectId] = useState<number | null>(null);
-
     const [connectedWalletAssets, setConnectedWalletAssets] = useState<WalletAssetSummary | null>(null);
     const [isAssetsLoading, setIsAssetsLoading] = useState(false);
     const [assetsError, setAssetsError] = useState<string | null>(null);
@@ -83,9 +78,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
     const [hasAttemptedXamanSessionRepair, setHasAttemptedXamanSessionRepair] = useState(false);
     const [hasResumedXamanOnMount, setHasResumedXamanOnMount] = useState(false);
 
-    /** Blocks Joey persistence while disconnecting/deleting so it cannot reconnect or re-add. */
     const joeyPersistenceSuppressedRef = useRef(false);
-    /** Latest overlay message — used to defer NFT summary fetch during Joey save without bloating refresh deps. */
     const walletBusyMessageRef = useRef(walletBusyMessage);
     walletBusyMessageRef.current = walletBusyMessage;
 
@@ -165,11 +158,9 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
             if (!silent) {
                 setWalletBusyMessage(null);
             }
-            //setHasAttemptedInitialWalletLoad(true);
         }
     }, [accessToken, auth0Id, onWalletsUpdated, showToast]);
 
-    /** Apply connect API row immediately so the list updates before the silent refetch finishes. */
     const applyConnectedWalletFromApi = useCallback(
         (connectedRow: Wallet) => {
             setWallets((prev) => {
@@ -290,7 +281,6 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
         persistenceSuppressedRef: joeyPersistenceSuppressedRef,
     });
 
-    // Load wallets on mount
     useEffect(() => {
         void loadWallets();
     }, [loadWallets]);
@@ -425,10 +415,6 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
         applyConnectedWalletFromApi,
     ]);
 
-
-    // Xaman redirect recovery: pass resumeFromRedirect so PKCE state polling runs even after
-    // Profile strips ?xaman_return=1 from the URL (otherwise polling never activated).
-
     const handleConnectXaman = useCallback(
         async (walletIdToConnect?: number, opts?: { resumeFromRedirect?: boolean }) => {
             clearWalletToasts();
@@ -518,17 +504,13 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
         ]
     );
 
-    // After Xaman mobile redirect: wait for Auth0 access token before hitting the API (add/connect wallet).
     useEffect(() => {
         if (!resumeXamanOnMount || hasResumedXamanOnMount) return;
         if (!accessToken) {
-            // eslint-disable-next-line no-console
-            console.log('[WalletConnection][Xaman] resume waiting for access token');
             return;
         }
         setHasResumedXamanOnMount(true);
-        // eslint-disable-next-line no-console
-        console.log('[WalletConnection][Xaman] resume: calling connect with resumeFromRedirect');
+
         void handleConnectXaman(undefined, { resumeFromRedirect: true });
     }, [resumeXamanOnMount, hasResumedXamanOnMount, accessToken, handleConnectXaman]);
 
@@ -550,7 +532,6 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                 await tryDisconnectCurrentWallet(walletToDelete);
             }
 
-            // Delete all pinned NFTs for this wallet
             try {
                 const pinnedNfts = await import('../services/pinnedNftService').then(mod => mod.getPinnedNfts(auth0Id, walletToDelete.wallet_address, accessToken));
                 for (const nft of pinnedNfts) {
@@ -561,7 +542,6 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                 console.error('Failed to remove pinned NFTs for wallet:', err);
             }
 
-            // Now delete the wallet
             await deleteWallet(walletId, auth0Id, accessToken);
             showToast('success', 'Wallet deleted successfully');
             await loadWallets({ silent: true });
@@ -635,18 +615,12 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
             setConnectedWalletAssets(null);
             setAssetsError(null);
             setIsAssetsLoading(false);
-            // End Xaman "summary" bridge if we never ran a fetch (e.g. brief null wallet).
             setWalletBusyMessage((prev) =>
                 prev === LOADING_WALLET_SUMMARY_MESSAGE ? null : prev
             );
             return;
         }
 
-        // `connectedWallet` can update mid-flight (applyConnectedWalletFromApi) while overlay copy
-        // is still "Adding wallet…", "Saving your wallet…", etc. Starting the NFT summary fetch
-        // then sets isAssetsLoading and makes the overlay jump to "Loading wallet summary…"
-        // before those phases end. Defer the summary fetch until no other busy message is shown.
-        // Exception: LOADING_WALLET_SUMMARY_MESSAGE is the Xaman handoff to this same fetch.
         const busy = walletBusyMessageRef.current;
         if (busy != null && busy !== LOADING_WALLET_SUMMARY_MESSAGE) {
             return;
@@ -667,14 +641,12 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
             setAssetsError(err.message);
         } finally {
             setIsAssetsLoading(false);
-            // Clear overlay copy set by xamanHandler when the summary request completes.
             setWalletBusyMessage((prev) =>
                 prev === LOADING_WALLET_SUMMARY_MESSAGE ? null : prev
             );
         }
     }, [accessToken, auth0Id, connectedWallet]);
 
-    // Re-run when overlay copy changes so we fetch summary after deferral (e.g. save/add finishes).
     useEffect(() => {
         void refreshConnectedWalletAssets();
     }, [refreshConnectedWalletAssets, walletBusyMessage]);
@@ -683,27 +655,6 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
         () => [...wallets].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()),
         [wallets]
     );
-
-    useEffect(() => {
-        if (!import.meta.env.DEV) {
-            return;
-        }
-
-        console.groupCollapsed(`[WalletConnection] Rendering ${sortedWallets.length} wallet(s)`);
-        console.table(
-            sortedWallets.map((wallet) => ({
-                id: wallet.id,
-                address: wallet.wallet_address,
-                type: wallet.wallet_type,
-                label: wallet.wallet_label ?? null,
-                is_connected: wallet.is_connected,
-                created_at: wallet.created_at,
-                updated_at: wallet.updated_at,
-            }))
-        );
-        console.log('Full wallet objects:', sortedWallets);
-        console.groupEnd();
-    }, [sortedWallets]);
 
     const overlayMessage =
         walletBusyMessage
@@ -947,7 +898,6 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
 
 export function WalletConnection({ auth0Id, accessToken, onWalletsUpdated, resumeXamanOnMount }: WalletConnectionProps) {
 
-    // Joey Wallet provider config
     const joeyProjectId = (import.meta.env.VITE_JOEY_PROJECT_ID || walletConnectProjectId || '717dec7dead15d3a101d504ed3933709').trim();
     const appUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173';
     const joeyProviderConfig = useMemo(() => ({

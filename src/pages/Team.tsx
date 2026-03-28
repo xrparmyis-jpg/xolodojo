@@ -1,4 +1,3 @@
-//import SectionParallaxBlobs from "../components/SectionParallaxBlobs";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faDiscord,
@@ -8,10 +7,12 @@ import {
     faTelegram,
 } from "@fortawesome/free-brands-svg-icons";
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
+
+import GsapPageContent from "../components/GsapPageContent";
 import GsapPageHeading from "../components/GsapPageHeading";
 import GsapSocialLinks from "../components/GsapSocialLinks";
-import { getSocialProfileUrl } from "../common/getSocialProfileUrl";
 import GsapPageSubHeading from "../components/GsapPageSubHeading";
+import { getSocialProfileUrl } from "../common/getSocialProfileUrl";
 
 interface Owner {
     id: number;
@@ -163,7 +164,6 @@ function OwnerCard({ owner }: { owner: Owner }) {
 }
 
 function Team() {
-    //const { sectionRef, bgShapeOffset, colorBgOffset, colorBg2Offset } = useSectionParallaxOffsets();
 
     return (
         <div className="[&_p]:text-[#decee9] [&_ul]:text-[#decee9] [&_li]:text-[#decee9] [&_li>span]:text-[#decee9]">
@@ -179,13 +179,13 @@ function Team() {
                     centered
                 />
                 <div className="container mx-auto max-w-7xl px-4">
-                    <div className="flex flex-col items-center text-center my-8">
-                        <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-10">
+                    <GsapPageContent className="my-8 flex flex-col items-center text-center" delay={0}>
+                        <div className="mt-4 grid grid-cols-1 gap-8 md:gap-10 lg:grid-cols-3">
                             {owners.map((owner) => (
                                 <OwnerCard key={owner.id} owner={owner} />
                             ))}
                         </div>
-                    </div>
+                    </GsapPageContent>
                 </div>
             </section>
 
@@ -203,13 +203,13 @@ function Team() {
                     <div className="max-w-4xl mx-auto">
                         <GsapPageSubHeading heading="Meet the XoloDojo Team" />
 
-                        <div className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.3s_forwards] mb-8">
+                        <GsapPageContent className="mb-8" delay={0.06}>
                             <p className="mb-4 text-center">
                                 United by culture, art, and crypto, we're forging XoloDojo and XoloGlobe: a token-gated global tribe for trust, travel, skill-sharing, and real-world adventures. Together, we're not just minting NFTs — we're building a network of passionate individuals ready to connect, collaborate, and build the future.
                             </p>
-                        </div>
+                        </GsapPageContent>
 
-                        <div className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.5s_forwards] mt-8">
+                        <GsapPageContent className="mt-8" delay={0.12}>
                             <h3 className="text-2xl text-center md:text-left md:text-3xl font-bold text-[#28aae4]">
                                 Cryptonite
                             </h3>
@@ -228,9 +228,9 @@ function Team() {
                                     Own a XoloNFT and join the voyage. If you ain't bullish, you're walking the plank.
                                 </p>
                             </div>
-                        </div>
+                        </GsapPageContent>
 
-                        <div className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.7s_forwards] mt-8">
+                        <GsapPageContent className="mt-8" delay={0.2}>
                             <h3 className="text-2xl text-center md:text-left md:text-3xl font-bold text-[#28aae4]">
                                 RedShadow
                             </h3>
@@ -248,9 +248,9 @@ function Team() {
                                     legacy meets modern community and real-world reciprocity.
                                 </p>
                             </div>
-                        </div>
+                        </GsapPageContent>
 
-                        <div className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.9s_forwards] mt-8">
+                        <GsapPageContent className="mt-8" delay={0.28}>
                             <h3 className="text-2xl text-center md:text-left md:text-3xl font-bold text-[#28aae4]">
                                 Code
                             </h3>
@@ -263,7 +263,7 @@ function Team() {
                                     Code is a battle-hardened degen from the golden Clubhouse days on Ethereum, a seasoned crypto trader with razor-sharp market instincts and hands-on building experience. Fluid in React.js and battle-tested in high-stakes web development, he's shipped name-brand websites (under NDA) for top players in the space. Now building with the Xolo pack on XRPL, Code delivers the technical backbone for XoloDojo and XoloGlobe — turning visionary ideas into seamless, secure, token-gated experiences. From smart community tools to immersive interfaces, he ensures the dojo runs smoothly, the globe connects flawlessly, and the pack thrives in Web3. Degen roots. Builder soul. Xolo loyalty.
                                 </p>
                             </div>
-                        </div>
+                        </GsapPageContent>
                     </div>
                 </div>
             </section>

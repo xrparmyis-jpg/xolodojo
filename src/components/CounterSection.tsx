@@ -22,13 +22,9 @@ const counterData = [
     },
 ];
 
-/** Replaces legacy `.section-padding` + `pb-0` from main.css (top padding only). */
-const sectionShellClass =
-    'pb-0';
-
 function CounterSection() {
     return (
-        <section className={sectionShellClass} aria-label="Collection statistics">
+        <section aria-label="Collection statistics">
             <div className="mx-auto w-full max-w-7xl px-4 py-8 lg:py-12 sm:px-6 lg:px-8">
                 <div className="grid grid-cols-1 justify-items-center gap-8 lg:grid-cols-3 lg:justify-items-stretch lg:gap-12">
                     {counterData.map(({ icon, end, label, delay }) => (

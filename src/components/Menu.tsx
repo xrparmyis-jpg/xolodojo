@@ -61,7 +61,14 @@ function Menu({
     ];
 
     const mobileNavLinkClass = ({ isActive }: { isActive: boolean }) =>
-        `flex items-center gap-3 border-b border-white/10 py-3 text-base font-medium capitalize no-underline transition-colors hover:text-[#b7e9f7] ${isActive ? 'font-semibold text-[#b7e9f7]' : 'text-white'}`;
+        `flex items-center gap-3 border-b border-white/10 py-3 text-base font-medium capitalize no-underline transition-colors ${isActive ? 'font-semibold text-[#b7e9f7]' : 'text-white hover:text-[#b7e9f7]'}`;
+
+    const desktopNavLinkClass = ({ isActive }: { isActive: boolean }) =>
+        `inline-block text-lg font-medium capitalize no-underline transition-all duration-300 ease-in-out ${isSticky ? 'py-1.5' : 'py-5'} ${
+            isActive
+                ? 'font-bold text-[#b7e9f7] underline decoration-[#b7e9f7] underline-offset-4'
+                : 'text-white hover:text-[#b7e9f7]'
+        }`;
 
     if (variant === 'mobile-toggle') {
         return (
@@ -88,12 +95,7 @@ function Menu({
                 <ul className="m-0 flex list-none flex-row gap-6 p-0">
                     {menuItems.map((item) => (
                         <li key={item.path} className="relative list-none">
-                            <NavLink
-                                to={item.path}
-                                className={({ isActive }) =>
-                                    `inline-block text-lg font-medium capitalize text-white no-underline transition-all duration-300 ease-in-out hover:text-[#b7e9f7] ${isSticky ? 'py-1.5' : 'py-5'} ${isActive ? `font-bold text-[#b7e9f7] underline` : ''}`
-                                }
-                            >
+                            <NavLink to={item.path} end className={desktopNavLinkClass}>
                                 {item.label}
                             </NavLink>
                         </li>
@@ -140,6 +142,7 @@ function Menu({
                                         <li key={item.path} className="mb-2">
                                             <NavLink
                                                 to={item.path}
+                                                end
                                                 onClick={closeMobileMenu}
                                                 className={mobileNavLinkClass}
                                             >

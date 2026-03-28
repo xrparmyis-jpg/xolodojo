@@ -54,20 +54,6 @@ a {
   }
 }
 
-/* Home hero strip image reveal (was .img-custom-anim-left in main.css) */
-@keyframes heroImgLeft {
-  0% {
-    transform: translateX(-5%);
-    clip-path: inset(0 100% 0 0);
-    opacity: 0;
-  }
-  100% {
-    transform: translateX(0);
-    clip-path: inset(0 0 0 0);
-    opacity: 1;
-  }
-}
-
 /* Custom h3 default styling */
 .h3-default {
   @apply text-xl md:text-2xl font-bold mb-3;

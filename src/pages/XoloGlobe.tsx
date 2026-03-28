@@ -1,6 +1,7 @@
 import SectionParallaxBlobs from "../components/SectionParallaxBlobs";
 import MapBoxXoloGlobe from "../components/MapBoxXoloGlobe";
 import { useSectionParallaxOffsets } from "../hooks/useSectionParallaxOffsets";
+import GsapPageContent from "../components/GsapPageContent";
 import GsapPageSubHeading from "../components/GsapPageSubHeading";
 import GsapPageHeading from "../components/GsapPageHeading";
 
@@ -21,9 +22,9 @@ function XoloGlobe() {
                         iconCount={1}
                         centered
                     />
-                    <MapBoxXoloGlobe
-                        className="relative mx-auto my-4 w-full max-w-7xl overflow-hidden rounded-lg h-90 sm:h-107.5 md:h-130 lg:h-155 xl:h-175"
-                    />
+                    <GsapPageContent className="mx-auto my-4 w-full max-w-7xl" delay={0.06}>
+                        <MapBoxXoloGlobe className="relative h-90 w-full overflow-hidden rounded-lg sm:h-107.5 md:h-130 lg:h-155 xl:h-175" />
+                    </GsapPageContent>
                 </div>
             </section>
 
@@ -39,7 +40,7 @@ function XoloGlobe() {
 
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="max-w-4xl mx-auto [&_p]:text-[#decee9] [&_ul]:text-[#decee9] [&_li]:text-[#decee9] [&_li>span]:text-[#decee9]">
-                        <div className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.3s_forwards]">
+                        <GsapPageContent delay={0}>
                             <GsapPageSubHeading heading="The living map of our global community" />
                             <p className="mb-7 text-justify text-white/90">
                                 Inside the Xolo Dojo, the XoloGlobe comes alive on
@@ -58,11 +59,11 @@ function XoloGlobe() {
                                 your wallet. No personal data required, just proof
                                 of community membership.
                             </p>
-                        </div>
+                        </GsapPageContent>
 
                         <div>
-                            <div className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.6s_forwards] mt-4">
-                                <h3 className="text-lg md:text-xl font-semibold text-[#891387] mb-3">
+                            <GsapPageContent className="mt-4" delay={0.08} staggerChildren staggerEach={0.08}>
+                                <h3 className="mb-3 text-lg font-semibold text-[#891387] md:text-xl">
                                     How It Works
                                 </h3>
 
@@ -80,9 +81,9 @@ function XoloGlobe() {
                                         <span><strong className="text-[#28aae4]">Discover & Connect</strong> — Explore pins worldwide. Click on a pinned Xolo to view their profile.  Reach out directly as needed, a brief chat, a meetup, a local product exchange, or a collaborative opportunity.</span>
                                     </li>
                                 </ul>
-                            </div>
-                            <div className="opacity-0 animate-[fadeInUp_0.6s_ease-out_0.8s_forwards] mt-4">
-                                <h4 className="text-lg md:text-xl font-semibold text-[#891387] mb-3">
+                            </GsapPageContent>
+                            <GsapPageContent className="mt-4" delay={0.16} staggerChildren staggerEach={0.08}>
+                                <h4 className="mb-3 text-lg font-semibold text-[#891387] md:text-xl">
                                     Why the Xolo Globe Matters
                                 </h4>
                                 <ul className="list-items">
@@ -99,21 +100,21 @@ function XoloGlobe() {
                                         <span>Grows the living XoloGlobe — one pin, one message, one new friendship at a time</span>
                                     </li>
                                 </ul>
-                            </div>
+                            </GsapPageContent>
 
-                            <div className="opacity-0 animate-[fadeInUp_0.6s_ease-out_1.0s_forwards] mt-4">
-                                <h4 className="text-lg md:text-xl font-semibold text-[#891387] mb-3">A platform for more than one community</h4>
+                            <GsapPageContent className="mt-4" delay={0.24}>
+                                <h4 className="mb-3 text-lg font-semibold text-[#891387] md:text-xl">A platform for more than one community</h4>
                                 <p className="text-white/90">
                                     Over time, the XoloGlobe will open its doors to
                                     other verified, values-aligned NFT communities who
                                     share our vision of trust-based human connection.
                                 </p>
-                                <p className="text-white/90 mt-4">
+                                <p className="mt-4 text-white/90">
                                     Just as our Mission states: we're cultivating a
                                     global dojo where shared experiences weave a
                                     stronger, more connected world. Connect your wallet and join the XoloGlobe today!
                                 </p>
-                            </div>
+                            </GsapPageContent>
                         </div>
                     </div>
                 </div>

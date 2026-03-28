@@ -55,7 +55,7 @@ function Vision() {
                             One pin, one connection, one share at a time.
                         </GsapPageContent>
                         <GsapPageSubHeading heading="Global Connection Opportunities" />
-                        <GsapPageContent>
+                        <GsapPageContent staggerChildren>
                             <ul className="list-items">
                                 <li>
                                     <span>Person to Person (P2P)</span> — All interactions remain peer-to-peer (P2P), with agreements on terms and costs negotiated directly between individuals, and transactions executed seamlessly wallet-to-wallet on the XRPL for unparalleled transparency and efficiency.
