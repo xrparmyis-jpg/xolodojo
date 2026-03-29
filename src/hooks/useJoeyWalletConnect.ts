@@ -3,7 +3,7 @@ import { standalone as joeyStandalone } from '@joey-wallet/wc-client/react';
 import { isMobileDevice } from '../utils/device';
 import { clearJoeyConnectIntent, setJoeyConnectIntent } from '../wallets/joey/joeyConnectIntent';
 import { extractJoeyWalletAddress } from '../wallets/joey/extractJoeyWalletAddress';
-import { walletAddressPreview, walletDebugLog } from '../utils/walletDebugLog';
+import { walletAddressPreview, walletDebugLog, walletTraceLog } from '../utils/walletDebugLog';
 
 export function useJoeyWalletConnect({
 	showToast,
@@ -52,12 +52,14 @@ export function useJoeyWalletConnect({
 
 			const mobile = isMobileDevice();
 			if (mobile && typeof deeplink === 'string' && deeplink.length > 0) {
+				walletTraceLog('Joey WC: opening app via deeplink', { mobile: true });
 				walletDebugLog('Joey connect: redirecting to app deeplink', { mobile: true });
 				setShowJoeyQrModal(false);
 				window.location.href = deeplink;
 				return;
 			}
 
+			walletTraceLog('Joey WC: show QR modal', { mobile });
 			walletDebugLog('Joey connect: showing QR (desktop or no deeplink)', { mobile });
 			setShowJoeyQrModal(true);
 		} catch (error) {
@@ -97,6 +99,11 @@ export function useJoeyWalletConnect({
 			return;
 		}
 		lastJoeyDebugKeyRef.current = key;
+		walletTraceLog('Joey SDK: session/account updated', {
+			hasAccountString: typeof account === 'string' && account.trim().length > 0,
+			hasSession: Boolean(session),
+			resolvedClassicAddress: resolved ? walletAddressPreview(resolved) : null,
+		});
 		walletDebugLog('Joey provider snapshot (changed)', {
 			hasAccountString: typeof account === 'string' && account.trim().length > 0,
 			accountPreview:

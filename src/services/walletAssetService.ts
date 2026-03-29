@@ -1,4 +1,4 @@
-import { walletAddressPreview, walletDebugLog } from '../utils/walletDebugLog';
+import { walletAddressPreview, walletDebugLog, walletTraceLog } from '../utils/walletDebugLog';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
@@ -30,8 +30,15 @@ export async function getWalletAssetSummary(
   walletAddress: string,
   accessToken?: string
 ): Promise<WalletAssetSummary> {
+  const url = `${API_BASE_URL}/user/wallet-assets?auth0_id=${encodeURIComponent(auth0Id)}&wallet_address=${encodeURIComponent(walletAddress)}`;
+  walletTraceLog('GET wallet-assets (NFT summary)', {
+    apiBase: API_BASE_URL,
+    addressPreview: walletAddressPreview(walletAddress),
+    addressLen: walletAddress.trim().length,
+  });
+
   const response = await fetch(
-    `${API_BASE_URL}/user/wallet-assets?auth0_id=${encodeURIComponent(auth0Id)}&wallet_address=${encodeURIComponent(walletAddress)}`,
+    url,
     {
       method: 'GET',
       headers: {
@@ -46,6 +53,12 @@ export async function getWalletAssetSummary(
       .json()
       .catch(() => ({ error: 'Unknown error' }));
     const message = (error as { error?: string }).error || `HTTP error! status: ${response.status}`;
+    walletTraceLog('wallet-assets HTTP error (no NFT list)', {
+      status: response.status,
+      message,
+      addressPreview: walletAddressPreview(walletAddress),
+      looksLikeClassicXrpl: XRPL_CLASSIC_ADDRESS.test(walletAddress.trim()),
+    });
     walletDebugLog('wallet-assets request failed', {
       status: response.status,
       message,
@@ -86,6 +99,20 @@ export async function getWalletAssetSummary(
     xrpl_fetch_error: data.xrpl_fetch_error ?? null,
     xrpl_rpc_urls_attempted: data.xrpl_rpc_urls_attempted,
   };
+
+  walletTraceLog('wallet-assets OK (NFT summary from API)', {
+    addressPreview: walletAddressPreview(summary.wallet_address),
+    is_xrpl: summary.is_xrpl,
+    nft_count: summary.nft_count,
+    nftsArrayLength: summary.nfts.length,
+    collection_filter_applied: summary.collection_filter_applied,
+    configured_collection_address: summary.configured_collection_address,
+    xrpl_fetch_failed: summary.xrpl_fetch_failed,
+    xrpl_fetch_error: summary.xrpl_fetch_error,
+    xrp_balance: summary.xrp_balance,
+    sampleIssuers: [...new Set(summary.nfts.map((n) => n.issuer).filter(Boolean))].slice(0, 5),
+    sampleTokenIds: summary.nfts.slice(0, 3).map((n) => n.token_id),
+  });
 
   walletDebugLog('wallet-assets response', {
     addressPreview: walletAddressPreview(summary.wallet_address),

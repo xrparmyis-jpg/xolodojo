@@ -50,7 +50,8 @@ import {
     XAMAN_CONNECTING_MESSAGE,
 } from '../constants/walletUiMessages';
 import { clearJoeyConnectIntent } from '../wallets/joey/joeyConnectIntent';
-import { walletAddressPreview, walletDebugLog } from '../utils/walletDebugLog';
+import { extractJoeyWalletAddress } from '../wallets/joey/extractJoeyWalletAddress';
+import { walletAddressPreview, walletDebugLog, walletTraceLog } from '../utils/walletDebugLog';
 
 interface WalletConnectionProps {
     auth0Id: string;
@@ -281,6 +282,42 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
         showToast,
         persistenceSuppressedRef: joeyPersistenceSuppressedRef,
     });
+
+    /** Fix DB rows saved with lowercased XRPL address (invalid checksum) using SDK-reported casing. */
+    const joeyRepairAttemptedForKey = useRef<string | null>(null);
+    useEffect(() => {
+        const resolved = extractJoeyWalletAddress(joeyAccount, joeySession);
+        const joeyRow = wallets.find((w) => w.is_connected && w.wallet_type === 'joey');
+        if (!resolved || !joeyRow || !accessToken) {
+            return;
+        }
+        if (resolved === joeyRow.wallet_address) {
+            return;
+        }
+        if (resolved.toLowerCase() !== joeyRow.wallet_address.toLowerCase()) {
+            return;
+        }
+        const key = `${joeyRow.id}:${resolved}`;
+        if (joeyRepairAttemptedForKey.current === key) {
+            return;
+        }
+        joeyRepairAttemptedForKey.current = key;
+        void (async () => {
+            try {
+                const repaired = await repairWalletAddressIfNeeded(joeyRow, resolved);
+                if (repaired.wallet_address !== joeyRow.wallet_address) {
+                    walletTraceLog('Joey: repaired wallet_address checksum casing in DB', {
+                        walletId: joeyRow.id,
+                        preview: walletAddressPreview(repaired.wallet_address),
+                    });
+                    await loadWallets({ silent: true });
+                }
+            } catch (e) {
+                joeyRepairAttemptedForKey.current = null;
+                console.warn('[Donovan:Wallet] Joey address casing repair failed:', e);
+            }
+        })();
+    }, [joeyAccount, joeySession, wallets, accessToken, repairWalletAddressIfNeeded, loadWallets]);
 
     useEffect(() => {
         void loadWallets();
@@ -613,6 +650,9 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
 
     const refreshConnectedWalletAssets = useCallback(async () => {
         if (!connectedWallet) {
+            walletTraceLog('refresh NFT summary skipped — no row marked is_connected', {
+                walletRowsLoaded: wallets.length,
+            });
             walletDebugLog('refresh assets skipped (no connected wallet)', {});
             setConnectedWalletAssets(null);
             setAssetsError(null);
@@ -625,6 +665,12 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
 
         const busy = walletBusyMessageRef.current;
         if (busy != null && busy !== LOADING_WALLET_SUMMARY_MESSAGE) {
+            walletTraceLog('refresh NFT summary skipped — walletBusyMessage blocks fetch', {
+                busyMessage: busy,
+                walletType: connectedWallet.wallet_type,
+                addressPreview: walletAddressPreview(connectedWallet.wallet_address),
+                hint: 'Another operation is running; NFT list loads after it clears.',
+            });
             walletDebugLog('refresh assets skipped (other wallet operation in progress)', {
                 busyMessage: busy,
                 walletType: connectedWallet.wallet_type,
@@ -633,6 +679,13 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
             return;
         }
 
+        walletTraceLog('refresh NFT summary starting', {
+            walletId: connectedWallet.id,
+            walletType: connectedWallet.wallet_type,
+            walletLabel: connectedWallet.wallet_label ?? null,
+            addressPreview: walletAddressPreview(connectedWallet.wallet_address),
+            addressLength: connectedWallet.wallet_address.length,
+        });
         walletDebugLog('refresh assets start', {
             walletId: connectedWallet.id,
             walletType: connectedWallet.wallet_type,
@@ -650,6 +703,13 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                 accessToken
             );
             setConnectedWalletAssets(summary);
+            walletTraceLog('refresh NFT summary finished (UI will show count)', {
+                walletType: connectedWallet.wallet_type,
+                nft_count: summary.nft_count,
+                is_xrpl: summary.is_xrpl,
+                collection_filter_applied: summary.collection_filter_applied,
+                xrpl_fetch_failed: summary.xrpl_fetch_failed,
+            });
             walletDebugLog('refresh assets done (state updated)', {
                 walletType: connectedWallet.wallet_type,
                 nft_count: summary.nft_count,
@@ -661,6 +721,11 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
             const err = error instanceof Error ? error : new Error(String(error));
             setConnectedWalletAssets(null);
             setAssetsError(err.message);
+            walletTraceLog('refresh NFT summary failed', {
+                walletType: connectedWallet.wallet_type,
+                addressPreview: walletAddressPreview(connectedWallet.wallet_address),
+                message: err.message,
+            });
             walletDebugLog('refresh assets error', {
                 walletType: connectedWallet.wallet_type,
                 addressPreview: walletAddressPreview(connectedWallet.wallet_address),
@@ -672,7 +737,41 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                 prev === LOADING_WALLET_SUMMARY_MESSAGE ? null : prev
             );
         }
-    }, [accessToken, auth0Id, connectedWallet]);
+    }, [accessToken, auth0Id, connectedWallet, wallets.length]);
+
+    useEffect(() => {
+        if (!connectedWallet) {
+            return;
+        }
+        walletTraceLog('App wallet row marked connected', {
+            walletId: connectedWallet.id,
+            walletType: connectedWallet.wallet_type,
+            is_connected: connectedWallet.is_connected,
+            addressPreview: walletAddressPreview(connectedWallet.wallet_address),
+        });
+    }, [
+        connectedWallet?.id,
+        connectedWallet?.wallet_type,
+        connectedWallet?.wallet_address,
+        connectedWallet?.is_connected,
+    ]);
+
+    useEffect(() => {
+        if (wallets.length === 0) {
+            return;
+        }
+        const anyConnected = wallets.some((w) => w.is_connected);
+        if (!anyConnected) {
+            walletTraceLog('You have saved wallet(s) but none is_connected — NFT block will not load', {
+                wallets: wallets.map((w) => ({
+                    id: w.id,
+                    type: w.wallet_type,
+                    is_connected: w.is_connected,
+                    preview: walletAddressPreview(w.wallet_address),
+                })),
+            });
+        }
+    }, [wallets]);
 
     useEffect(() => {
         void refreshConnectedWalletAssets();

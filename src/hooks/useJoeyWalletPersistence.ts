@@ -3,7 +3,7 @@ import type { Wallet } from '../services/walletService';
 import { addWallet, connectWallet, disconnectWallet } from '../services/walletService';
 import { extractJoeyWalletAddress } from '../wallets/joey/extractJoeyWalletAddress';
 import { clearJoeyConnectIntent, hasJoeyConnectIntent } from '../wallets/joey/joeyConnectIntent';
-import { walletAddressPreview, walletDebugLog } from '../utils/walletDebugLog';
+import { walletAddressPreview, walletDebugLog, walletTraceLog } from '../utils/walletDebugLog';
 import { SAVING_WALLET_MESSAGE } from '../constants/walletUiMessages';
 
 type ShowToast = (type: 'success' | 'error', message: string, durationMs?: number) => void;
@@ -48,6 +48,10 @@ export function useJoeyWalletPersistence({
 
 		const joeyAddress = extractJoeyWalletAddress(joeyAccount, joeySession);
 		if (!joeyAddress) {
+			walletTraceLog('Joey persist: no XRPL address from SDK yet', {
+				hasJoeyAccount: Boolean(joeyAccount),
+				hasJoeySession: Boolean(joeySession),
+			});
 			walletDebugLog('Joey persist skipped (no classic address from SDK)', {
 				hasJoeyAccount: Boolean(joeyAccount),
 				hasJoeySession: Boolean(joeySession),
@@ -59,12 +63,18 @@ export function useJoeyWalletPersistence({
 			return;
 		}
 
-		const normalizedAddress = joeyAddress.toLowerCase();
+		/** Must preserve XRPL base58 checksum casing — do not .toLowerCase() the stored address. */
+		const canonicalAddress = joeyAddress.trim();
+		const compareKey = canonicalAddress.toLowerCase();
+
+		walletTraceLog('Joey persist: have address, checking intent + DB', {
+			addressPreview: walletAddressPreview(canonicalAddress),
+		});
 		walletDebugLog('Joey persist candidate', {
-			addressPreview: walletAddressPreview(normalizedAddress),
+			addressPreview: walletAddressPreview(canonicalAddress),
 		});
 		const existingWallet = wallets.find(
-			(w) => w.wallet_address.toLowerCase() === normalizedAddress && w.wallet_type === 'joey'
+			(w) => w.wallet_address.toLowerCase() === compareKey && w.wallet_type === 'joey'
 		);
 		if (existingWallet?.is_connected) {
 			return;
@@ -72,8 +82,11 @@ export function useJoeyWalletPersistence({
 
 		// No intent => lingering SDK session after disconnect/delete, or stale tab — never write to API.
 		if (!hasJoeyConnectIntent()) {
+			walletTraceLog('Joey persist skipped — no joey connect intent (SDK has session but we will not save/connect API)', {
+				addressPreview: walletAddressPreview(canonicalAddress),
+			});
 			walletDebugLog('Joey persist skipped (no connect intent in sessionStorage)', {
-				addressPreview: walletAddressPreview(normalizedAddress),
+				addressPreview: walletAddressPreview(canonicalAddress),
 			});
 			return;
 		}
@@ -96,7 +109,7 @@ export function useJoeyWalletPersistence({
 						clearJoeyConnectIntent();
 						return;
 					}
-					const result = await addWallet(auth0Id, normalizedAddress, 'joey', 'Joey Wallet', accessToken);
+					const result = await addWallet(auth0Id, canonicalAddress, 'joey', 'Joey Wallet', accessToken);
 					if (!result.success || !result.wallet) throw new Error('Failed to add Joey Wallet');
 					walletId = result.wallet.id;
 				} else {
@@ -121,6 +134,10 @@ export function useJoeyWalletPersistence({
 					await loadWallets({ silent: true });
 					clearJoeyConnectIntent();
 					showToast('success', 'Joey Wallet added and connected!');
+					walletTraceLog('Joey persist: backend saved wallet + is_connected; NFT summary should run next', {
+						walletId,
+						addressPreview: walletAddressPreview(canonicalAddress),
+					});
 				}
 			} catch (err) {
 				clearJoeyConnectIntent();

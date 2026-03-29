@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import mysql from 'mysql2/promise';
 import { readFile } from 'node:fs/promises';
+import { decodeAccountID, encodeAccountID } from 'ripple-address-codec';
 
 let pool: mysql.Pool | null = null;
 let cachedCollectionAddress: string | null | undefined;
@@ -27,6 +28,22 @@ function getPool(): mysql.Pool {
 
 function isLikelyXrplAddress(address: string) {
   return /^r[1-9A-HJ-NP-Za-km-z]{24,34}$/.test(address);
+}
+
+/**
+ * XRPL classic addresses are base58 with a case-sensitive checksum.
+ * Lowercased strings are invalid on the ledger ("actMalformed"). Decode+encode restores canonical form.
+ */
+function canonicalizeClassicAddressForRpc(address: string): string {
+  const t = address.trim();
+  if (!isLikelyXrplAddress(t)) {
+    return t;
+  }
+  try {
+    return encodeAccountID(decodeAccountID(t));
+  } catch {
+    return t;
+  }
 }
 
 function getSafeXrplFallback(
@@ -202,7 +219,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const userId = userResult[0].id;
 
     const [walletResult] = (await dbPool.execute(
-      'SELECT id FROM user_wallets WHERE user_id = ? AND LOWER(wallet_address) = LOWER(?)',
+      'SELECT id, wallet_address FROM user_wallets WHERE user_id = ? AND LOWER(wallet_address) = LOWER(?)',
       [userId, walletAddress]
     )) as [any[], any];
 
@@ -210,17 +227,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(404).json({ error: 'Wallet not found for user' });
     }
 
+    const walletRow = walletResult[0] as { id: number; wallet_address: string };
+    const storedWalletAddress = String(walletRow.wallet_address ?? '');
+    /** Prefer DB value, then query; fix checksum casing before any XRPL call. */
+    const accountForRpc = canonicalizeClassicAddressForRpc(storedWalletAddress || walletAddress);
+
+    if (
+      accountForRpc !== storedWalletAddress &&
+      isLikelyXrplAddress(accountForRpc)
+    ) {
+      void dbPool
+        .execute(
+          'UPDATE user_wallets SET wallet_address = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?',
+          [accountForRpc, walletRow.id, userId]
+        )
+        .catch((e: unknown) => {
+          console.warn('[wallet-assets] Could not upgrade wallet_address checksum casing:', e);
+        });
+    }
+
     const rpcUrlsAttempted = getXrplRpcUrls();
 
     const accountInfo = await callXrpl<{
       account_data?: { Balance?: string };
     }>('account_info', {
-      account: walletAddress,
+      account: accountForRpc,
       ledger_index: 'validated',
       strict: true,
     }).catch((error: Error) => {
       console.warn('XRPL account_info failed, returning empty wallet summary:', {
-        walletAddress,
+        accountForRpc,
+        queryWalletAddress: walletAddress,
         message: error.message,
         rpcUrlsAttempted,
       });
@@ -229,7 +266,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if ('error' in accountInfo) {
       return res.status(200).json(
-        getSafeXrplFallback(walletAddress, {
+        getSafeXrplFallback(accountForRpc, {
           error: accountInfo.error.message,
           rpc_urls_attempted: rpcUrlsAttempted,
         })
@@ -241,7 +278,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let marker: string | undefined = undefined;
     do {
       const params: Record<string, any> = {
-        account: walletAddress,
+        account: accountForRpc,
         ledger_index: 'validated',
       };
       if (marker) params.marker = marker;
@@ -267,7 +304,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (filteredNfts.length === 0) {
         // Add detailed logs for debugging
         console.log('[NFT DEBUG] No NFTs found for collection', {
-          walletAddress,
+          accountForRpc,
           configuredCollectionAddress,
           allNftCount: nfts.length,
           allNftIds: nfts.map(n => n.NFTokenID),
@@ -275,7 +312,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
       } else {
         console.log('[NFT DEBUG] Filtered NFTs for collection', {
-          walletAddress,
+          accountForRpc,
           configuredCollectionAddress,
           filteredCount: filteredNfts.length,
           filteredNftIds: filteredNfts.map(n => n.NFTokenID),
@@ -283,14 +320,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     } else {
       console.log('[NFT DEBUG] No collection address configured, returning all NFTs', {
-        walletAddress,
+        accountForRpc,
         allNftCount: nfts.length,
       });
     }
 
     return res.status(200).json({
       success: true,
-      wallet_address: walletAddress,
+      wallet_address: accountForRpc,
       is_xrpl: true,
       xrp_balance: xrpBalance,
       collection_filter_applied: Boolean(configuredCollectionAddress),
