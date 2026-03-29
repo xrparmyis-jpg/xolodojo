@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import mysql from 'mysql2/promise';
-import { resolveCanonicalClassicAddress } from '../xrplClassicAddress';
+import { resolveCanonicalClassicAddress } from './xrplClassicAddress';
 
 let pool: mysql.Pool | null = null;
 
