@@ -1,4 +1,4 @@
-import { resolveCanonicalClassicAddress, stripInvisible } from '../../utils/xrplClassicAddress';
+import { pickBestClassicAddressCandidate, stripInvisible } from '../../utils/xrplClassicAddress';
 
 function pushCandidates(out: string[], raw: string): void {
 	const t = stripInvisible(raw);
@@ -53,11 +53,5 @@ export function extractJoeyWalletAddress(
 ): string | null {
 	const candidates = collectJoeyAccountCandidates(joeyAccount, joeySession);
 	const deduped = [...new Set(candidates)];
-	for (const c of deduped) {
-		const resolved = resolveCanonicalClassicAddress(c);
-		if (resolved) {
-			return resolved;
-		}
-	}
-	return null;
+	return pickBestClassicAddressCandidate(deduped);
 }

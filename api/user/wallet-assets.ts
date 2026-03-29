@@ -5,7 +5,7 @@ import {
 	isResolvableLedgerAccount,
 	resolveCanonicalClassicAddress,
 	stripInvisible,
-} from '../../src/utils/xrplClassicAddress';
+} from '../xrplClassicAddress';
 
 let pool: mysql.Pool | null = null;
 let cachedCollectionAddress: string | null | undefined;

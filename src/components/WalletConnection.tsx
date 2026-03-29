@@ -802,18 +802,22 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
             {wallets.length > 0 && (
                 <div className="space-y-3 mb-4">
                     {sortedWallets.map((wallet) => {
-                        const truncatedAddress = wallet.wallet_address.length > 12
-                            ? `${wallet.wallet_address.slice(0, 6)}...${wallet.wallet_address.slice(-6)}`
-                            : wallet.wallet_address;
+                        const rawAddress = typeof wallet.wallet_address === 'string' ? wallet.wallet_address : '';
+                        const truncatedAddress = rawAddress.length > 12
+                            ? `${rawAddress.slice(0, 6)}...${rawAddress.slice(-6)}`
+                            : rawAddress || '—';
 
+                        const wType = typeof wallet.wallet_type === 'string' ? wallet.wallet_type : '';
                         let walletLabel = wallet.wallet_label;
                         if (!walletLabel) {
-                            if (wallet.wallet_type === 'xaman') {
+                            if (wType === 'xaman') {
                                 walletLabel = 'Xaman (XUMM)';
-                            } else if (wallet.wallet_type === 'joey') {
+                            } else if (wType === 'joey') {
                                 walletLabel = 'Joey Wallet';
+                            } else if (wType.length > 0) {
+                                walletLabel = wType.charAt(0).toUpperCase() + wType.slice(1);
                             } else {
-                                walletLabel = wallet.wallet_type.charAt(0).toUpperCase() + wallet.wallet_type.slice(1);
+                                walletLabel = 'Wallet';
                             }
                         }
                         return (
@@ -836,7 +840,11 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                                             type="button"
                                             title="Copy address"
                                             className="cursor-pointer text-white/60 hover:text-white ml-1"
-                                            onClick={() => handleCopyWalletAddress(wallet.id, wallet.wallet_address)}
+                                            onClick={() => {
+                                            if (rawAddress) {
+                                                void handleCopyWalletAddress(wallet.id, rawAddress);
+                                            }
+                                        }}
                                         >
                                             <FontAwesomeIcon icon={faCopy} />
                                         </button>

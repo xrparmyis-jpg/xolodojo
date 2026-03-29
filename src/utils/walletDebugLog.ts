@@ -32,8 +32,14 @@ export function walletTraceLog(event: string, payload?: Record<string, unknown>)
 	console.log(`[Donovan:Wallet] ${event}`, payload ?? {});
 }
 
-export function walletAddressPreview(address: string): string {
+export function walletAddressPreview(address: string | null | undefined): string {
+	if (address == null || typeof address !== 'string') {
+		return '(no address)';
+	}
 	const t = address.trim();
+	if (t.length === 0) {
+		return '(empty)';
+	}
 	if (t.length <= 14) {
 		return t;
 	}

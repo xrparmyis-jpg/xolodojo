@@ -1,41 +1,51 @@
-import {
-	decodeAccountID,
-	encodeAccountID,
-	isValidXAddress,
-	xAddressToClassicAddress,
-} from 'ripple-address-codec';
+/**
+ * Browser-safe XRPL address helpers — no ripple-address-codec (avoids Node `stream`/`create-hash` in Vite).
+ * Checksum validation and canonical form are enforced on the API via `api/xrplClassicAddress.ts`.
+ */
 
 const XRPL_CLASSIC_RE = /^r[1-9A-HJ-NP-Za-km-z]{24,34}$/;
 
-export function stripInvisible(s: string): string {
+export function stripInvisible(s: string | null | undefined): string {
+	if (s == null || typeof s !== 'string') {
+		return '';
+	}
 	return s.replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
 }
 
-/**
- * Returns a checksummed classic address suitable for rippled `account` fields,
- * or null if the string cannot be decoded (wrong checksum / garbage).
- */
-export function resolveCanonicalClassicAddress(input: string): string | null {
-	const s = stripInvisible(input);
-	if (!s) {
-		return null;
-	}
-	if (isValidXAddress(s)) {
-		return xAddressToClassicAddress(s).classicAddress;
-	}
-	if (!XRPL_CLASSIC_RE.test(s)) {
-		return null;
-	}
-	try {
-		return encodeAccountID(decodeAccountID(s));
-	} catch {
-		return null;
-	}
+/** Matches classic address shape only (does not verify checksum). */
+export function isClassicAddressShape(t: string): boolean {
+	return XRPL_CLASSIC_RE.test(stripInvisible(t));
 }
 
 /**
- * True if the value decodes to a valid ledger account (classic or X-address).
+ * Heuristic score: prefer mixed-case base58 (valid XRPL checksum style); avoid all-lowercase blobs.
  */
-export function isResolvableLedgerAccount(input: string): boolean {
-	return resolveCanonicalClassicAddress(input) !== null;
+function classicShapeScore(t: string): number {
+	if (!XRPL_CLASSIC_RE.test(t)) {
+		return -1;
+	}
+	const rest = t.slice(1);
+	const upper = (rest.match(/[A-HJ-NP-Z]/g) || []).length;
+	const lower = (rest.match(/[a-km-z]/g) || []).length;
+	if (upper > 0 && lower > 0) {
+		return 100 + upper + lower;
+	}
+	if (upper > 0) {
+		return 50 + upper;
+	}
+	return lower;
+}
+
+export function pickBestClassicAddressCandidate(candidates: string[]): string | null {
+	let best: string | null = null;
+	let bestScore = -1;
+	for (const c of candidates) {
+		const t = stripInvisible(c);
+		const sc = classicShapeScore(t);
+		if (sc > bestScore) {
+			bestScore = sc;
+			best = t;
+		}
+	}
+	return bestScore >= 0 ? best : null;
 }
