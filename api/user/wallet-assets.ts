@@ -1,7 +1,11 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import mysql from 'mysql2/promise';
 import { readFile } from 'node:fs/promises';
-import { decodeAccountID, encodeAccountID } from 'ripple-address-codec';
+import {
+	isResolvableLedgerAccount,
+	resolveCanonicalClassicAddress,
+	stripInvisible,
+} from '../../src/utils/xrplClassicAddress';
 
 let pool: mysql.Pool | null = null;
 let cachedCollectionAddress: string | null | undefined;
@@ -26,24 +30,8 @@ function getPool(): mysql.Pool {
   return pool;
 }
 
-function isLikelyXrplAddress(address: string) {
+function isLikelyClassicShape(address: string) {
   return /^r[1-9A-HJ-NP-Za-km-z]{24,34}$/.test(address);
-}
-
-/**
- * XRPL classic addresses are base58 with a case-sensitive checksum.
- * Lowercased strings are invalid on the ledger ("actMalformed"). Decode+encode restores canonical form.
- */
-function canonicalizeClassicAddressForRpc(address: string): string {
-  const t = address.trim();
-  if (!isLikelyXrplAddress(t)) {
-    return t;
-  }
-  try {
-    return encodeAccountID(decodeAccountID(t));
-  } catch {
-    return t;
-  }
 }
 
 function getSafeXrplFallback(
@@ -194,7 +182,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .json({ error: 'Missing auth0_id or wallet_address' });
     }
 
-    if (!isLikelyXrplAddress(walletAddress)) {
+    const queryTrim = stripInvisible(String(walletAddress));
+    const queryResolved = resolveCanonicalClassicAddress(queryTrim);
+    if (!queryResolved && !isLikelyClassicShape(queryTrim) && !isResolvableLedgerAccount(queryTrim)) {
       return res.status(200).json({
         success: true,
         wallet_address: walletAddress,
@@ -229,12 +219,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const walletRow = walletResult[0] as { id: number; wallet_address: string };
     const storedWalletAddress = String(walletRow.wallet_address ?? '');
-    /** Prefer DB value, then query; fix checksum casing before any XRPL call. */
-    const accountForRpc = canonicalizeClassicAddressForRpc(storedWalletAddress || walletAddress);
+    /** Never call rippled with an invalid-checksum string; decode+encode only via resolve (or null). */
+    const accountForRpc =
+      resolveCanonicalClassicAddress(storedWalletAddress) ??
+      resolveCanonicalClassicAddress(queryTrim) ??
+      null;
+
+    if (!accountForRpc) {
+      return res.status(200).json(
+        getSafeXrplFallback(storedWalletAddress || queryTrim, {
+          error:
+            'XRPL address checksum invalid (often caused by lowercased address). Remove the wallet and add it again, or contact support.',
+          rpc_urls_attempted: getXrplRpcUrls(),
+        })
+      );
+    }
 
     if (
       accountForRpc !== storedWalletAddress &&
-      isLikelyXrplAddress(accountForRpc)
+      isLikelyClassicShape(accountForRpc)
     ) {
       void dbPool
         .execute(

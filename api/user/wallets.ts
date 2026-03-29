@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import mysql from 'mysql2/promise';
+import { resolveCanonicalClassicAddress } from '../../src/utils/xrplClassicAddress';
 
 let pool: mysql.Pool | null = null;
 
@@ -65,8 +66,16 @@ function normalizeWalletAddressForStorage(
   walletType?: string
 ): string {
   const trimmed = value.trim();
-  if (walletType === 'xaman' || walletType === 'joey' || isLikelyXrplAddress(trimmed)) {
-    return trimmed;
+  if (walletType === 'xaman' || walletType === 'joey') {
+    const resolved = resolveCanonicalClassicAddress(trimmed);
+    if (!resolved) {
+      throw new Error('INVALID_XRPL_ADDRESS_CHECKSUM');
+    }
+    return resolved;
+  }
+  if (isLikelyXrplAddress(trimmed)) {
+    const resolved = resolveCanonicalClassicAddress(trimmed);
+    return resolved ?? trimmed;
   }
 
   return trimmed.toLowerCase();
@@ -209,10 +218,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       const userId = userResult[0].id;
-      const normalizedWalletAddress = normalizeWalletAddressForStorage(
-        wallet_address,
-        wallet_type
-      );
+      let normalizedWalletAddress: string;
+      try {
+        normalizedWalletAddress = normalizeWalletAddressForStorage(
+          wallet_address,
+          wallet_type
+        );
+      } catch (normalizeErr) {
+        const msg =
+          normalizeErr instanceof Error && normalizeErr.message === 'INVALID_XRPL_ADDRESS_CHECKSUM'
+            ? 'Invalid XRPL address (checksum). Copy the address from your wallet; do not type it manually.'
+            : normalizeErr instanceof Error
+              ? normalizeErr.message
+              : String(normalizeErr);
+        res.status(400).json({ error: msg });
+        return;
+      }
       const comparisonWalletAddress = normalizeWalletAddressForComparison(wallet_address);
 
       // Check if wallet already exists, ignoring case so legacy XRPL rows still match.
