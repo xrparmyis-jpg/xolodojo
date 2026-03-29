@@ -1,6 +1,6 @@
 /**
  * Browser-safe XRPL address helpers — no ripple-address-codec (avoids Node `stream`/`create-hash` in Vite).
- * Checksum validation and canonical form are enforced on the API via `api/xrplClassicAddress.ts`.
+ * Checksum validation and canonical form are enforced on the API via `api/user/xrplClassicAddress.ts`.
  */
 
 const XRPL_CLASSIC_RE = /^r[1-9A-HJ-NP-Za-km-z]{24,34}$/;

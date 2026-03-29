@@ -1,6 +1,7 @@
 /**
- * Server-only XRPL address canonicalization (uses ripple-address-codec → Node polyfills).
- * Do not import this file from `src/` — Vite would bundle readable-stream/create-hash into the browser.
+ * Server-only XRPL address canonicalization (uses ripple-address-codec).
+ * Lives next to wallet routes so Vercel bundles it with `/api/user/*` functions.
+ * Do not import from `src/` — Vite would bundle Node deps into the browser.
  */
 import {
 	decodeAccountID,
