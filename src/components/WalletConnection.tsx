@@ -50,6 +50,7 @@ import {
     XAMAN_CONNECTING_MESSAGE,
 } from '../constants/walletUiMessages';
 import { clearJoeyConnectIntent } from '../wallets/joey/joeyConnectIntent';
+import { walletAddressPreview, walletDebugLog } from '../utils/walletDebugLog';
 
 interface WalletConnectionProps {
     auth0Id: string;
@@ -612,6 +613,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
 
     const refreshConnectedWalletAssets = useCallback(async () => {
         if (!connectedWallet) {
+            walletDebugLog('refresh assets skipped (no connected wallet)', {});
             setConnectedWalletAssets(null);
             setAssetsError(null);
             setIsAssetsLoading(false);
@@ -623,8 +625,21 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
 
         const busy = walletBusyMessageRef.current;
         if (busy != null && busy !== LOADING_WALLET_SUMMARY_MESSAGE) {
+            walletDebugLog('refresh assets skipped (other wallet operation in progress)', {
+                busyMessage: busy,
+                walletType: connectedWallet.wallet_type,
+                addressPreview: walletAddressPreview(connectedWallet.wallet_address),
+            });
             return;
         }
+
+        walletDebugLog('refresh assets start', {
+            walletId: connectedWallet.id,
+            walletType: connectedWallet.wallet_type,
+            walletLabel: connectedWallet.wallet_label,
+            addressPreview: walletAddressPreview(connectedWallet.wallet_address),
+            addressLength: connectedWallet.wallet_address.length,
+        });
 
         try {
             setIsAssetsLoading(true);
@@ -635,10 +650,22 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                 accessToken
             );
             setConnectedWalletAssets(summary);
+            walletDebugLog('refresh assets done (state updated)', {
+                walletType: connectedWallet.wallet_type,
+                nft_count: summary.nft_count,
+                is_xrpl: summary.is_xrpl,
+                collection_filter_applied: summary.collection_filter_applied,
+                xrpl_fetch_failed: summary.xrpl_fetch_failed,
+            });
         } catch (error) {
             const err = error instanceof Error ? error : new Error(String(error));
             setConnectedWalletAssets(null);
             setAssetsError(err.message);
+            walletDebugLog('refresh assets error', {
+                walletType: connectedWallet.wallet_type,
+                addressPreview: walletAddressPreview(connectedWallet.wallet_address),
+                message: err.message,
+            });
         } finally {
             setIsAssetsLoading(false);
             setWalletBusyMessage((prev) =>

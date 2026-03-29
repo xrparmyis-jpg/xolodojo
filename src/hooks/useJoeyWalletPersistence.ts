@@ -3,6 +3,7 @@ import type { Wallet } from '../services/walletService';
 import { addWallet, connectWallet, disconnectWallet } from '../services/walletService';
 import { extractJoeyWalletAddress } from '../wallets/joey/extractJoeyWalletAddress';
 import { clearJoeyConnectIntent, hasJoeyConnectIntent } from '../wallets/joey/joeyConnectIntent';
+import { walletAddressPreview, walletDebugLog } from '../utils/walletDebugLog';
 import { SAVING_WALLET_MESSAGE } from '../constants/walletUiMessages';
 
 type ShowToast = (type: 'success' | 'error', message: string, durationMs?: number) => void;
@@ -47,6 +48,10 @@ export function useJoeyWalletPersistence({
 
 		const joeyAddress = extractJoeyWalletAddress(joeyAccount, joeySession);
 		if (!joeyAddress) {
+			walletDebugLog('Joey persist skipped (no classic address from SDK)', {
+				hasJoeyAccount: Boolean(joeyAccount),
+				hasJoeySession: Boolean(joeySession),
+			});
 			if (import.meta.env.DEV) {
 				// eslint-disable-next-line no-console
 				console.warn('[JoeyWallet] No address extracted from session; skip persist.');
@@ -55,6 +60,9 @@ export function useJoeyWalletPersistence({
 		}
 
 		const normalizedAddress = joeyAddress.toLowerCase();
+		walletDebugLog('Joey persist candidate', {
+			addressPreview: walletAddressPreview(normalizedAddress),
+		});
 		const existingWallet = wallets.find(
 			(w) => w.wallet_address.toLowerCase() === normalizedAddress && w.wallet_type === 'joey'
 		);
@@ -64,6 +72,9 @@ export function useJoeyWalletPersistence({
 
 		// No intent => lingering SDK session after disconnect/delete, or stale tab — never write to API.
 		if (!hasJoeyConnectIntent()) {
+			walletDebugLog('Joey persist skipped (no connect intent in sessionStorage)', {
+				addressPreview: walletAddressPreview(normalizedAddress),
+			});
 			return;
 		}
 

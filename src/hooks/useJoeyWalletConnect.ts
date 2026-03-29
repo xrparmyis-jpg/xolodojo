@@ -1,7 +1,9 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { standalone as joeyStandalone } from '@joey-wallet/wc-client/react';
 import { isMobileDevice } from '../utils/device';
 import { clearJoeyConnectIntent, setJoeyConnectIntent } from '../wallets/joey/joeyConnectIntent';
+import { extractJoeyWalletAddress } from '../wallets/joey/extractJoeyWalletAddress';
+import { walletAddressPreview, walletDebugLog } from '../utils/walletDebugLog';
 
 export function useJoeyWalletConnect({
 	showToast,
@@ -22,6 +24,7 @@ export function useJoeyWalletConnect({
 	const [showJoeyQrModal, setShowJoeyQrModal] = useState(false);
 	const [joeyConnectUri, setJoeyConnectUri] = useState<string | null>(null);
 	const [joeyDeepLink, setJoeyDeepLink] = useState<string | null>(null);
+	const lastJoeyDebugKeyRef = useRef<string>('');
 
 	const disconnectFromProvider = useCallback(async () => {
 		try {
@@ -49,11 +52,13 @@ export function useJoeyWalletConnect({
 
 			const mobile = isMobileDevice();
 			if (mobile && typeof deeplink === 'string' && deeplink.length > 0) {
+				walletDebugLog('Joey connect: redirecting to app deeplink', { mobile: true });
 				setShowJoeyQrModal(false);
 				window.location.href = deeplink;
 				return;
 			}
 
+			walletDebugLog('Joey connect: showing QR (desktop or no deeplink)', { mobile });
 			setShowJoeyQrModal(true);
 		} catch (error) {
 			clearJoeyConnectIntent();
@@ -84,6 +89,24 @@ export function useJoeyWalletConnect({
 			setIsJoeyConnectPending(false);
 		}
 	}, [showJoeyQrModal, session, account]);
+
+	useEffect(() => {
+		const resolved = extractJoeyWalletAddress(account, session);
+		const key = `${resolved ?? ''}|${typeof account === 'string' ? account.trim() : ''}|${Boolean(session)}`;
+		if (key === lastJoeyDebugKeyRef.current) {
+			return;
+		}
+		lastJoeyDebugKeyRef.current = key;
+		walletDebugLog('Joey provider snapshot (changed)', {
+			hasAccountString: typeof account === 'string' && account.trim().length > 0,
+			accountPreview:
+				typeof account === 'string' && account.trim().length > 0
+					? walletAddressPreview(account.trim())
+					: null,
+			hasSession: Boolean(session),
+			resolvedClassicAddress: resolved ? walletAddressPreview(resolved) : null,
+		});
+	}, [account, session]);
 
 	return {
 		isJoeyConnectPending,
