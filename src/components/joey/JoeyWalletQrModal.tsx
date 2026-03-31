@@ -37,7 +37,7 @@ export function JoeyWalletQrModal({ open, connectionUri, deepLink, onCancel }: J
 					{deepLink ? (
 						<a
 							href={deepLink}
-							className="inline-flex items-center justify-center rounded-md bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700"
+							className="inline-flex items-center justify-center rounded-md bg-[#F76807] px-4 py-2 text-sm font-medium text-white hover:bg-[#c94e06] active:bg-[#a13d04]"
 						>
 							Open Joey App
 						</a>
@@ -47,7 +47,7 @@ export function JoeyWalletQrModal({ open, connectionUri, deepLink, onCancel }: J
 					<Button
 						type="button"
 						onClick={() => void onCancel()}
-						className="bg-gray-600 hover:bg-gray-700 active:bg-gray-800 text-sm"
+						className="bg-red-600 hover:bg-red-700 active:bg-red-800 text-sm text-white"
 					>
 						Cancel
 					</Button>

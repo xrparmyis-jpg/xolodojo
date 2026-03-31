@@ -1034,17 +1034,11 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
 
     return (
         <div className="rounded-md border border-white/10 bg-black/20 p-3">
-            <div
-                className={
-                    paginatedNfts.length === 1
-                        ? 'flex grid grid-cols-1 justify-center gap-4'
-                        : 'flex grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 justify-center'
-                }
-            >
+            <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 justify-items-stretch">
                 {paginatedNfts.map((nft) => (
                     <div
                         key={nft.token_id}
-                        className="relative w-full max-w-[320px] sm:max-w-[240px] lg:max-w-[200px] mx-auto sm:mx-0 rounded bg-white/[0.03] p-2 text-left transition-colors hover:bg-white/[0.06]"
+                        className="relative min-w-0 w-full rounded bg-white/[0.03] p-2 text-left transition-colors hover:bg-white/[0.06]"
                     >
                         <button
                             type="button"
@@ -1068,20 +1062,19 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                                 }
                                 if (!directCandidates || directCandidates.length === 0) {
                                     return (
-                                        <div className={`relative h-auto w-full aspect-square max-h-[200px] overflow-hidden rounded border ${isCollectionFallback ? 'border-red-600' : 'border-white/10'} flex items-center justify-center bg-white/5`}>
+                                        <div className={`relative aspect-square w-full max-w-[180px] max-h-[180px] overflow-hidden rounded border ${isCollectionFallback ? 'border-red-600' : 'border-white/10'} flex items-center justify-center bg-white/5`}>
                                             <FontAwesomeIcon icon={faSpinner} className="text-white/60 animate-spin text-2xl" />
                                         </div>
                                     );
                                 }
                                 return (
                                     <div
-                                        className={`relative h-auto w-full aspect-square max-h-[200px] overflow-hidden rounded border ${isCollectionFallback ? 'border-red-600' : 'border-white/10'}`}
+                                        className={`relative aspect-square w-full max-w-[180px] max-h-[180px] overflow-hidden rounded border ${isCollectionFallback ? 'border-red-600' : 'border-white/10'}`}
                                     >
                                         <ResilientImage
                                             urls={directCandidates}
                                             alt="NFT thumbnail"
-                                            className="h-full w-full"
-                                            style={{ minHeight: 40 }}
+                                            className="h-full w-full min-h-0"
                                             onLoad={e => handleGalleryImageLoad(nft.token_id, (e.target as HTMLImageElement).src)}
                                         />
                                     </div>

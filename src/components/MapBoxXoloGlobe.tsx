@@ -114,8 +114,13 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
     const [loadError, setLoadError] = useState<string | null>(null);
 
     const secondsPerRevolution = 120;
-    const maxSpinZoom = 5;
-    const slowSpinZoom = 3;
+    /** Globe auto-rotation only when zoom is below this (Mapbox zoom; ~3 = regional, world is ~1–2). */
+    const rotationMaxZoom = 3;
+    /** Between this and `rotationMaxZoom`, rotation slows smoothly to zero. */
+    const slowSpinZoomStart = 2;
+
+    const [mapZoom, setMapZoom] = useState(1.15);
+    const spinLockedByZoom = mapZoom >= rotationMaxZoom;
 
     const accessToken = useMemo(() => import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || '', []);
     const targetPinTokenId = searchParams.get('pin')?.trim() || null;
@@ -164,6 +169,18 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
         };
     }, []);
 
+    const stopRotationIfZoomTooHigh = () => {
+        const map = mapRef.current;
+        if (!map) {
+            return;
+        }
+        if (map.getZoom() >= rotationMaxZoom && spinningRef.current) {
+            spinningRef.current = false;
+            setIsSpinning(false);
+            map.stop();
+        }
+    };
+
     const spinGlobe = () => {
         const map = mapRef.current;
         if (!map) {
@@ -171,10 +188,11 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
         }
 
         const zoom = map.getZoom();
-        if (spinningRef.current && !userInteractingRef.current && zoom < maxSpinZoom) {
+        if (spinningRef.current && !userInteractingRef.current && zoom < rotationMaxZoom) {
             let distancePerSecond = 360 / secondsPerRevolution;
-            if (zoom > slowSpinZoom) {
-                const zoomDif = (maxSpinZoom - zoom) / (maxSpinZoom - slowSpinZoom);
+            if (zoom > slowSpinZoomStart) {
+                const denom = rotationMaxZoom - slowSpinZoomStart;
+                const zoomDif = denom > 0 ? (rotationMaxZoom - zoom) / denom : 0;
                 distancePerSecond *= Math.max(0, zoomDif);
             }
             const center = map.getCenter();
@@ -212,6 +230,11 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
     };
 
     const handleToggleSpin = () => {
+        const map = mapRef.current;
+        if (!map || map.getZoom() >= rotationMaxZoom) {
+            return;
+        }
+
         const next = !spinningRef.current;
         spinningRef.current = next;
         setIsSpinning(next);
@@ -221,7 +244,7 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
             return;
         }
 
-        mapRef.current?.stop();
+        map.stop();
     };
 
     const handleZoom = (direction: 'in' | 'out') => {
@@ -310,6 +333,7 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
         });
 
         map.on('load', () => {
+            setMapZoom(map.getZoom());
             if (spinningRef.current) {
                 spinGlobe();
             }
@@ -344,6 +368,8 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
 
         map.on('zoom', () => {
             updateMarkerScale();
+            stopRotationIfZoomTooHigh();
+            setMapZoom(map.getZoom());
         });
 
         map.on('moveend', () => {
@@ -496,7 +522,7 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
                             });
                         }
 
-                        if (spinningBeforePopupRef.current) {
+                        if (spinningBeforePopupRef.current && map.getZoom() < rotationMaxZoom) {
                             spinningRef.current = true;
                             setIsSpinning(true);
                             map.once('moveend', () => {
@@ -604,9 +630,10 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
                 <button
                     type="button"
                     onClick={handleToggleSpin}
-                    className={`flex h-8 w-8 cursor-pointer items-center justify-center bg-[#8989a312] transition-colors ${isSpinning ? 'text-[#C9E8E9]' : 'text-black hover:text-[#C9E8E9]'}`}
-                    title={isSpinning ? 'Pause globe rotation' : 'Start globe rotation'}
-                    aria-label={isSpinning ? 'Pause globe rotation' : 'Start globe rotation'}
+                    disabled={spinLockedByZoom}
+                    className={`flex h-8 w-8 items-center justify-center bg-[#8989a312] transition-colors ${spinLockedByZoom ? 'cursor-not-allowed opacity-45 text-black/50' : `cursor-pointer ${isSpinning ? 'text-[#C9E8E9]' : 'text-black hover:text-[#C9E8E9]'}`}`}
+                    title={spinLockedByZoom ? 'Zoom out to use rotation (max zoom 3)' : (isSpinning ? 'Pause globe rotation' : 'Start globe rotation')}
+                    aria-label={spinLockedByZoom ? 'Rotation unavailable while zoomed in; zoom out to enable' : (isSpinning ? 'Pause globe rotation' : 'Start globe rotation')}
                 >
                     <FontAwesomeIcon icon={isSpinning ? faPause : faPlay} className="text-xs" />
                 </button>
