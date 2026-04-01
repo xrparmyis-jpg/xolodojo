@@ -425,7 +425,12 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                 }
 
                 await loadWallets({ silent: true });
-                showToast('success', 'WalletConnect wallet added and connected!');
+                showToast(
+                    'success',
+                    result.already_exists && result.message
+                        ? result.message
+                        : 'WalletConnect wallet added and connected!'
+                );
             } catch (error) {
                 const err = error instanceof Error ? error : new Error(String(error));
                 console.error('Failed to sync WalletConnect session:', err);
@@ -908,35 +913,27 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
 
             {showAddWalletModal && typeof document !== 'undefined' && createPortal(
                 (() => {
-                    // Determine which wallet types the user already has
-                    const walletTypes = wallets.map(w => w.wallet_type);
                     const offeredWallets = [
                         { type: 'walletconnect', label: 'WalletConnect', color: 'bg-[#0988F0] hover:bg-[#0666b3] active:bg-[#054a7a]', onClick: () => void handleSelectWalletType('walletconnect') },
                         { type: 'joey', label: 'Joey Wallet', color: 'bg-[#F76807] hover:bg-[#c94e06] active:bg-[#a13d04]', onClick: () => { setShowAddWalletModal(false); void handleConnectJoey(); } },
                         { type: 'xaman', label: 'Xaman (XUMM)', color: 'bg-[#0030CF] hover:bg-[#002399] active:bg-[#001966]', onClick: () => void handleSelectWalletType('xaman') },
                     ];
-                    // Only show wallet types not already added
-                    const availableWallets = offeredWallets.filter(w => !walletTypes.includes(w.type));
                     return (
                         <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/75 p-4 sm:p-6">
                             <div className="w-full max-w-sm rounded-xl bg-neutral-900 p-6 shadow-xl border border-white/10">
                                 <h3 className="text-white text-lg font-semibold mb-2">Add New Wallet</h3>
-                                <p className="text-sm text-white/70 mb-4">Select the wallet type you want to add.</p>
+                                <p className="text-sm text-white/70 mb-4">Select the wallet type you want to add. You can add multiple accounts per type (for example, several Xaman accounts).</p>
                                 <div className="grid grid-cols-1 gap-3">
-                                    {availableWallets.length === 0 ? (
-                                        <div className="text-white/70 text-center py-4">All wallet types have been added.</div>
-                                    ) : (
-                                        availableWallets.map(w => (
-                                            <Button
-                                                key={w.type}
-                                                onClick={w.onClick}
-                                                disabled={walletBusyMessage !== null}
-                                                className={`w-full ${w.color}`}
-                                            >
-                                                {w.label}
-                                            </Button>
-                                        ))
-                                    )}
+                                    {offeredWallets.map(w => (
+                                        <Button
+                                            key={w.type}
+                                            onClick={w.onClick}
+                                            disabled={walletBusyMessage !== null}
+                                            className={`w-full ${w.color}`}
+                                        >
+                                            {w.label}
+                                        </Button>
+                                    ))}
                                 </div>
                                 <div className="flex justify-end mt-4">
                                     <Button

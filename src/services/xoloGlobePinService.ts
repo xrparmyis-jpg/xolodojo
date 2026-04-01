@@ -19,6 +19,7 @@ export interface XoloGlobePin {
   title: string | null;
   collection_name: string | null;
   socials?: XoloGlobePinSocials | null;
+  pin_note?: string | null;
   pinned_at: string;
 }
 

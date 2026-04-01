@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import mysql from 'mysql2/promise';
+import { PIN_NOTE_MAX_LENGTH } from '../../src/constants/pinNote.js';
 
 let pool: mysql.Pool | null = null;
 
@@ -34,6 +35,8 @@ interface PinnedNftItem {
   title?: string | null;
   collection_name?: string | null;
   socials?: PinnedNftSocials | null;
+  /** Short optional blurb on the globe pin (see PIN_NOTE_MAX_LENGTH). */
+  pin_note?: string | null;
   pinned_at: string;
 }
 
@@ -113,6 +116,17 @@ function parsePinnedNftSocials(value: unknown): PinnedNftSocials | null {
   return Object.keys(socials).length > 0 ? socials : null;
 }
 
+function parsePinNote(value: unknown): string | null {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  const collapsed = value.trim().replace(/\s+/g, ' ');
+  if (!collapsed) {
+    return null;
+  }
+  return collapsed.slice(0, PIN_NOTE_MAX_LENGTH);
+}
+
 function parsePinnedNfts(preferences: Record<string, unknown>): PinnedNftItem[] {
   const value = preferences.pinned_nfts;
   if (!Array.isArray(value)) {
@@ -144,6 +158,7 @@ function parsePinnedNfts(preferences: Record<string, unknown>): PinnedNftItem[] 
             ? record.collection_name
             : null,
         socials: parsePinnedNftSocials(record.socials),
+        pin_note: parsePinNote(record.pin_note),
         pinned_at:
           typeof record.pinned_at === 'string'
             ? record.pinned_at
@@ -261,6 +276,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             longitude?: number | null;
             image_url?: string | null;
             socials?: PinnedNftSocials | null;
+            pin_note?: string | null;
           }
         | undefined;
 
@@ -289,6 +305,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const latitude = parseOptionalNumber(nft?.latitude);
       const longitude = parseOptionalNumber(nft?.longitude);
       const socials = parsePinnedNftSocials(nft?.socials);
+      const resolvePinNote = (previous: string | null | undefined): string | null => {
+        if (nft?.pin_note === undefined) {
+          return previous ?? null;
+        }
+        return parsePinNote(nft.pin_note);
+      };
 
       if (latitude == null || longitude == null) {
         res.status(400).json({ error: 'Missing valid nft.latitude or nft.longitude' });
@@ -314,6 +336,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                   title: nft?.title ?? item.title,
                   collection_name: nft?.collection_name ?? item.collection_name,
                   socials,
+                  pin_note: resolvePinNote(item.pin_note),
                 }
               : item
           )
@@ -330,6 +353,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               title: nft?.title ?? null,
               collection_name: nft?.collection_name ?? null,
               socials,
+              pin_note: resolvePinNote(undefined),
               pinned_at: nowIso,
             },
           ];

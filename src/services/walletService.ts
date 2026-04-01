@@ -27,6 +27,8 @@ interface WalletResponse {
   wallet?: Wallet;
   wallets?: Wallet[];
   message?: string;
+  /** True when POST matched an existing address; client should show success (e.g. connect flow). */
+  already_exists?: boolean;
 }
 
 interface ApiErrorBody {

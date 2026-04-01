@@ -395,7 +395,10 @@ export const xamanHandler: IWalletHandler = {
 				applyConnectedWalletFromApi?.(connectResNew.wallet);
 			}
 			await loadWallets({ silent: true });
-			setShowToast?.('success', 'Xaman wallet added and connected!');
+			setShowToast?.(
+				'success',
+				result.already_exists && result.message ? result.message : 'Xaman wallet added and connected!'
+			);
 			connectSucceeded = true;
 		} catch (error) {
 			const readableMessage = toReadableErrorMessage(error);

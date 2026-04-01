@@ -16,6 +16,7 @@ import ModalConfirm from './ModalConfirm';
 import MapBoxPinLocation from './MapBoxPinLocation';
 import { useToast } from './ToastProvider';
 import type { WalletAssetSummary } from '../services/walletAssetService';
+import { PIN_NOTE_MAX_LENGTH } from '../constants/pinNote';
 import { getPinnedNfts, pinNft, unpinNft, type PinnedNftSocials } from '../services/pinnedNftService';
 import { getUserProfile, type ProfileSocials } from '../services/profileService';
 
@@ -197,6 +198,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
     };
     const [pinLocation, setPinLocation] = useState<{ lng: number; lat: number } | null>(null);
     const [pinTitleInput, setPinTitleInput] = useState('');
+    const [pinNoteInput, setPinNoteInput] = useState('');
     const [pinSuccessState, setPinSuccessState] = useState<{
         tokenId: string;
         title: string;
@@ -856,6 +858,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
         : '';
 
     const normalizedPinTitle = pinTitleInput.trim();
+    const normalizedPinNote = pinNoteInput.trim().replace(/\s+/g, ' ').slice(0, PIN_NOTE_MAX_LENGTH);
 
     const selectedPinSocials = useMemo(() => {
         return socialPlatformOrder.reduce<PinnedNftSocials>((acc, platform) => {
@@ -886,6 +889,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
         setPinLocation(null);
         const defaultTitle = resolvedNftTitles[tokenId] || `NFT ${tokenId.slice(0, 8)}...`;
         setPinTitleInput(defaultTitle);
+        setPinNoteInput('');
         setSelectedPinSocialPlatforms({});
     };
 
@@ -894,6 +898,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
         setPinTargetTokenId(null);
         setPinLocation(null);
         setPinTitleInput('');
+        setPinNoteInput('');
         setSelectedPinSocialPlatforms({});
     };
 
@@ -943,6 +948,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                     title: normalizedPinTitle,
                     collection_name: pinTargetCollectionName,
                     socials: selectedPinSocials,
+                    pin_note: normalizedPinNote,
                 },
                 accessToken
             );
@@ -956,6 +962,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
             setPinTargetTokenId(null);
             setPinLocation(null);
             setPinTitleInput('');
+            setPinNoteInput('');
             setSelectedPinSocialPlatforms({});
         } catch (error) {
             debugNft('Failed to pin NFT', {
@@ -972,6 +979,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
         debugNft,
         getNftThumbnailUrl,
         normalizedPinTitle,
+        normalizedPinNote,
         pinLocation,
         pinTargetCollectionName,
         pinTargetNft,
@@ -1290,6 +1298,30 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                                     maxLength={120}
                                     className="w-full rounded-lg border border-white/20 bg-black/40 px-3 py-2 text-white/90 placeholder:text-white/45 focus:outline-none focus:border-blue-500 transition-all duration-200"
                                 />
+                                <label htmlFor="pin-note" className="block text-xs font-semibold uppercase tracking-wide text-white/80 mt-3 mb-1">
+                                    Pin note{' '}
+                                    <span className="font-normal text-white/50 normal-case">
+                                        (optional, max {PIN_NOTE_MAX_LENGTH} characters)
+                                    </span>
+                                </label>
+                                <textarea
+                                    id="pin-note"
+                                    value={pinNoteInput}
+                                    onChange={(event) => {
+                                        const next = event.target.value;
+                                        setPinNoteInput(
+                                            next.length > PIN_NOTE_MAX_LENGTH
+                                                ? next.slice(0, PIN_NOTE_MAX_LENGTH)
+                                                : next
+                                        );
+                                    }}
+                                    placeholder="Short line shown on the globe"
+                                    rows={4}
+                                    className="w-full resize-none rounded-lg border border-white/20 bg-black/40 px-3 py-2 text-sm text-white/90 placeholder:text-white/45 focus:outline-none focus:border-blue-500 transition-all duration-200"
+                                />
+                                <p className="mt-0.5 text-[11px] text-white/45">
+                                    {pinNoteInput.length}/{PIN_NOTE_MAX_LENGTH}
+                                </p>
                             </div>
                             <div className="flex flex-col min-w-[140px]">
                                 <label className="block text-xs font-semibold uppercase tracking-wide text-white/80 mb-1">

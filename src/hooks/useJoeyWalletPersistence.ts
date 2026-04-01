@@ -104,6 +104,7 @@ export function useJoeyWalletPersistence({
 			setWalletBusyMessage(SAVING_WALLET_MESSAGE);
 			try {
 				let walletId: number | undefined;
+				let successToastMessage = 'Joey Wallet added and connected!';
 				if (!existingWallet) {
 					if (persistenceSuppressedRef.current) {
 						clearJoeyConnectIntent();
@@ -112,6 +113,9 @@ export function useJoeyWalletPersistence({
 					const result = await addWallet(auth0Id, canonicalAddress, 'joey', 'Joey Wallet', accessToken);
 					if (!result.success || !result.wallet) throw new Error('Failed to add Joey Wallet');
 					walletId = result.wallet.id;
+					if (result.already_exists && result.message) {
+						successToastMessage = result.message;
+					}
 				} else {
 					walletId = existingWallet.id;
 				}
@@ -133,7 +137,7 @@ export function useJoeyWalletPersistence({
 					}
 					await loadWallets({ silent: true });
 					clearJoeyConnectIntent();
-					showToast('success', 'Joey Wallet added and connected!');
+					showToast('success', successToastMessage);
 					walletTraceLog('Joey persist: backend saved wallet + is_connected; NFT summary should run next', {
 						walletId,
 						addressPreview: walletAddressPreview(canonicalAddress),

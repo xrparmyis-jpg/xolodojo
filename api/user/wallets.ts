@@ -249,7 +249,45 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       );
 
       if (duplicateWallet) {
-        res.status(409).json({ error: 'Wallet already exists for this user' });
+        let preferences = await getUserPreferences(pool, userId);
+        if (typeof wallet_label === 'string' && wallet_label.trim()) {
+          const existingLabelsRaw = preferences.wallet_labels;
+          const existingLabels =
+            existingLabelsRaw && typeof existingLabelsRaw === 'object'
+              ? (existingLabelsRaw as Record<string, unknown>)
+              : {};
+          preferences = {
+            ...preferences,
+            wallet_labels: {
+              ...existingLabels,
+              [comparisonWalletAddress]: wallet_label.trim(),
+            },
+          };
+          await upsertUserPreferences(pool, userId, preferences);
+          preferences = await getUserPreferences(pool, userId);
+        }
+
+        const [duplicateRow] = (await pool.execute(
+          'SELECT * FROM user_wallets WHERE id = ? AND user_id = ?',
+          [duplicateWallet.id, userId]
+        )) as [any[], any];
+        const walletRow =
+          Array.isArray(duplicateRow) && duplicateRow.length > 0 ? duplicateRow[0] : null;
+        if (!walletRow) {
+          res.status(500).json({ error: 'Internal server error' });
+          return;
+        }
+        const walletLabels = parseWalletLabels(preferences);
+        const normalizedAddr = normalizeWalletAddressForComparison(walletRow.wallet_address);
+        res.status(200).json({
+          success: true,
+          wallet: {
+            ...walletRow,
+            wallet_label: walletLabels[normalizedAddr] ?? null,
+          },
+          message: 'Wallet is now connected.',
+          already_exists: true,
+        });
         return;
       }
 

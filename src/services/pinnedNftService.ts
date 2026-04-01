@@ -19,6 +19,8 @@ export interface PinnedNftItem {
   title?: string | null;
   collection_name?: string | null;
   socials?: PinnedNftSocials | null;
+  /** Short optional line on the globe popup (`src/constants/pinNote.ts`). */
+  pin_note?: string | null;
   pinned_at: string;
 }
 
@@ -70,6 +72,7 @@ export async function pinNft(
     title?: string | null;
     collection_name?: string | null;
     socials?: PinnedNftSocials;
+    pin_note?: string | null;
   },
   accessToken?: string
 ): Promise<PinnedNftItem[]> {

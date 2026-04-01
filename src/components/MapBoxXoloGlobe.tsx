@@ -50,7 +50,6 @@ const tailwindSocialIcon = "inline-block align-middle w-[22px] h-[22px] text-[18
 const buildPinPopupHtml = (pin: XoloGlobePin) => {
     const fallbackTitle = `NFT ${pin.token_id.slice(0, 8)}...`;
     const title = escapeHtml(pin.title || fallbackTitle);
-    const collectionName = escapeHtml(pin.collection_name || 'Xolo NFT');
 
     const socials = socialPlatformOrder
         .map((platform) => {
@@ -76,12 +75,17 @@ const buildPinPopupHtml = (pin: XoloGlobePin) => {
         .filter((item): item is string => Boolean(item));
 
     const socialsHtml = socials.length > 0
-        ? `<div class="flex flex-row gap-1 mt-2 mb-2">${socials.join('')}</div>`
-        : '<p class="xolo-social-empty">No socials shared for this pin yet.</p>';
+        ? `<div class="flex flex-row flex-wrap gap-1 mt-2 mb-2">${socials.join('')}</div>`
+        : '';
+
+    const noteRaw = typeof pin.pin_note === 'string' ? pin.pin_note.trim() : '';
+    const noteHtml = noteRaw
+        ? `<p class="xolo-popup-note mt-1 text-sm text-white/80">${escapeHtml(noteRaw)}</p>`
+        : '';
 
     return `<div class="xolo-popup">`
         + `<h2 class="xolo-popup-title">${title}</h2>`
-        + `<p class="xolo-popup-subtitle">${collectionName}</p>`
+        + `${noteHtml}`
         + `${socialsHtml}`
         + '</div>';
 };
