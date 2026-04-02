@@ -1480,6 +1480,18 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                                                         : next
                                                 );
                                             }}
+                                            onPaste={(event) => {
+                                                const raw = event.clipboardData.getData('text/plain');
+                                                const trimmed = raw.trim();
+                                                if (!/^https?:\/\//i.test(trimmed)) {
+                                                    return;
+                                                }
+                                                event.preventDefault();
+                                                const normalized = parsePinWebsiteForStorage(trimmed);
+                                                const next =
+                                                    (normalized ?? '').slice(0, PIN_WEBSITE_MAX_LENGTH);
+                                                setPinWebsiteSuffixInput(next);
+                                            }}
                                             placeholder="toddnagel.com"
                                             className="min-w-0 flex-1 border-0 bg-transparent py-2 pr-3 pl-2 text-sm text-white/90 placeholder:text-white/40 focus:outline-none focus:ring-0"
                                         />

@@ -22,7 +22,6 @@ interface GeocodingResponse {
     features?: SearchFeature[];
 }
 
-/** Live globe-style info preview on the placement map (optional). */
 export interface MapBoxPinPopupPreview {
     tokenId: string;
     title: string;

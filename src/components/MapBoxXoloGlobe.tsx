@@ -33,6 +33,8 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
         bearing: number;
         pitch: number;
     } | null>(null);
+    /** True when the popup's close button was used; skip camera restore (map-dismiss still restores). */
+    const popupClosedViaXRef = useRef(false);
     const [pins, setPins] = useState<XoloGlobePin[]>([]);
     const [isSpinning, setIsSpinning] = useState(true);
     const [lightPreset, setLightPreset] = useState<'day' | 'night'>('night');
@@ -437,13 +439,44 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
                     focusOnPin();
                     reinforcePopupChrome();
                     map.once('moveend', reinforcePopupChrome);
+
+                    const root = popup.getElement();
+                    const closeBtn = root?.querySelector('.mapboxgl-popup-close-button');
+                    const markClosedViaButton = () => {
+                        popupClosedViaXRef.current = true;
+                    };
+                    const onCloseButtonKey = (e: Event) => {
+                        if (
+                            e instanceof KeyboardEvent
+                            && (e.key === 'Enter' || e.key === ' ')
+                        ) {
+                            markClosedViaButton();
+                        }
+                    };
+                    closeBtn?.addEventListener('click', markClosedViaButton, { capture: true });
+                    closeBtn?.addEventListener('keydown', onCloseButtonKey, { capture: true });
+
+                    popup.once('close', () => {
+                        closeBtn?.removeEventListener('click', markClosedViaButton, { capture: true });
+                        closeBtn?.removeEventListener('keydown', onCloseButtonKey, { capture: true });
+                    });
                 });
 
                 popup.on('close', () => {
                     // Restore pointer cursor when popup closes
                     markerVisualElement.style.cursor = 'pointer';
+                    const closedViaXButton = popupClosedViaXRef.current;
+                    popupClosedViaXRef.current = false;
+
                     popupRestoreTimerRef.current = window.setTimeout(() => {
                         if (document.querySelector('.mapboxgl-popup')) {
+                            return;
+                        }
+
+                        if (closedViaXButton) {
+                            popupFocusActiveRef.current = false;
+                            prePopupCameraRef.current = null;
+                            spinningBeforePopupRef.current = false;
                             return;
                         }
 
