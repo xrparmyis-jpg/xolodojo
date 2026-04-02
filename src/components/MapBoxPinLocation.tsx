@@ -376,51 +376,58 @@ export default function MapBoxPinLocation({
             ) : null}
 
             <div className="mt-3 text-xs text-white/85 backdrop-blur-sm">
-                <div className="flex w-full items-center gap-3">
-                    <input
-                        type="text"
-                        value={searchText}
-                        onChange={(event) => {
-                            const nextValue = event.target.value;
-                            if (
-                                suppressResultsForQueryRef.current &&
-                                nextValue.trim().toLowerCase() !== suppressResultsForQueryRef.current
-                            ) {
-                                suppressResultsForQueryRef.current = null;
+                <div className="relative z-20">
+                    <div className="flex w-full items-center gap-3">
+                        <input
+                            type="text"
+                            value={searchText}
+                            onChange={(event) => {
+                                const nextValue = event.target.value;
+                                if (
+                                    suppressResultsForQueryRef.current &&
+                                    nextValue.trim().toLowerCase() !== suppressResultsForQueryRef.current
+                                ) {
+                                    suppressResultsForQueryRef.current = null;
+                                }
+                                setSearchText(nextValue);
+                            }}
+                            onKeyDown={(event) => {
+                                if (event.key === 'Enter') {
+                                    event.preventDefault();
+                                    handleSearchSubmit();
+                                }
+                            }}
+                            placeholder="Enter an address to search and choose from suggested locations"
+                            className="relative z-10 h-11 w-full min-w-0 flex-1 rounded-lg border border-white/20 bg-black/40 px-3 py-2 text-base text-white/90 placeholder:text-white/45 focus:border-blue-500 focus:outline-none"
+                        />
+                    </div>
+
+                    {searchResults.length > 0 ? (
+                        <div
+                            className={
+                                'absolute left-0 right-0 top-full z-30 mt-1 max-h-52 overflow-auto rounded-md ' +
+                                'border border-white/20 bg-black/90 backdrop-blur-sm shadow-[0_10px_28px_rgba(0,0,0,0.55)]'
                             }
-                            setSearchText(nextValue);
-                        }}
-                        onKeyDown={(event) => {
-                            if (event.key === 'Enter') {
-                                event.preventDefault();
-                                handleSearchSubmit();
-                            }
-                        }}
-                        placeholder="Input an address and hit enter to search"
-                        className="h-11 w-full min-w-0 flex-1 rounded-lg border border-white/20 bg-black/40 px-3 py-2 text-base text-white/90 placeholder:text-white/45 focus:border-blue-500 focus:outline-none"
-                    />
+                        >
+                            {searchResults.map((result) => (
+                                <button
+                                    type="button"
+                                    key={result.id}
+                                    onClick={() => handleSelectSearchResult(result)}
+                                    className="cursor-pointer block w-full border-b border-white/10 px-3 py-2 text-left text-xs text-white/90 last:border-b-0 hover:bg-white/10"
+                                >
+                                    {result.place_name}
+                                </button>
+                            ))}
+                        </div>
+                    ) : null}
                 </div>
 
                 {footerAction ? (
-                    <div className="mt-3 flex w-full flex-wrap items-center gap-3">
+                    <div className="relative z-10 mt-3 flex w-full flex-wrap items-center gap-3">
                         {footerAction}
                     </div>
                 ) : null}
-
-                {searchResults.length > 0 && (
-                    <div className="mt-2 max-h-52 overflow-auto rounded-md border border-white/20 bg-black/80 backdrop-blur-sm">
-                        {searchResults.map((result) => (
-                            <button
-                                type="button"
-                                key={result.id}
-                                onClick={() => handleSelectSearchResult(result)}
-                                className="cursor-pointer block w-full border-b border-white/10 px-3 py-2 text-left text-xs text-white/90 last:border-b-0 hover:bg-white/10"
-                            >
-                                {result.place_name}
-                            </button>
-                        ))}
-                    </div>
-                )}
             </div>
         </div>
     );
