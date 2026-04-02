@@ -1374,12 +1374,11 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                 {pinSuccessState ? (
                     <div className="space-y-4 text-sm text-white/85">
                         <div className="rounded-lg border border-emerald-400/20 bg-emerald-500/10 px-4 py-3">
-                            <p className="text-base font-semibold text-white">Your pin is live.</p>
                             <p className="mt-1 text-white/75">
                                 <span className="font-medium text-white">{pinSuccessState.title}</span>
                                 {' '}
                                 {pinSuccessState.kind === 'updated' ? (
-                                    <>on Xglobe under <span className="font-medium text-white">{pinSuccessState.collectionName}</span>.</>
+                                    <>is now live on the Xglobe.</>
                                 ) : (
                                     <>
                                         was added to{' '}
@@ -1389,7 +1388,14 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                                 )}
                             </p>
                             <p className="mt-2 text-white/65">
-                                You may come back at anytime to modify or remove your pin by clicking on the pin icon again.
+                                You may come back at anytime to modify or remove your pin by clicking on the{' '}
+                                <FontAwesomeIcon
+                                    icon={faThumbtack}
+                                    className="inline-block align-[-0.15em] text-[14px] text-white/75"
+                                    aria-hidden
+                                />
+                                <span className="sr-only">pin icon</span>
+                                {' '}again.
                             </p>
                         </div>
 
@@ -1492,7 +1498,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                                                     (normalized ?? '').slice(0, PIN_WEBSITE_MAX_LENGTH);
                                                 setPinWebsiteSuffixInput(next);
                                             }}
-                                            placeholder="toddnagel.com"
+                                            placeholder="xolodojo.io"
                                             className="min-w-0 flex-1 border-0 bg-transparent py-2 pr-3 pl-2 text-sm text-white/90 placeholder:text-white/40 focus:outline-none focus:ring-0"
                                         />
                                     </div>
@@ -1504,7 +1510,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                                         <span className="font-normal normal-case text-white/50">(optional)</span>
                                     </label>
                                     {availableSocialPlatforms.length > 0 ? (
-                                        <div className="flex flex-row flex-wrap gap-1.5">
+                                        <div className="flex flex-row flex-wrap gap-2">
                                             {availableSocialPlatforms.map((platform) => {
                                                 const isSelected = Boolean(selectedPinSocialPlatforms[platform.key]);
 
@@ -1519,12 +1525,12 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                                                                 [platform.key]: !current[platform.key],
                                                             }));
                                                         }}
-                                                        className={`cursor-pointer inline-flex h-6 w-6 items-center justify-center rounded-full border transition-all duration-200 ${isSelected
+                                                        className={`cursor-pointer inline-flex h-8 w-8 items-center justify-center rounded-full border transition-all duration-200 ${isSelected
                                                             ? 'border-emerald-400/70 bg-emerald-700/30 text-emerald-200'
                                                             : 'border-white/25 bg-white/5 text-white/70 hover:text-white hover:border-white/40'
                                                             }`}
                                                     >
-                                                        <FontAwesomeIcon icon={platform.icon} className="text-[13px]" />
+                                                        <FontAwesomeIcon icon={platform.icon} className="text-[15px]" />
                                                     </button>
                                                 );
                                             })}
