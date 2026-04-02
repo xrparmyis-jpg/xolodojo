@@ -61,14 +61,14 @@ a {
 
 /* Solid panel + !important: avoids rare “clear” popups when Mapbox repaints during camera moves */
 .mapboxgl-popup.xolo-globe-popup .mapboxgl-popup-content {
-  padding: 16px 18px;
+  padding: 16px 18px 14px;
   min-width: 260px;
   max-width: 320px;
   border-radius: 0.5rem;
   font-size: 15px;
   line-height: 1.35;
-  background: #12affce0 !important;
-  color: rgba(12, 28, 48, 0.94) !important;
+  background: #061415 !important;
+  color: rgb(235 236 237 / 94%) !important;
   border: none;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
 }
@@ -102,7 +102,7 @@ a {
 
 .mapboxgl-popup.xolo-globe-popup.mapboxgl-popup-anchor-bottom
   .mapboxgl-popup-tip {
-  border-top-color: #12affce0 !important;
+  border-top-color: #061415 !important;
   margin-top: -1px;
 }
 
@@ -111,24 +111,24 @@ a {
   .mapboxgl-popup-tip,
 .mapboxgl-popup.xolo-globe-popup.mapboxgl-popup-anchor-top-right
   .mapboxgl-popup-tip {
-  border-bottom-color: #12affce0 !important;
+  border-bottom-color: #061415 !important;
 }
 
 .mapboxgl-popup.xolo-globe-popup.mapboxgl-popup-anchor-bottom-left
   .mapboxgl-popup-tip,
 .mapboxgl-popup.xolo-globe-popup.mapboxgl-popup-anchor-bottom-right
   .mapboxgl-popup-tip {
-  border-top-color: #12affce0 !important;
+  border-top-color: #061415 !important;
 }
 
 .mapboxgl-popup.xolo-globe-popup.mapboxgl-popup-anchor-left
   .mapboxgl-popup-tip {
-  border-right-color: #12affce0 !important;
+  border-right-color: #061415 !important;
 }
 
 .mapboxgl-popup.xolo-globe-popup.mapboxgl-popup-anchor-right
   .mapboxgl-popup-tip {
-  border-left-color: #12affce0 !important;
+  border-left-color: #061415 !important;
 }
 
 .mapboxgl-popup.xolo-globe-popup .mapboxgl-popup-content h2 {
@@ -236,12 +236,12 @@ a {
   font-size: 12px;
 }
 
-/* Profile pin modal map — match XoloGlobe control chrome (#12affc @ ~36% opacity) */
+/* MapBoxPinLocation — same tokens as MapBoxXoloGlobe (border-[#12affc]/35, bg/hover #12affc5c / #12affc8c, text-black/85 → #C9E8E9) */
 .mapbox-pin-controls .mapboxgl-ctrl-group {
-  border: 1px solid rgba(18, 175, 252, 0.35);
+  border: 1px solid rgb(18 175 252 / 35%);
   border-radius: 0.375rem;
   overflow: hidden;
-  background: rgba(18, 175, 252, 0.36);
+  background: #12affc5c;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
@@ -249,58 +249,66 @@ a {
   width: 32px;
   height: 32px;
   border: 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.15);
-  background: transparent;
-  color: rgba(0, 0, 0, 0.85);
+  border-bottom: 1px solid rgb(0 0 0 / 15%);
+  background: #12affc5c;
+  color: rgb(0 0 0 / 85%);
   transition:
     color 0.2s ease,
     background-color 0.2s ease;
 }
 
-.mapbox-pin-controls .mapboxgl-ctrl-group .mapboxgl-ctrl-icon {
-  filter: brightness(0) saturate(100%) invert(72%) sepia(10%) saturate(318%)
-    hue-rotate(175deg) brightness(96%) contrast(92%);
-  transition: filter 0.2s ease;
+.mapbox-pin-controls .mapboxgl-ctrl-group button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  color: rgb(0 0 0 / 50%);
+}
+
+.mapbox-pin-controls .mapboxgl-ctrl-group button .mapboxgl-ctrl-icon {
+  filter: none;
+  opacity: 0.85;
+  transition:
+    opacity 0.2s ease,
+    filter 0.2s ease;
+}
+
+.mapbox-pin-controls .mapboxgl-ctrl-group button:disabled .mapboxgl-ctrl-icon {
+  opacity: 0.5;
 }
 
 .mapbox-pin-controls .mapboxgl-ctrl-group button:last-child {
   border-bottom: 0;
 }
 
-.mapbox-pin-controls .mapboxgl-ctrl-group button:hover,
-.mapbox-pin-controls .mapboxgl-ctrl-group button:focus-visible {
-  background: rgba(18, 175, 252, 0.55);
+.mapbox-pin-controls .mapboxgl-ctrl-group button:hover:not(:disabled),
+.mapbox-pin-controls .mapboxgl-ctrl-group button:focus-visible:not(:disabled) {
+  background: #12affc8c;
   color: #c9e8e9;
 }
 
-.mapbox-pin-controls .mapboxgl-ctrl-group button:hover .mapboxgl-ctrl-icon,
+.mapbox-pin-controls .mapboxgl-ctrl-group button:hover:not(:disabled) .mapboxgl-ctrl-icon,
 .mapbox-pin-controls
   .mapboxgl-ctrl-group
-  button:focus-visible
-  .mapboxgl-ctrl-icon,
-.mapbox-pin-controls
-  .mapboxgl-ctrl-group
-  button.mapboxgl-ctrl-geolocate-active
-  .mapboxgl-ctrl-icon,
-.mapbox-pin-controls
-  .mapboxgl-ctrl-group
-  button.mapboxgl-ctrl-geolocate-waiting
-  .mapboxgl-ctrl-icon,
-.mapbox-pin-controls
-  .mapboxgl-ctrl-group
-  button.mapboxgl-ctrl-geolocate-active-error
+  button:focus-visible:not(:disabled)
   .mapboxgl-ctrl-icon {
+  opacity: 1;
   filter: brightness(0) saturate(100%) invert(89%) sepia(10%) saturate(568%)
     hue-rotate(138deg) brightness(101%) contrast(93%);
 }
 
 .mapbox-pin-controls .mapboxgl-ctrl-group button.mapboxgl-ctrl-geolocate-active,
-.mapbox-pin-controls
-  .mapboxgl-ctrl-group
-  button.mapboxgl-ctrl-geolocate-waiting,
-.mapbox-pin-controls
-  .mapboxgl-ctrl-group
-  button.mapboxgl-ctrl-geolocate-active-error {
+.mapbox-pin-controls .mapboxgl-ctrl-group button.mapboxgl-ctrl-geolocate-waiting,
+.mapbox-pin-controls .mapboxgl-ctrl-group button.mapboxgl-ctrl-geolocate-active-error {
   color: #c9e8e9;
-  background: rgba(18, 175, 252, 0.45);
+  background: #12affc8c;
+}
+
+.mapbox-pin-controls .mapboxgl-ctrl-group button.mapboxgl-ctrl-geolocate-active .mapboxgl-ctrl-icon,
+.mapbox-pin-controls .mapboxgl-ctrl-group button.mapboxgl-ctrl-geolocate-waiting .mapboxgl-ctrl-icon,
+.mapbox-pin-controls
+  .mapboxgl-ctrl-group
+  button.mapboxgl-ctrl-geolocate-active-error
+  .mapboxgl-ctrl-icon {
+  opacity: 1;
+  filter: brightness(0) saturate(100%) invert(89%) sepia(10%) saturate(568%)
+    hue-rotate(138deg) brightness(101%) contrast(93%);
 }

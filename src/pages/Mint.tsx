@@ -41,7 +41,7 @@ function Mint() {
                             Mint Status: Coming Soon
                             Launching on the premier XRPL marketplace, the xrp.cafe.
                             Exact date, price, and allowlist details TBA — stay tuned via @XoloDojo and xolodojo.io.
-                            Prepare now to own your loyal Xolo guardian and unlock the XoloGlobe: a token-gated world map for holders to connect, share locations, plan travel or good swaps, and build community IRL.
+                            Prepare now to own your loyal Xolo guardian and unlock the Xglobe: a token-gated world map for holders to connect, share locations, plan travel or good swaps, and build community IRL.
                         </GsapPageContent>
                         <GsapPageContent as="p" className="mb-4" delay={0.1}>
                             One Mint, One Pin, One Friendship at a time

@@ -911,8 +911,21 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
         [availableProfileSocials]
     );
 
+    const pinMapPopupPreview = useMemo(() => {
+        if (!pinTargetNft) {
+            return null;
+        }
+        return {
+            tokenId: pinTargetNft.token_id,
+            title: pinTitleInput,
+            pinNote: pinNoteInput,
+            socials: selectedPinSocials,
+        };
+    }, [pinTargetNft, pinTitleInput, pinNoteInput, selectedPinSocials]);
+
     const canSubmitPin = Boolean(
         pinTargetNft
+        && walletAddress
         && pinLocation
         && normalizedPinTitle.length > 0
         && normalizedPinNote.length >= PIN_NOTE_MIN_LENGTH
@@ -1324,11 +1337,11 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                 title={
                     pinSuccessState
                         ? pinSuccessState.kind === 'updated'
-                            ? 'Pin updated on XoloGlobe'
-                            : 'Pin added to XoloGlobe'
+                            ? 'Pin updated on Xglobe'
+                            : 'Pin added to Xglobe'
                         : pinFormMode === 'edit'
-                            ? 'Edit your XoloGlobe pin'
-                            : 'Choose your pin location on the map'
+                            ? 'Edit your Xglobe pin'
+                            : 'Choose your Xglobe pin location on the globe'
                 }
                 onClose={closePinModal}
                 closeOnOverlayClick
@@ -1343,7 +1356,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                                 <span className="font-medium text-white">{pinSuccessState.title}</span>
                                 {' '}
                                 {pinSuccessState.kind === 'updated' ? (
-                                    <>on XoloGlobe under <span className="font-medium text-white">{pinSuccessState.collectionName}</span>.</>
+                                    <>on Xglobe under <span className="font-medium text-white">{pinSuccessState.collectionName}</span>.</>
                                 ) : (
                                     <>
                                         was added to{' '}
@@ -1353,7 +1366,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                                 )}
                             </p>
                             <p className="mt-2 text-white/65">
-                                Open the real XoloGlobe to see the actual marker, camera focus, and popup.
+                                Open the real Xglobe to see the actual marker, camera focus, and popup.
                             </p>
                         </div>
 
@@ -1368,61 +1381,25 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                                 onClick={handleViewPinnedNftOnGlobe}
                                 className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:bg-gradient-to-bl text-white font-semibold px-5 py-2.5"
                             >
-                                View on XoloGlobe
+                                View on Xglobe
                             </Button>
                         </div>
                     </div>
                 ) : pinTargetNft && (
                     <div className="space-y-4 text-sm text-white/85">
-                        <div className="flex flex-row items-start gap-4">
-                            <div className="flex-1 min-w-0 flex flex-col">
-                                <label htmlFor="pin-title" className="block text-xs font-semibold uppercase tracking-wide text-white/80 mb-1">
-                                    Pin Title <span className="text-red-300">*</span>
-                                </label>
-                                <input
-                                    id="pin-title"
-                                    type="text"
-                                    value={pinTitleInput}
-                                    onChange={(event) => setPinTitleInput(event.target.value)}
-                                    placeholder="Add a title for this pin"
-                                    maxLength={120}
-                                    className="w-full rounded-lg border border-white/20 bg-black/40 px-3 py-2 text-white/90 placeholder:text-white/45 focus:outline-none focus:border-blue-500 transition-all duration-200"
-                                />
-                            </div>
-                            <div className="flex flex-col min-w-[140px] shrink-0">
-                                <label className="block text-xs font-semibold uppercase tracking-wide text-white/80 mb-1">
-                                    Select Socials
-                                </label>
-                                {availableSocialPlatforms.length > 0 ? (
-                                    <div className="flex flex-row gap-2">
-                                        {availableSocialPlatforms.map((platform) => {
-                                            const isSelected = Boolean(selectedPinSocialPlatforms[platform.key]);
-
-                                            return (
-                                                <button
-                                                    key={platform.key}
-                                                    type="button"
-                                                    title={`Toggle ${platform.label}`}
-                                                    onClick={() => {
-                                                        setSelectedPinSocialPlatforms((current) => ({
-                                                            ...current,
-                                                            [platform.key]: !current[platform.key],
-                                                        }));
-                                                    }}
-                                                    className={`cursor-pointer inline-flex h-7 w-7 items-center justify-center rounded-full border transition-all duration-200 ${isSelected
-                                                        ? 'border-emerald-400/70 bg-emerald-700/30 text-emerald-200'
-                                                        : 'border-white/25 bg-white/5 text-white/70 hover:text-white hover:border-white/40'
-                                                        }`}
-                                                >
-                                                    <FontAwesomeIcon icon={platform.icon} className="text-[16px]" />
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                ) : (
-                                    <p className="text-xs text-white/55 min-w-[140px]">No social handles found in your profile yet.</p>
-                                )}
-                            </div>
+                        <div className="w-full min-w-0 flex flex-col">
+                            <label htmlFor="pin-title" className="block text-xs font-semibold uppercase tracking-wide text-white/80 mb-1">
+                                Pin Title <span className="text-red-300">*</span>
+                            </label>
+                            <input
+                                id="pin-title"
+                                type="text"
+                                value={pinTitleInput}
+                                onChange={(event) => setPinTitleInput(event.target.value)}
+                                placeholder="Add a title for this pin"
+                                maxLength={120}
+                                className="w-full rounded-lg border border-white/20 bg-black/40 px-3 py-2 text-white/90 placeholder:text-white/45 focus:outline-none focus:border-blue-500 transition-all duration-200"
+                            />
                         </div>
 
                         <div className="w-full min-w-0 flex flex-col">
@@ -1452,35 +1429,77 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                             </p>
                         </div>
 
-                        <MapBoxPinLocation
-                            key={`${pinTargetNft.token_id}-${pinFormMode}`}
-                            onLocationChange={setPinLocation}
-                            initialLocation={pinLocation}
-                            mapHeightClassName="h-[280px]"
-                            footerAction={(
-                                <div className="flex w-full flex-wrap items-center justify-end gap-3">
-                                    {pinFormMode === 'edit' ? (
+                        <div className="w-full min-w-0 flex flex-col">
+                            <label className="block text-xs font-semibold uppercase tracking-wide text-white/80 mb-1">
+                                Select Socials
+                            </label>
+                            {availableSocialPlatforms.length > 0 ? (
+                                <div className="flex flex-row flex-wrap gap-1.5">
+                                    {availableSocialPlatforms.map((platform) => {
+                                        const isSelected = Boolean(selectedPinSocialPlatforms[platform.key]);
+
+                                        return (
+                                            <button
+                                                key={platform.key}
+                                                type="button"
+                                                title={`Toggle ${platform.label}`}
+                                                onClick={() => {
+                                                    setSelectedPinSocialPlatforms((current) => ({
+                                                        ...current,
+                                                        [platform.key]: !current[platform.key],
+                                                    }));
+                                                }}
+                                                className={`cursor-pointer inline-flex h-6 w-6 items-center justify-center rounded-full border transition-all duration-200 ${isSelected
+                                                    ? 'border-emerald-400/70 bg-emerald-700/30 text-emerald-200'
+                                                    : 'border-white/25 bg-white/5 text-white/70 hover:text-white hover:border-white/40'
+                                                    }`}
+                                            >
+                                                <FontAwesomeIcon icon={platform.icon} className="text-[13px]" />
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <p className="text-xs text-white/55">No social handles found in your profile yet.</p>
+                            )}
+                        </div>
+
+                        <div className="w-full min-w-0 flex flex-col">
+                            <label className="block text-xs font-semibold uppercase tracking-wide text-white/80 mb-1">
+                                Pin Map Location
+                            </label>
+                            <MapBoxPinLocation
+                                key={`${pinTargetNft.token_id}-${pinFormMode}`}
+                                onLocationChange={setPinLocation}
+                                initialLocation={pinLocation}
+                                markerImageUrl={getNftThumbnailUrl(pinTargetNft.token_id, pinTargetNft.uri)}
+                                popupPreview={pinMapPopupPreview}
+                                mapHeightClassName="h-[280px]"
+                                footerAction={(
+                                    <div className="flex w-full flex-wrap items-center justify-end gap-3">
+                                        {pinFormMode === 'edit' ? (
+                                            <Button
+                                                type="button"
+                                                onClick={() => setPendingUnpinTokenId(pinTargetNft.token_id)}
+                                                disabled={isPinActionLoading}
+                                                className="h-11 border border-red-500/50 bg-red-600/90 px-5 text-sm font-semibold text-white hover:bg-red-500 active:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                            >
+                                                Remove
+                                            </Button>
+                                        ) : null}
                                         <Button
                                             type="button"
-                                            onClick={() => setPendingUnpinTokenId(pinTargetNft.token_id)}
-                                            disabled={isPinActionLoading}
-                                            className="h-11 border border-red-500/50 bg-red-600/90 px-5 text-sm font-semibold text-white hover:bg-red-500 active:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                            onClick={() => void handleSubmitPin()}
+                                            disabled={!canSubmitPin}
+                                            className="h-11 text-white/85 font-semibold hover:text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-cyan-300 hover:shadow-lg dark:focus:ring-cyan-800 rounded-base text-sm px-5 text-center transition-all duration-500 ease-out disabled:opacity-60 disabled:cursor-not-allowed"
                                         >
-                                            Delete
+                                            {isPinActionLoading ? 'Submitting...' : 'Submit'}
                                         </Button>
-                                    ) : null}
-                                    <Button
-                                        type="button"
-                                        onClick={() => void handleSubmitPin()}
-                                        disabled={!canSubmitPin}
-                                        className="h-11 text-white/85 font-semibold hover:text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-cyan-300 hover:shadow-lg dark:focus:ring-cyan-800 rounded-base text-sm px-5 text-center transition-all duration-500 ease-out disabled:opacity-60 disabled:cursor-not-allowed"
-                                    >
-                                        {isPinActionLoading ? 'Submitting...' : 'Submit'}
-                                    </Button>
-                                </div>
-                            )}
-                            className="mt-2"
-                        />
+                                    </div>
+                                )}
+                                className="mt-0"
+                            />
+                        </div>
                     </div>
                 )}
             </Modal>
@@ -1488,7 +1507,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
             <ModalConfirm
                 isOpen={pendingUnpinTokenId != null}
                 title="Remove pinned NFT?"
-                message="This will remove this NFT from the XoloGlobe map. You may pin it again later at any time."
+                message="This will remove this NFT from the Xglobe map. You may pin it again later at any time."
                 confirmLabel="Remove"
                 loading={isPinActionLoading}
                 onCancel={() => setPendingUnpinTokenId(null)}

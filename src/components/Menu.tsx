@@ -57,17 +57,16 @@ function Menu({
         { path: '/team', label: 'Team' },
         { path: '/vision', label: 'Vision' },
         { path: '/mint', label: 'Mint' },
-        { path: '/xologlobe', label: 'XoloGlobe' },
+        { path: '/xologlobe', label: 'Xglobe' },
     ];
 
     const mobileNavLinkClass = ({ isActive }: { isActive: boolean }) =>
         `flex items-center gap-3 border-b border-white/10 py-3 text-base font-medium capitalize no-underline transition-colors ${isActive ? 'font-semibold text-[#b7e9f7]' : 'text-white hover:text-[#b7e9f7]'}`;
 
     const desktopNavLinkClass = ({ isActive }: { isActive: boolean }) =>
-        `inline-block text-lg font-medium capitalize no-underline transition-all duration-300 ease-in-out ${isSticky ? 'py-1.5' : 'py-5'} ${
-            isActive
-                ? 'font-bold text-[#b7e9f7] underline decoration-[#b7e9f7] underline-offset-4'
-                : 'text-white hover:text-[#b7e9f7]'
+        `inline-block text-lg font-medium capitalize no-underline transition-all duration-300 ease-in-out ${isSticky ? 'py-1.5' : 'py-5'} ${isActive
+            ? 'font-bold text-[#b7e9f7] underline decoration-[#b7e9f7] underline-offset-4'
+            : 'text-white hover:text-[#b7e9f7]'
         }`;
 
     if (variant === 'mobile-toggle') {

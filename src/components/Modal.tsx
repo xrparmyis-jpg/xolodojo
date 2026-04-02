@@ -24,9 +24,10 @@ export default function Modal({
 }: ModalProps) {
     if (!isOpen) return null;
 
+    // z-[1100]: above sticky Header (z-[1000]) so dialogs are not covered on small viewports.
     const modal = (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/75 p-2 sm:p-4"
+            className="fixed inset-0 z-[1100] flex items-center justify-center overflow-y-auto bg-black/75 p-2 sm:p-4"
             onClick={() => {
                 if (closeOnOverlayClick) {
                     onClose();

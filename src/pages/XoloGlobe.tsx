@@ -43,7 +43,7 @@ function XoloGlobe() {
                         <GsapPageContent delay={0}>
                             <GsapPageSubHeading heading="The living map of our global community" />
                             <p className="mb-7 text-justify text-white/90">
-                                Inside the Xolo Dojo, the XoloGlobe comes alive on
+                                Inside the Xolo Dojo, the Xglobe comes alive on
                                 an interactive, Mapbox-powered world map. Verified
                                 Xolo NFT holders pin their locations, showcase their
                                 unique Xolo, and discover fellow members across the
@@ -97,7 +97,7 @@ function XoloGlobe() {
                                         <span>Turns strangers into allies, travelers into locals, and shared pins into shared experiences</span>
                                     </li>
                                     <li>
-                                        <span>Grows the living XoloGlobe — one pin, one message, one new friendship at a time</span>
+                                        <span>Grows the living Xglobe — one pin, one message, one new friendship at a time</span>
                                     </li>
                                 </ul>
                             </GsapPageContent>
@@ -105,14 +105,14 @@ function XoloGlobe() {
                             <GsapPageContent className="mt-4" delay={0.24}>
                                 <h4 className="mb-3 text-lg font-semibold text-[#891387] md:text-xl">A platform for more than one community</h4>
                                 <p className="text-white/90">
-                                    Over time, the XoloGlobe will open its doors to
+                                    Over time, the Xglobe will open its doors to
                                     other verified, values-aligned NFT communities who
                                     share our vision of trust-based human connection.
                                 </p>
                                 <p className="mt-4 text-white/90">
                                     Just as our Mission states: we're cultivating a
                                     global dojo where shared experiences weave a
-                                    stronger, more connected world. Connect your wallet and join the XoloGlobe today!
+                                    stronger, more connected world. Connect your wallet and join the Xglobe today!
                                 </p>
                             </GsapPageContent>
                         </div>

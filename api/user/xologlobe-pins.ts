@@ -89,7 +89,13 @@ function parsePreferences(preferences: unknown): Record<string, unknown> {
   return {};
 }
 
-const allowedSocialKeys = ['twitter', 'discord', 'tiktok', 'instagram', 'telegram'] as const;
+const allowedSocialKeys = [
+  'twitter',
+  'discord',
+  'tiktok',
+  'instagram',
+  'telegram',
+] as const;
 
 function parsePinSocials(value: unknown): XoloGlobePinSocials | null {
   if (!value || typeof value !== 'object') {
@@ -150,10 +156,13 @@ function parsePinnedNfts(preferences: Record<string, unknown>): XoloGlobePin[] {
         uri: typeof record.uri === 'string' ? record.uri : null,
         latitude: latitude ?? NaN,
         longitude: longitude ?? NaN,
-        image_url: typeof record.image_url === 'string' ? record.image_url : null,
+        image_url:
+          typeof record.image_url === 'string' ? record.image_url : null,
         title: typeof record.title === 'string' ? record.title : null,
         collection_name:
-          typeof record.collection_name === 'string' ? record.collection_name : null,
+          typeof record.collection_name === 'string'
+            ? record.collection_name
+            : null,
         socials: parsePinSocials(record.socials),
         pin_note: parsePinNote(record.pin_note),
         pinned_at:
@@ -164,10 +173,10 @@ function parsePinnedNfts(preferences: Record<string, unknown>): XoloGlobePin[] {
     })
     .filter(
       item =>
-        item.token_id.length > 0
-        && item.wallet_address.length > 0
-        && Number.isFinite(item.latitude)
-        && Number.isFinite(item.longitude)
+        item.token_id.length > 0 &&
+        item.wallet_address.length > 0 &&
+        Number.isFinite(item.latitude) &&
+        Number.isFinite(item.longitude)
     );
 }
 
@@ -204,7 +213,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
     const uniquePins = toUniquePins(allPins).sort((left, right) => {
-      return new Date(right.pinned_at).getTime() - new Date(left.pinned_at).getTime();
+      return (
+        new Date(right.pinned_at).getTime() - new Date(left.pinned_at).getTime()
+      );
     });
 
     res.status(200).json({
@@ -214,8 +225,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error));
-    console.error('Error loading XoloGlobe pins:', err);
-    res.status(500).json({ error: 'Internal server error', details: err.message });
+    console.error('Error loading Xglobe pins:', err);
+    res
+      .status(500)
+      .json({ error: 'Internal server error', details: err.message });
     return;
   }
 }

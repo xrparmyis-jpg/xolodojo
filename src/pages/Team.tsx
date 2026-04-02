@@ -205,7 +205,7 @@ function Team() {
 
                         <GsapPageContent className="mb-8" delay={0.06}>
                             <p className="mb-4 text-center">
-                                United by culture, art, and crypto, we're forging XoloDojo and XoloGlobe: a token-gated global tribe for trust, travel, skill-sharing, and real-world adventures. Together, we're not just minting NFTs — we're building a network of passionate individuals ready to connect, collaborate, and build the future.
+                                United by culture, art, and crypto, we're forging XoloDojo and Xglobe: a token-gated global tribe for trust, travel, skill-sharing, and real-world adventures. Together, we're not just minting NFTs — we're building a network of passionate individuals ready to connect, collaborate, and build the future.
                             </p>
                         </GsapPageContent>
 
@@ -223,7 +223,7 @@ function Team() {
                                     with footprints in 34 countries that have shaped a deep appreciation for diverse cultures and meaningful connections.
                                     A proud XRP Army member marching forward with bullish conviction, he's the creator behind The Xoloitzquintle
                                     Collection on the XRPL — fusing ancient Mesoamerican reverence for the sacred Xoloitzquintle with modern
-                                    innovation and genuine shared experiences. He's laying the foundation for XoloGlobe: a global, member-built
+                                    innovation and genuine shared experiences. He's laying the foundation for Xglobe: a global, member-built
                                     dojo for trust, travel, skill-sharing, and soul-guided adventures — all powered by XoloDojo.
                                     Own a XoloNFT and join the voyage. If you ain't bullish, you're walking the plank.
                                 </p>
@@ -244,7 +244,7 @@ function Team() {
                                     detail and deep respect for Mesoamerican heritage, RedShadow crafts each of the 10,001 unique XoloNFTs as
                                     sacred digital guardians — blending timeless cultural symbolism with striking, evocative designs that honor
                                     the Xoloitzquintle's role as a spiritual companion and soul guide. Teaming with Cryptonite, RedShadow's
-                                    artistry forms the visual heart of XoloDojo and XoloGlobe, inviting holders into a world where ancient
+                                    artistry forms the visual heart of XoloDojo and Xglobe, inviting holders into a world where ancient
                                     legacy meets modern community and real-world reciprocity.
                                 </p>
                             </div>
@@ -260,7 +260,7 @@ function Team() {
                             <div>
                                 <img src="/xolo-nft-showcase-01.png" alt="Code" className="float-left mr-6 mb-3 mt-2 w-[148px] max-w-[45vw] rounded-md" />
                                 <p className="text-justify">
-                                    Code is a battle-hardened degen from the golden Clubhouse days on Ethereum, a seasoned crypto trader with razor-sharp market instincts and hands-on building experience. Fluid in React.js and battle-tested in high-stakes web development, he's shipped name-brand websites (under NDA) for top players in the space. Now building with the Xolo pack on XRPL, Code delivers the technical backbone for XoloDojo and XoloGlobe — turning visionary ideas into seamless, secure, token-gated experiences. From smart community tools to immersive interfaces, he ensures the dojo runs smoothly, the globe connects flawlessly, and the pack thrives in Web3. Degen roots. Builder soul. Xolo loyalty.
+                                    Code is a battle-hardened degen from the golden Clubhouse days on Ethereum, a seasoned crypto trader with razor-sharp market instincts and hands-on building experience. Fluid in React.js and battle-tested in high-stakes web development, he's shipped name-brand websites (under NDA) for top players in the space. Now building with the Xolo pack on XRPL, Code delivers the technical backbone for XoloDojo and Xglobe — turning visionary ideas into seamless, secure, token-gated experiences. From smart community tools to immersive interfaces, he ensures the dojo runs smoothly, the globe connects flawlessly, and the pack thrives in Web3. Degen roots. Builder soul. Xolo loyalty.
                                 </p>
                             </div>
                         </GsapPageContent>

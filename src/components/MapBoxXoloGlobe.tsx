@@ -3,92 +3,16 @@ import mapboxgl from 'mapbox-gl';
 import type { Map } from 'mapbox-gl';
 import { useSearchParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { icon } from '@fortawesome/fontawesome-svg-core';
-import {
-    faDiscord,
-    faInstagram,
-    faTelegram,
-    faTiktok,
-    faXTwitter,
-} from '@fortawesome/free-brands-svg-icons';
 import { faPause, faPlay, faPlus, faMinus, faSpinner, faSun, faMoon, faMap, faSatellite } from '@fortawesome/free-solid-svg-icons';
 import { getXoloGlobePins, type XoloGlobePin } from '../services/xoloGlobePinService';
+import { buildPinPopupHtml } from '../utils/pinPopupHtml';
+import { createGlobeStylePinMarkerElements } from '../utils/globeStyleMapMarker';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || '';
 
 interface MapBoxXoloGlobeProps {
     className?: string;
 }
-
-const socialPlatformMeta = {
-    twitter: { label: 'X (Twitter)', hrefPrefix: 'https://x.com/', iconSvg: icon(faXTwitter).html.join('') },
-    discord: { label: 'Discord', hrefPrefix: 'https://discord.com/users/', iconSvg: icon(faDiscord).html.join('') },
-    tiktok: { label: 'TikTok', hrefPrefix: 'https://tiktok.com/@', iconSvg: icon(faTiktok).html.join('') },
-    instagram: { label: 'Instagram', hrefPrefix: 'https://instagram.com/', iconSvg: icon(faInstagram).html.join('') },
-    telegram: { label: 'Telegram', hrefPrefix: 'https://t.me/', iconSvg: icon(faTelegram).html.join('') },
-} as const;
-
-type SocialPlatformKey = keyof typeof socialPlatformMeta;
-
-const socialPlatformOrder: SocialPlatformKey[] = ['twitter', 'discord', 'tiktok', 'instagram', 'telegram'];
-
-const escapeHtml = (value: string) =>
-    value
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-
-const toSocialHref = (platform: SocialPlatformKey, handle: string) => {
-    const { hrefPrefix } = socialPlatformMeta[platform];
-    return `${hrefPrefix}${encodeURIComponent(handle)}`;
-};
-
-const tailwindSocialLink = "inline-flex items-center justify-center mr-1 mb-0 rounded-full border border-[#b7e9f7] w-10 h-10 bg-[rgba(25,25,35,0.85)] border border-white/20 bg-white/5 text-white/80 hover:border-white/40 hover:bg-white/10 hover:text-white transition-all duration-200";
-const tailwindSocialIcon = "inline-block align-middle w-[22px] h-[22px] text-[18px] leading-[22px] text-[#cdcdcd] group-hover:text-white transition-colors duration-200";
-const buildPinPopupHtml = (pin: XoloGlobePin) => {
-    const fallbackTitle = `NFT ${pin.token_id.slice(0, 8)}...`;
-    const title = escapeHtml(pin.title || fallbackTitle);
-
-    const socials = socialPlatformOrder
-        .map((platform) => {
-            const rawHandle = pin.socials?.[platform];
-            if (!rawHandle) {
-                return null;
-            }
-
-            const handle = rawHandle.trim().replace(/^@+/, '');
-            if (!handle) {
-                return null;
-            }
-
-            const href = toSocialHref(platform, handle);
-            const safeLabel = escapeHtml(socialPlatformMeta[platform].label);
-            const safePlatform = escapeHtml(platform);
-            const iconSvg = socialPlatformMeta[platform].iconSvg;
-
-            return `<a class="${tailwindSocialLink} xolo-social-icon--${safePlatform}" href="${href}" target="_blank" rel="noopener noreferrer" aria-label="Open ${safeLabel} for @${escapeHtml(handle)}" title="${safeLabel}">
-                <span class="${tailwindSocialIcon}" aria-hidden="true">${iconSvg}</span>
-            </a>`;
-        })
-        .filter((item): item is string => Boolean(item));
-
-    const socialsHtml = socials.length > 0
-        ? `<div class="flex flex-row flex-wrap gap-1 mt-2 mb-2">${socials.join('')}</div>`
-        : '';
-
-    const noteRaw = typeof pin.pin_note === 'string' ? pin.pin_note.trim() : '';
-    const noteHtml = noteRaw
-        ? `<p class="xolo-popup-note mt-1 text-sm">${escapeHtml(noteRaw)}</p>`
-        : '';
-
-    return `<div class="xolo-popup">`
-        + `<h2 class="xolo-popup-title">${title}</h2>`
-        + `${noteHtml}`
-        + `${socialsHtml}`
-        + '</div>';
-};
 
 export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
     const [searchParams] = useSearchParams();
@@ -129,6 +53,8 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
     const rotationMaxZoom = 3;
     /** Between this and `rotationMaxZoom`, rotation slows smoothly to zero. */
     const slowSpinZoomStart = 2;
+    /** Vertical gap from pin: Mapbox `bottom` anchor uses [0, -n]; larger n lifts the bubble slightly. */
+    const globePinPopupOffset = 78;
 
     const [mapZoom, setMapZoom] = useState(1.15);
     const spinLockedByZoom = mapZoom >= rotationMaxZoom;
@@ -420,58 +346,28 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
             const nextMarkerElements: Array<{ marker: mapboxgl.Marker; visualElement: HTMLDivElement }> = [];
 
             const nextMarkers: mapboxgl.Marker[] = pins.map((pin) => {
-                const markerElement = document.createElement('div');
-                markerElement.className = 'xolo-globe-marker';
-                markerElement.style.width = '1px';
-                markerElement.style.height = '1px';
-                markerElement.style.position = 'relative';
-
-                const markerVisualElement = document.createElement('div');
-                const markerWidth = 36;
-                const markerHeight = 54;
-                markerVisualElement.style.width = `${markerWidth}px`;
-                markerVisualElement.style.height = `${markerHeight}px`;
-                markerVisualElement.style.backgroundImage = "url('https://docs.mapbox.com/mapbox-gl-js/assets/pin.svg')";
-                markerVisualElement.style.backgroundSize = 'contain';
-                markerVisualElement.style.backgroundRepeat = 'no-repeat';
-                markerVisualElement.style.backgroundPosition = 'center';
-                markerVisualElement.style.position = 'absolute';
-                markerVisualElement.style.left = '50%';
-                markerVisualElement.style.bottom = '0';
-                markerVisualElement.style.transform = 'translateX(-50%)';
-                markerVisualElement.style.transformOrigin = '50% 100%';
-
-                if (pin.image_url) {
-                    const avatarElement = document.createElement('div');
-                    avatarElement.style.position = 'absolute';
-                    avatarElement.style.top = '1px';
-                    avatarElement.style.left = '50%';
-                    avatarElement.style.transform = 'translateX(-50%)';
-                    avatarElement.style.width = '30px';
-                    avatarElement.style.height = '30px';
-                    avatarElement.style.borderRadius = '9999px';
-                    avatarElement.style.border = '1.5px solid rgba(255,255,255,0.9)';
-                    avatarElement.style.backgroundImage = `url('${pin.image_url}')`;
-                    avatarElement.style.backgroundSize = 'cover';
-                    avatarElement.style.backgroundPosition = 'center';
-                    avatarElement.style.backgroundRepeat = 'no-repeat';
-                    markerVisualElement.appendChild(avatarElement);
-                }
+                const { markerElement, markerVisualElement } = createGlobeStylePinMarkerElements(
+                    pin.image_url || null,
+                );
 
                 markerVisualElement.style.cursor = 'pointer';
-                markerElement.appendChild(markerVisualElement);
 
                 const popup = new mapboxgl.Popup({
-                    offset: 68,
+                    offset: globePinPopupOffset,
                     className: 'xolo-globe-popup',
                     anchor: 'bottom',
                     maxWidth: '320px',
-                }).setHTML(
-                    buildPinPopupHtml(pin)
+                }                ).setHTML(
+                    buildPinPopupHtml({
+                        token_id: pin.token_id,
+                        title: pin.title,
+                        pin_note: pin.pin_note,
+                        socials: pin.socials,
+                    })
                 );
 
                 const reinforcePopupChrome = () => {
-                    const surface = '#12affce0';
+                    const surface = '#061415';
                     const apply = () => {
                         const root = popup.getElement();
                         if (!root) {

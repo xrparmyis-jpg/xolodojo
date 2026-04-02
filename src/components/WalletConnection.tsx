@@ -900,7 +900,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                 isOpen={showDeleteModal}
                 title="Remove wallet?"
                 message={
-                    `This will remove the wallet from your profile, you can always re-add it later by connecting again.\n\nAny NFTs in this wallet that are pinned on the XoloGlobe will also be removed.`
+                    `This will remove the wallet from your profile, you can always re-add it later by connecting again.\n\nAny NFTs in this wallet that are pinned on the Xglobe will also be removed.`
                 }
                 confirmLabel="Remove"
                 loading={walletBusyMessage !== null}
@@ -919,7 +919,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                         { type: 'xaman', label: 'Xaman (XUMM)', color: 'bg-[#0030CF] hover:bg-[#002399] active:bg-[#001966]', onClick: () => void handleSelectWalletType('xaman') },
                     ];
                     return (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/75 p-4 sm:p-6">
+                        <div className="fixed inset-0 z-[1100] flex items-center justify-center overflow-y-auto bg-black/75 p-4 sm:p-6">
                             <div className="w-full max-w-sm rounded-xl bg-neutral-900 p-6 shadow-xl border border-white/10">
                                 <h3 className="text-white text-lg font-semibold mb-2">Add New Wallet</h3>
                                 <p className="text-sm text-white/70 mb-4">Select the wallet type you want to add. You can add multiple accounts per type (for example, several Xaman accounts).</p>
@@ -990,7 +990,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                                     <span className="mx-1 inline-flex h-5 w-5 items-center justify-center rounded-full border border-black/55 bg-black text-white/85 align-middle">
                                         <FontAwesomeIcon icon={faThumbtack} className="text-[10px]" />
                                     </span>
-                                    {' to pin an NFT to the XoloGlobe, Click on the NFT to view more details.'}
+                                    {' to pin an NFT to the Xglobe, Click on the NFT to view more details.'}
                                 </p>
                                 <button
                                     type="button"

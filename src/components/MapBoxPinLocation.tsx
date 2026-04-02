@@ -1,10 +1,22 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import mapboxgl from 'mapbox-gl';
 import type { LngLatLike, Map } from 'mapbox-gl';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
+import type { PinnedNftSocials } from '../services/pinnedNftService';
+import { buildPinPopupHtml } from '../utils/pinPopupHtml';
+import { createGlobeStylePinMarkerElements } from '../utils/globeStyleMapMarker';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || '';
+
+/** Pixels: positive Y shifts the geographic center down in the viewport so the popup above the pin stays visible. */
+const PREVIEW_POPUP_CAMERA_OFFSET_Y = 115;
+
+/**
+ * Mapbox converts a numeric popup `offset` with anchor `bottom` to [0, -offset] (gap above the marker).
+ * Smaller value = bubble sits closer to the pin. XoloGlobe keeps 68; placement map uses a tighter gap.
+ */
+const PLACEMENT_PREVIEW_POPUP_OFFSET = 54;
 
 interface SearchFeature {
     id: string;
@@ -16,12 +28,41 @@ interface GeocodingResponse {
     features?: SearchFeature[];
 }
 
+/** Live globe-style info preview on the placement map (optional). */
+export interface MapBoxPinPopupPreview {
+    tokenId: string;
+    title: string;
+    pinNote: string;
+    socials: PinnedNftSocials;
+}
+
 interface MapBoxPinLocationProps {
     onLocationChange: (location: { lng: number; lat: number } | null) => void;
     initialLocation?: { lng: number; lat: number } | null;
     className?: string;
     mapHeightClassName?: string;
     footerAction?: ReactNode;
+    /** NFT thumbnail for the stem pin (same asset as XoloGlobe). */
+    markerImageUrl?: string | null;
+    /** When set, a preview popup shows the same markup as the globe while editing. */
+    popupPreview?: MapBoxPinPopupPreview | null;
+}
+
+function reinforcePinPreviewPopupChrome(popup: mapboxgl.Popup) {
+    const surface = '#061415';
+    const apply = () => {
+        const root = popup.getElement();
+        if (!root) {
+            return;
+        }
+        const content = root.querySelector('.mapboxgl-popup-content');
+        if (content instanceof HTMLElement) {
+            content.style.backgroundColor = surface;
+        }
+    };
+    apply();
+    requestAnimationFrame(apply);
+    window.setTimeout(apply, 50);
 }
 
 export default function MapBoxPinLocation({
@@ -30,10 +71,14 @@ export default function MapBoxPinLocation({
     className,
     mapHeightClassName = 'h-[378px]',
     footerAction,
+    markerImageUrl = null,
+    popupPreview = null,
 }: MapBoxPinLocationProps) {
     const mapContainerRef = useRef<HTMLDivElement | null>(null);
     const mapRef = useRef<Map | null>(null);
     const markerRef = useRef<mapboxgl.Marker | null>(null);
+    const popupRef = useRef<mapboxgl.Popup | null>(null);
+    const setMarkerAvatarRef = useRef<((url: string | null) => void) | null>(null);
     const geolocateControlRef = useRef<mapboxgl.GeolocateControl | null>(null);
     const suppressResultsForQueryRef = useRef<string | null>(null);
     const [searchText, setSearchText] = useState('');
@@ -43,36 +88,113 @@ export default function MapBoxPinLocation({
 
     const accessToken = useMemo(() => import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || '', []);
 
-    const setMarkerAt = (lng: number, lat: number, shouldFly = true) => {
+    const pinUiRef = useRef({
+        markerImageUrl: null as string | null,
+        popupPreview: null as MapBoxPinPopupPreview | null,
+        onLocationChange,
+    });
+    pinUiRef.current.markerImageUrl = markerImageUrl ?? null;
+    pinUiRef.current.popupPreview = popupPreview ?? null;
+    pinUiRef.current.onLocationChange = onLocationChange;
+
+    const attachOrUpdatePreviewPopup = useCallback((map: Map, marker: mapboxgl.Marker, preview: MapBoxPinPopupPreview) => {
+        let popup = popupRef.current;
+        if (!popup) {
+            popup = new mapboxgl.Popup({
+                offset: PLACEMENT_PREVIEW_POPUP_OFFSET,
+                className: 'xolo-globe-popup',
+                anchor: 'bottom',
+                maxWidth: '320px',
+                closeButton: false,
+                closeOnClick: false,
+            });
+            popupRef.current = popup;
+            marker.setPopup(popup);
+            marker.togglePopup();
+            map.once('moveend', () => reinforcePinPreviewPopupChrome(popup!));
+        }
+
+        popup.setHTML(
+            buildPinPopupHtml({
+                token_id: preview.tokenId,
+                title: preview.title,
+                pin_note: preview.pinNote,
+                socials: preview.socials,
+            }),
+        );
+        reinforcePinPreviewPopupChrome(popup);
+    }, []);
+
+    const removePreviewPopup = useCallback(() => {
+        const popup = popupRef.current;
+        if (popup) {
+            popup.remove();
+            popupRef.current = null;
+        }
+        markerRef.current?.setPopup(null);
+    }, []);
+
+    const setMarkerAt = useCallback((lng: number, lat: number, shouldFly = true) => {
         const map = mapRef.current;
         if (!map) {
             return;
         }
 
+        const { markerImageUrl: imageUrl, popupPreview: preview, onLocationChange: onLoc } = pinUiRef.current;
+
         if (!markerRef.current) {
-            markerRef.current = new mapboxgl.Marker({ color: '#ff4d4f', draggable: true })
+            const { markerElement, markerVisualElement, setAvatarUrl } = createGlobeStylePinMarkerElements(
+                imageUrl,
+            );
+            setMarkerAvatarRef.current = setAvatarUrl;
+            markerVisualElement.style.cursor = 'grab';
+
+            const marker = new mapboxgl.Marker({
+                element: markerElement,
+                draggable: true,
+                anchor: 'bottom',
+                rotationAlignment: 'horizon',
+                offset: [0, 7],
+            })
                 .setLngLat([lng, lat])
                 .addTo(map);
 
-            markerRef.current.on('dragend', () => {
+            markerRef.current = marker;
+
+            marker.on('dragend', () => {
                 const next = markerRef.current?.getLngLat();
                 if (!next) {
                     return;
                 }
-                onLocationChange({ lng: next.lng, lat: next.lat });
+                pinUiRef.current.onLocationChange({ lng: next.lng, lat: next.lat });
             });
+
+            if (preview) {
+                attachOrUpdatePreviewPopup(map, marker, preview);
+            }
         } else {
             markerRef.current.setLngLat([lng, lat]);
         }
 
+        const targetZoom = Math.max(map.getZoom(), 10);
+        const cameraOpts = {
+            center: [lng, lat] as LngLatLike,
+            zoom: targetZoom,
+            essential: true,
+            ...(preview ? { offset: [0, PREVIEW_POPUP_CAMERA_OFFSET_Y] as [number, number] } : {}),
+        };
+
         if (shouldFly) {
-            map.flyTo({ center: [lng, lat], zoom: Math.max(map.getZoom(), 10), essential: true });
+            map.flyTo({ ...cameraOpts, duration: 1400 });
+        } else if (preview) {
+            // Globe preview: nudge camera so the bubble above the pin is not clipped (no pan when preview is off).
+            map.easeTo({ ...cameraOpts, duration: 0 });
         }
 
-        onLocationChange({ lng, lat });
-    };
+        onLoc({ lng, lat });
+    }, [attachOrUpdatePreviewPopup]);
 
-    const tryCenterOnUser = () => {
+    const tryCenterOnUser = useCallback(() => {
         const map = mapRef.current;
         if (!map || !navigator.geolocation) {
             setIsLocatingUser(false);
@@ -88,11 +210,10 @@ export default function MapBoxPinLocation({
             },
             () => {
                 setIsLocatingUser(false);
-                // Best effort only; no-op if user denies permission.
             },
             { enableHighAccuracy: true, timeout: 8000 }
         );
-    };
+    }, [setMarkerAt]);
 
     const handleSelectSearchResult = (result: SearchFeature) => {
         const [lng, lat] = result.center;
@@ -121,15 +242,17 @@ export default function MapBoxPinLocation({
 
         setHasMapToken(true);
 
-        const startingCenter: [number, number] = initialLocation
-            ? [initialLocation.lng, initialLocation.lat]
+        // Capture once per map mount only — parent may update `initialLocation` on drag without remounting.
+        const initial = initialLocation;
+        const startingCenter: [number, number] = initial
+            ? [initial.lng, initial.lat]
             : [0, 20];
 
         const map = new mapboxgl.Map({
             container: mapContainerRef.current,
             style: 'mapbox://styles/mapbox/standard-satellite',
             center: startingCenter as LngLatLike,
-            zoom: initialLocation ? 10 : 1.9,
+            zoom: initial ? 10 : 1.9,
             attributionControl: false,
         });
 
@@ -156,8 +279,8 @@ export default function MapBoxPinLocation({
         });
 
         map.on('load', () => {
-            if (initialLocation) {
-                setMarkerAt(initialLocation.lng, initialLocation.lat, false);
+            if (initial) {
+                setMarkerAt(initial.lng, initial.lat, false);
                 setIsLocatingUser(false);
                 return;
             }
@@ -167,13 +290,33 @@ export default function MapBoxPinLocation({
         });
 
         return () => {
+            popupRef.current = null;
+            setMarkerAvatarRef.current = null;
             markerRef.current?.remove();
             markerRef.current = null;
             geolocateControlRef.current = null;
             map.remove();
             mapRef.current = null;
         };
-    }, [accessToken]);
+    }, [accessToken, setMarkerAt, tryCenterOnUser]);
+
+    useEffect(() => {
+        setMarkerAvatarRef.current?.(markerImageUrl ?? null);
+    }, [markerImageUrl]);
+
+    useEffect(() => {
+        const map = mapRef.current;
+        const marker = markerRef.current;
+        if (!map || !marker) {
+            return;
+        }
+
+        if (popupPreview) {
+            attachOrUpdatePreviewPopup(map, marker, popupPreview);
+        } else {
+            removePreviewPopup();
+        }
+    }, [popupPreview, attachOrUpdatePreviewPopup, removePreviewPopup]);
 
     useEffect(() => {
         const normalizedQuery = searchText.trim().toLowerCase();
@@ -232,6 +375,12 @@ export default function MapBoxPinLocation({
                 )}
             </div>
 
+            {popupPreview ? (
+                <p className="mt-2 text-[11px] text-white/50">
+                    Drag the pin or click on the map to move it.
+                </p>
+            ) : null}
+
             <div className="mt-3 text-xs text-white/85 backdrop-blur-sm">
                 <div className="flex w-full items-center gap-3">
                     <input
@@ -253,7 +402,7 @@ export default function MapBoxPinLocation({
                                 handleSearchSubmit();
                             }
                         }}
-                        placeholder="Search location"
+                        placeholder="Input an address and hit enter to search"
                         className="h-11 w-full min-w-0 flex-1 rounded-lg border border-white/20 bg-black/40 px-3 py-2 text-base text-white/90 placeholder:text-white/45 focus:border-blue-500 focus:outline-none"
                     />
                 </div>

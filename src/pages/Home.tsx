@@ -52,7 +52,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
       <>
         Cryptonite, the global explorer and XRPL enthusiast,
         partnered with RedShadow, the talented artist,and Code, the skilled developer, to bring
-        to bring the 10,001 Xolo NFTs and XoloGlobe into reality, blending art, culture, and blockchain innovation.
+        to bring the 10,001 Xolo NFTs and Xglobe into reality, blending art, culture, and blockchain innovation.
       </>
     ),
   },

@@ -21,13 +21,17 @@ This seeds 15 shared test markers into the DB so everyone sees the same pins on 
 
 ## Run locally (Docker MySQL)
 
-From repo root:
+The app **does not** auto-load this SQL. If pins have no `pin_note` (or you never ran the seed), run:
+
+From repo root (adjust user/password/db if your `docker-compose` differs):
 
 ```bash
 docker compose exec -T mysql mysql -udonovan_user -pdonovan_password donovan_db < database/migrations/seed_xologlobe_test_pins.sql
 ```
 
 You should see `seeded_pin_count` return `15`.
+
+**Not using Docker?** Run the same file in any MySQL client pointed at your local `DB_*` database (same as the API).
 
 ## Verify in app
 
@@ -40,18 +44,22 @@ You should see `seeded_pin_count` return `15`.
 - Safe to rerun.
 - It overwrites only the seed user's `preferences.pinned_nfts` with the same 15 markers.
 
-## Production / Vercel (same DB as local)
+## Production / live server (same DB your Vercel API uses)
 
-Deploying the app to Vercel does **not** run this SQL automatically. The API only reads what is already in `user_profiles.preferences`. After you verify locally:
+Deploying to Vercel **never** runs migrations or seeds. The globe reads pins from MySQL as-is.
 
-1. Deploy as usual (frontend + serverless env vars unchanged).
-2. Run the **same** seed file against the **production** MySQL instance (Hostinger, RDS, etc.):  
-   - Use your host’s SQL console, or `mysql` from a trusted machine with the prod connection string (`DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, port — same variables Vercel uses).
-3. Example (adjust user, host, and DB name):
+**To put the mock pins + descriptions on the live DB:**
 
-   `mysql -h YOUR_HOST -u YOUR_USER -p YOUR_DB < database/migrations/seed_xologlobe_test_pins.sql`
+1. Open your host’s MySQL tool (phpMyAdmin, DBeaver, etc.) **or** use the CLI from a machine that is allowed to connect to prod.
+2. Run the **contents** of `database/migrations/seed_xologlobe_test_pins.sql` once — or from your laptop:
 
-No new tables or columns are required: `pin_note` is just another key inside the existing JSON array for each pin.
+   `mysql -h YOUR_DB_HOST -P YOUR_PORT -u YOUR_DB_USER -p YOUR_DB_NAME < database/migrations/seed_xologlobe_test_pins.sql`
+
+   Use the same values as in Vercel: `DB_HOST`, `DB_PORT` (often `3306`), `DB_USER`, `DB_PASSWORD`, `DB_NAME`.
+
+3. Reload XoloGlobe; the 15 test markers should include the multi-line `pin_note` text.
+
+No schema migration is required: `pin_note` lives inside the existing `preferences.pinned_nfts` JSON.
 
 Before your real launch, remove test data (see below) or replace `pinned_nfts` for that seed user.
 
