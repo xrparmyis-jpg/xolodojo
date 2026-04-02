@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import mysql from 'mysql2/promise';
 import { PIN_NOTE_MAX_LENGTH } from '../../src/constants/pinNote.js';
+import { parsePinWebsiteForStorage } from '../../src/utils/pinWebsiteUrl.js';
 
 let pool: mysql.Pool | null = null;
 
@@ -36,6 +37,7 @@ interface XoloGlobePin {
   collection_name: string | null;
   socials?: XoloGlobePinSocials | null;
   pin_note?: string | null;
+  website_url?: string | null;
   pinned_at: string;
 }
 
@@ -165,6 +167,9 @@ function parsePinnedNfts(preferences: Record<string, unknown>): XoloGlobePin[] {
             : null,
         socials: parsePinSocials(record.socials),
         pin_note: parsePinNote(record.pin_note),
+        website_url: parsePinWebsiteForStorage(
+          typeof record.website_url === 'string' ? record.website_url : ''
+        ),
         pinned_at:
           typeof record.pinned_at === 'string'
             ? record.pinned_at

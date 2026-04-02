@@ -362,6 +362,7 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
                         token_id: pin.token_id,
                         title: pin.title,
                         pin_note: pin.pin_note,
+                        website_url: pin.website_url,
                         socials: pin.socials,
                     })
                 );

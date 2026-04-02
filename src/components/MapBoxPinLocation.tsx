@@ -9,13 +9,7 @@ import { createGlobeStylePinMarkerElements } from '../utils/globeStyleMapMarker'
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || '';
 
-/** Pixels: positive Y shifts the geographic center down in the viewport so the popup above the pin stays visible. */
 const PREVIEW_POPUP_CAMERA_OFFSET_Y = 115;
-
-/**
- * Mapbox converts a numeric popup `offset` with anchor `bottom` to [0, -offset] (gap above the marker).
- * Smaller value = bubble sits closer to the pin. XoloGlobe keeps 68; placement map uses a tighter gap.
- */
 const PLACEMENT_PREVIEW_POPUP_OFFSET = 54;
 
 interface SearchFeature {
@@ -33,6 +27,8 @@ export interface MapBoxPinPopupPreview {
     tokenId: string;
     title: string;
     pinNote: string;
+    /** Host/path only; popup uses https:// */
+    websiteUrl?: string | null;
     socials: PinnedNftSocials;
 }
 
@@ -42,9 +38,7 @@ interface MapBoxPinLocationProps {
     className?: string;
     mapHeightClassName?: string;
     footerAction?: ReactNode;
-    /** NFT thumbnail for the stem pin (same asset as XoloGlobe). */
     markerImageUrl?: string | null;
-    /** When set, a preview popup shows the same markup as the globe while editing. */
     popupPreview?: MapBoxPinPopupPreview | null;
 }
 
@@ -119,6 +113,7 @@ export default function MapBoxPinLocation({
                 token_id: preview.tokenId,
                 title: preview.title,
                 pin_note: preview.pinNote,
+                website_url: preview.websiteUrl ?? null,
                 socials: preview.socials,
             }),
         );

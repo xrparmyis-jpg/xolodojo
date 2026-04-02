@@ -44,7 +44,6 @@ a {
   transition: all 0.4s ease-in-out;
 }
 
-/* Custom slideDown animation for header */
 @keyframes slideDown {
   from {
     transform: translateY(-100%);
@@ -54,12 +53,10 @@ a {
   }
 }
 
-/* Custom h3 default styling */
 .h3-default {
   @apply text-xl md:text-2xl font-bold mb-3;
 }
 
-/* Solid panel + !important: avoids rare “clear” popups when Mapbox repaints during camera moves */
 .mapboxgl-popup.xolo-globe-popup .mapboxgl-popup-content {
   padding: 16px 18px 14px;
   min-width: 320px;
@@ -73,7 +70,6 @@ a {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
 }
 
-/* Match social chips in the same popup (Tailwind border-white/20, dark glass, text-white/80); no transition — socials keep their slow fade */
 .mapboxgl-popup.xolo-globe-popup .mapboxgl-popup-close-button {
   width: 22px;
   height: 22px;

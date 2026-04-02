@@ -21,6 +21,8 @@ export interface PinnedNftItem {
   socials?: PinnedNftSocials | null;
   /** Pin description on the globe popup (`src/constants/pinNote.ts`; min length enforced on pin). */
   pin_note?: string | null;
+  /** Optional site URL without scheme (e.g. example.com); shown as https in popup. */
+  website_url?: string | null;
   pinned_at: string;
 }
 
@@ -73,6 +75,7 @@ export async function pinNft(
     collection_name?: string | null;
     socials?: PinnedNftSocials;
     pin_note?: string | null;
+    website_url?: string | null;
   },
   accessToken?: string
 ): Promise<PinnedNftItem[]> {

@@ -17,6 +17,7 @@ import MapBoxPinLocation from './MapBoxPinLocation';
 import { useToast } from './ToastProvider';
 import type { WalletAssetSummary } from '../services/walletAssetService';
 import { PIN_NOTE_MAX_LENGTH, PIN_NOTE_MIN_LENGTH } from '../constants/pinNote';
+import { PIN_WEBSITE_MAX_LENGTH, parsePinWebsiteForStorage } from '../utils/pinWebsiteUrl';
 import {
     getPinnedNfts,
     pinNft,
@@ -196,6 +197,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
     const [pinnedNftItems, setPinnedNftItems] = useState<PinnedNftItem[]>([]);
     const [pinTargetTokenId, setPinTargetTokenId] = useState<string | null>(null);
     const [pinFormMode, setPinFormMode] = useState<PinFormMode>('create');
+    const [pinFormStep, setPinFormStep] = useState<1 | 2>(1);
     const [pendingUnpinTokenId, setPendingUnpinTokenId] = useState<string | null>(null);
     const [isPinActionLoading, setIsPinActionLoading] = useState(false);
     const [isSelectedNftImageLoaded, setIsSelectedNftImageLoaded] = useState(false);
@@ -209,6 +211,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
     const [pinLocation, setPinLocation] = useState<{ lng: number; lat: number } | null>(null);
     const [pinTitleInput, setPinTitleInput] = useState('');
     const [pinNoteInput, setPinNoteInput] = useState('');
+    const [pinWebsiteSuffixInput, setPinWebsiteSuffixInput] = useState('');
     const [pinSuccessState, setPinSuccessState] = useState<{
         tokenId: string;
         title: string;
@@ -919,27 +922,34 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
             tokenId: pinTargetNft.token_id,
             title: pinTitleInput,
             pinNote: pinNoteInput,
+            websiteUrl: parsePinWebsiteForStorage(pinWebsiteSuffixInput),
             socials: selectedPinSocials,
         };
-    }, [pinTargetNft, pinTitleInput, pinNoteInput, selectedPinSocials]);
+    }, [pinTargetNft, pinTitleInput, pinNoteInput, pinWebsiteSuffixInput, selectedPinSocials]);
 
-    const canSubmitPin = Boolean(
+    const canContinuePinFormStep1 = Boolean(
         pinTargetNft
         && walletAddress
-        && pinLocation
         && normalizedPinTitle.length > 0
         && normalizedPinNote.length >= PIN_NOTE_MIN_LENGTH
         && !isPinActionLoading
     );
 
+    const canSubmitPin = Boolean(
+        canContinuePinFormStep1
+        && pinLocation
+    );
+
     const openPinModalForCreate = (tokenId: string) => {
         setPinFormMode('create');
+        setPinFormStep(1);
         setPinSuccessState(null);
         setPinTargetTokenId(tokenId);
         setPinLocation(null);
         const defaultTitle = resolvedNftTitles[tokenId] || `NFT ${tokenId.slice(0, 8)}...`;
         setPinTitleInput(defaultTitle);
         setPinNoteInput('');
+        setPinWebsiteSuffixInput('');
         setSelectedPinSocialPlatforms({});
     };
 
@@ -950,6 +960,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
             return;
         }
         setPinFormMode('edit');
+        setPinFormStep(1);
         setPinSuccessState(null);
         setPinTargetTokenId(tokenId);
         const lat = existing.latitude;
@@ -962,6 +973,11 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
         const fallbackTitle = resolvedNftTitles[tokenId] || `NFT ${tokenId.slice(0, 8)}...`;
         setPinTitleInput(existing.title?.trim() || fallbackTitle);
         setPinNoteInput(typeof existing.pin_note === 'string' ? existing.pin_note : '');
+        setPinWebsiteSuffixInput(
+            typeof existing.website_url === 'string' && existing.website_url.trim()
+                ? existing.website_url.trim()
+                : ''
+        );
         setSelectedPinSocialPlatforms(socialSelectionFromSavedPin(existing.socials ?? null));
     };
 
@@ -969,10 +985,13 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
         setPinSuccessState(null);
         setPinTargetTokenId(null);
         setPinFormMode('create');
+        setPinFormStep(1);
         setPinLocation(null);
         setPinTitleInput('');
         setPinNoteInput('');
+        setPinWebsiteSuffixInput('');
         setSelectedPinSocialPlatforms({});
+        setPendingUnpinTokenId(null);
     };
 
     const handleViewPinnedNftOnGlobe = () => {
@@ -1027,6 +1046,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                     collection_name: pinTargetCollectionName,
                     socials: selectedPinSocials,
                     pin_note: normalizedPinNote,
+                    website_url: parsePinWebsiteForStorage(pinWebsiteSuffixInput),
                 },
                 accessToken
             );
@@ -1040,9 +1060,11 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                 kind: pinFormMode === 'edit' ? 'updated' : 'created',
             });
             setPinTargetTokenId(null);
+            setPinFormStep(1);
             setPinLocation(null);
             setPinTitleInput('');
             setPinNoteInput('');
+            setPinWebsiteSuffixInput('');
             setSelectedPinSocialPlatforms({});
         } catch (error) {
             debugNft('Failed to pin NFT', {
@@ -1067,6 +1089,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
         showToast,
         walletAddress,
         pinFormMode,
+        pinWebsiteSuffixInput,
     ]);
 
     const handleConfirmUnpin = async () => {
@@ -1387,119 +1410,187 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                     </div>
                 ) : pinTargetNft && (
                     <div className="space-y-4 text-sm text-white/85">
-                        <div className="w-full min-w-0 flex flex-col">
-                            <label htmlFor="pin-title" className="block text-xs font-semibold uppercase tracking-wide text-white/80 mb-1">
-                                Pin Title <span className="text-red-300">*</span>
-                            </label>
-                            <input
-                                id="pin-title"
-                                type="text"
-                                value={pinTitleInput}
-                                onChange={(event) => setPinTitleInput(event.target.value)}
-                                placeholder="Add a title for this pin"
-                                maxLength={120}
-                                className="w-full rounded-lg border border-white/20 bg-black/40 px-3 py-2 text-white/90 placeholder:text-white/45 focus:outline-none focus:border-blue-500 transition-all duration-200"
-                            />
-                        </div>
-
-                        <div className="w-full min-w-0 flex flex-col">
-                            <label htmlFor="pin-description" className="block text-xs font-semibold uppercase tracking-wide text-white/80 mb-1">
-                                Pin Description <span className="text-red-300">*</span>{' '}
-                                <span className="font-normal text-white/50 normal-case">
-                                    (max {PIN_NOTE_MAX_LENGTH} characters)
-                                </span>
-                            </label>
-                            <textarea
-                                id="pin-description"
-                                value={pinNoteInput}
-                                onChange={(event) => {
-                                    const next = event.target.value;
-                                    setPinNoteInput(
-                                        next.length > PIN_NOTE_MAX_LENGTH
-                                            ? next.slice(0, PIN_NOTE_MAX_LENGTH)
-                                            : next
-                                    );
-                                }}
-                                placeholder="Short line shown on the globe"
-                                rows={4}
-                                className="w-full min-w-0 resize-none rounded-lg border border-white/20 bg-black/40 px-3 py-2 text-sm text-white/90 placeholder:text-white/45 focus:outline-none focus:border-blue-500 transition-all duration-200"
-                            />
-                            <p className="mt-0.5 text-[11px] text-white/45">
-                                {pinNoteInput.length}/{PIN_NOTE_MAX_LENGTH}
-                            </p>
-                        </div>
-
-                        <div className="w-full min-w-0 flex flex-col">
-                            <label className="block text-xs font-semibold uppercase tracking-wide text-white/80 mb-1">
-                                Select Socials
-                            </label>
-                            {availableSocialPlatforms.length > 0 ? (
-                                <div className="flex flex-row flex-wrap gap-1.5">
-                                    {availableSocialPlatforms.map((platform) => {
-                                        const isSelected = Boolean(selectedPinSocialPlatforms[platform.key]);
-
-                                        return (
-                                            <button
-                                                key={platform.key}
-                                                type="button"
-                                                title={`Toggle ${platform.label}`}
-                                                onClick={() => {
-                                                    setSelectedPinSocialPlatforms((current) => ({
-                                                        ...current,
-                                                        [platform.key]: !current[platform.key],
-                                                    }));
-                                                }}
-                                                className={`cursor-pointer inline-flex h-6 w-6 items-center justify-center rounded-full border transition-all duration-200 ${isSelected
-                                                    ? 'border-emerald-400/70 bg-emerald-700/30 text-emerald-200'
-                                                    : 'border-white/25 bg-white/5 text-white/70 hover:text-white hover:border-white/40'
-                                                    }`}
-                                            >
-                                                <FontAwesomeIcon icon={platform.icon} className="text-[13px]" />
-                                            </button>
-                                        );
-                                    })}
+                        {pinFormStep === 1 ? (
+                            <>
+                                <div className="w-full min-w-0 flex flex-col">
+                                    <label htmlFor="pin-title" className="block text-xs font-semibold uppercase tracking-wide text-white/80 mb-1">
+                                        Pin Title <span className="text-red-300">*</span>
+                                    </label>
+                                    <input
+                                        id="pin-title"
+                                        type="text"
+                                        value={pinTitleInput}
+                                        onChange={(event) => setPinTitleInput(event.target.value)}
+                                        placeholder="Add a title for this pin"
+                                        maxLength={120}
+                                        className="w-full rounded-lg border border-white/20 bg-black/40 px-3 py-2 text-white/90 placeholder:text-white/45 focus:outline-none focus:border-blue-500 transition-all duration-200"
+                                    />
                                 </div>
-                            ) : (
-                                <p className="text-xs text-white/55">No social handles found in your profile yet.</p>
-                            )}
-                        </div>
 
-                        <div className="w-full min-w-0 flex flex-col">
-                            <label className="block text-xs font-semibold uppercase tracking-wide text-white/80 mb-1">
-                                Pin Map Location
-                            </label>
-                            <MapBoxPinLocation
-                                key={`${pinTargetNft.token_id}-${pinFormMode}`}
-                                onLocationChange={setPinLocation}
-                                initialLocation={pinLocation}
-                                markerImageUrl={getNftThumbnailUrl(pinTargetNft.token_id, pinTargetNft.uri)}
-                                popupPreview={pinMapPopupPreview}
-                                mapHeightClassName="h-[280px]"
-                                footerAction={(
-                                    <div className="flex w-full flex-wrap items-center justify-end gap-3">
-                                        {pinFormMode === 'edit' ? (
-                                            <Button
-                                                type="button"
-                                                onClick={() => setPendingUnpinTokenId(pinTargetNft.token_id)}
-                                                disabled={isPinActionLoading}
-                                                className="h-11 border border-red-500/50 bg-red-600/90 px-5 text-sm font-semibold text-white hover:bg-red-500 active:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
-                                            >
-                                                Remove
-                                            </Button>
-                                        ) : null}
+                                <div className="w-full min-w-0 flex flex-col">
+                                    <label htmlFor="pin-description" className="block text-xs font-semibold uppercase tracking-wide text-white/80 mb-1">
+                                        Pin Description <span className="text-red-300">*</span>{' '}
+                                        <span className="font-normal text-white/50 normal-case">
+                                            (max {PIN_NOTE_MAX_LENGTH} characters)
+                                        </span>
+                                    </label>
+                                    <textarea
+                                        id="pin-description"
+                                        value={pinNoteInput}
+                                        onChange={(event) => {
+                                            const next = event.target.value;
+                                            setPinNoteInput(
+                                                next.length > PIN_NOTE_MAX_LENGTH
+                                                    ? next.slice(0, PIN_NOTE_MAX_LENGTH)
+                                                    : next
+                                            );
+                                        }}
+                                        placeholder="Short line shown on the globe"
+                                        rows={4}
+                                        className="w-full min-w-0 resize-none rounded-lg border border-white/20 bg-black/40 px-3 py-2 text-sm text-white/90 placeholder:text-white/45 focus:outline-none focus:border-blue-500 transition-all duration-200"
+                                    />
+                                    <p className="mt-0.5 text-[11px] text-white/45">
+                                        {pinNoteInput.length}/{PIN_NOTE_MAX_LENGTH}
+                                    </p>
+                                </div>
+
+                                <div className="w-full min-w-0 flex flex-col">
+                                    <label htmlFor="pin-website" className="block text-xs font-semibold uppercase tracking-wide text-white/80 mb-1">
+                                        WEBSITE/PROJECT{' '}
+                                        <span className="font-normal normal-case text-white/50">(optional)</span>
+                                    </label>
+                                    <div className="flex min-w-0 items-stretch overflow-hidden rounded-lg border border-white/20 bg-black/40 transition-all duration-200 focus-within:border-blue-500">
+                                        <span
+                                            className="flex shrink-0 items-center border-r border-white/15 bg-black/50 pl-3 pr-1 text-sm text-white/50 select-none"
+                                            aria-hidden
+                                        >
+                                            https://
+                                        </span>
+                                        <input
+                                            id="pin-website"
+                                            type="text"
+                                            inputMode="url"
+                                            autoComplete="url"
+                                            value={pinWebsiteSuffixInput}
+                                            onChange={(event) => {
+                                                const next = event.target.value;
+                                                setPinWebsiteSuffixInput(
+                                                    next.length > PIN_WEBSITE_MAX_LENGTH
+                                                        ? next.slice(0, PIN_WEBSITE_MAX_LENGTH)
+                                                        : next
+                                                );
+                                            }}
+                                            placeholder="toddnagel.com"
+                                            className="min-w-0 flex-1 border-0 bg-transparent py-2 pr-3 pl-2 text-sm text-white/90 placeholder:text-white/40 focus:outline-none focus:ring-0"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="w-full min-w-0 flex flex-col">
+                                    <label className="block text-xs font-semibold uppercase tracking-wide text-white/80 mb-1">
+                                        SELECT SOCIALS{' '}
+                                        <span className="font-normal normal-case text-white/50">(optional)</span>
+                                    </label>
+                                    {availableSocialPlatforms.length > 0 ? (
+                                        <div className="flex flex-row flex-wrap gap-1.5">
+                                            {availableSocialPlatforms.map((platform) => {
+                                                const isSelected = Boolean(selectedPinSocialPlatforms[platform.key]);
+
+                                                return (
+                                                    <button
+                                                        key={platform.key}
+                                                        type="button"
+                                                        title={`Toggle ${platform.label}`}
+                                                        onClick={() => {
+                                                            setSelectedPinSocialPlatforms((current) => ({
+                                                                ...current,
+                                                                [platform.key]: !current[platform.key],
+                                                            }));
+                                                        }}
+                                                        className={`cursor-pointer inline-flex h-6 w-6 items-center justify-center rounded-full border transition-all duration-200 ${isSelected
+                                                            ? 'border-emerald-400/70 bg-emerald-700/30 text-emerald-200'
+                                                            : 'border-white/25 bg-white/5 text-white/70 hover:text-white hover:border-white/40'
+                                                            }`}
+                                                    >
+                                                        <FontAwesomeIcon icon={platform.icon} className="text-[13px]" />
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    ) : (
+                                        <p className="text-xs text-white/55">No social handles found in your profile yet.</p>
+                                    )}
+                                </div>
+
+                                <div className="flex w-full flex-wrap items-center justify-end gap-3 pt-1">
+                                    {pinFormMode === 'edit' ? (
                                         <Button
                                             type="button"
-                                            onClick={() => void handleSubmitPin()}
-                                            disabled={!canSubmitPin}
-                                            className="h-11 text-white/85 font-semibold hover:text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-cyan-300 hover:shadow-lg dark:focus:ring-cyan-800 rounded-base text-sm px-5 text-center transition-all duration-500 ease-out disabled:opacity-60 disabled:cursor-not-allowed"
+                                            onClick={() => setPendingUnpinTokenId(pinTargetNft.token_id)}
+                                            disabled={isPinActionLoading}
+                                            className="h-11 border border-red-500/50 bg-red-600/90 px-5 text-sm font-semibold text-white hover:bg-red-500 active:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
                                         >
-                                            {isPinActionLoading ? 'Submitting...' : 'Submit'}
+                                            Remove
                                         </Button>
-                                    </div>
-                                )}
-                                className="mt-0"
-                            />
-                        </div>
+                                    ) : null}
+                                    <Button
+                                        type="button"
+                                        onClick={() => setPinFormStep(2)}
+                                        disabled={!canContinuePinFormStep1}
+                                        className="h-11 text-white/85 font-semibold hover:text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-cyan-300 hover:shadow-lg dark:focus:ring-cyan-800 rounded-base text-sm px-5 text-center transition-all duration-500 ease-out disabled:opacity-60 disabled:cursor-not-allowed"
+                                    >
+                                        Continue
+                                    </Button>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="w-full min-w-0 flex flex-col">
+                                <label className="block text-xs font-semibold uppercase tracking-wide text-white/80 mb-1">
+                                    Pin map location
+                                </label>
+                                <MapBoxPinLocation
+                                    key={`${pinTargetNft.token_id}-${pinFormMode}`}
+                                    onLocationChange={setPinLocation}
+                                    initialLocation={pinLocation}
+                                    markerImageUrl={getNftThumbnailUrl(pinTargetNft.token_id, pinTargetNft.uri)}
+                                    popupPreview={pinMapPopupPreview}
+                                    mapHeightClassName="h-[280px]"
+                                    footerAction={(
+                                        <div className="flex w-full flex-wrap items-center justify-between gap-3">
+                                            <Button
+                                                type="button"
+                                                onClick={() => setPinFormStep(1)}
+                                                disabled={isPinActionLoading}
+                                                className="h-11 border border-white/15 bg-white/10 px-5 text-sm font-semibold text-white/85 hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-60"
+                                            >
+                                                Back
+                                            </Button>
+                                            <div className="flex flex-wrap items-center justify-end gap-3">
+                                                {pinFormMode === 'edit' ? (
+                                                    <Button
+                                                        type="button"
+                                                        onClick={() => setPendingUnpinTokenId(pinTargetNft.token_id)}
+                                                        disabled={isPinActionLoading}
+                                                        className="h-11 border border-red-500/50 bg-red-600/90 px-5 text-sm font-semibold text-white hover:bg-red-500 active:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                                    >
+                                                        Remove
+                                                    </Button>
+                                                ) : null}
+                                                <Button
+                                                    type="button"
+                                                    onClick={() => void handleSubmitPin()}
+                                                    disabled={!canSubmitPin}
+                                                    className="h-11 text-white/85 font-semibold hover:text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-cyan-300 hover:shadow-lg dark:focus:ring-cyan-800 rounded-base text-sm px-5 text-center transition-all duration-500 ease-out disabled:opacity-60 disabled:cursor-not-allowed"
+                                                >
+                                                    {isPinActionLoading ? 'Submitting...' : 'Submit'}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
+                                    className="mt-0"
+                                />
+                            </div>
+                        )}
                     </div>
                 )}
             </Modal>

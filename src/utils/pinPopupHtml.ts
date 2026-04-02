@@ -6,12 +6,15 @@ import {
   faTiktok,
   faXTwitter,
 } from '@fortawesome/free-brands-svg-icons';
+import { pinWebsiteStorageToHref } from './pinWebsiteUrl';
 
 /** Data needed to render the same popup markup as XoloGlobe / pin form preview. */
 export interface PinPopupContent {
   token_id: string;
   title?: string | null;
   pin_note?: string | null;
+  /** Host/path only (e.g. example.com); rendered as https://… */
+  website_url?: string | null;
   socials?: Partial<Record<SocialPlatformKey, string>> | null;
 }
 
@@ -112,10 +115,16 @@ export function buildPinPopupHtml(pin: PinPopupContent): string {
     ? `<p class="xolo-popup-note mt-1 text-sm">${escapeHtml(noteRaw)}</p>`
     : '';
 
+  const websiteHref = pinWebsiteStorageToHref(pin.website_url);
+  const websiteHtml = websiteHref
+    ? `<p class="xolo-popup-website mt-2"><a class="text-sm font-medium text-cyan-300/95 underline decoration-cyan-400/50 underline-offset-2 hover:text-cyan-200 hover:decoration-cyan-300" href="${escapeHtml(websiteHref)}" target="_blank" rel="noopener noreferrer">Website/Project</a></p>`
+    : '';
+
   return (
     `<div class="xolo-popup">` +
     `<h2 class="xolo-popup-title">${title}</h2>` +
     `${noteHtml}` +
+    `${websiteHtml}` +
     `${socialsHtml}` +
     '</div>'
   );
