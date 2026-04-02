@@ -38,14 +38,15 @@ SET @seed_pinned_nfts := JSON_ARRAY(
   JSON_OBJECT('token_id','test-marker-015','wallet_address','rtestmarker015','issuer',NULL,'uri',NULL,'latitude',-36.8485,'longitude',174.7633,'image_url','/03.jpg','title','Auckland Test Pin','collection_name','Xolo Test Pins','pin_note','Volcanic cones between two busy harbours.\n\nStaging marker.','socials',JSON_OBJECT('instagram','xolo.auckland'),'pinned_at',@seed_pinned_at)
 );
 
+-- Use JSON_EXTRACT (not CAST AS JSON) for MariaDB/phpMyAdmin compatibility.
 INSERT INTO user_profiles (user_id, preferences, updated_at)
 VALUES (
   @seed_user_id,
-  JSON_OBJECT('pinned_nfts', CAST(@seed_pinned_nfts AS JSON)),
+  JSON_OBJECT('pinned_nfts', JSON_EXTRACT(@seed_pinned_nfts, '$')),
   CURRENT_TIMESTAMP
 )
 ON DUPLICATE KEY UPDATE
-  preferences = JSON_SET(COALESCE(preferences, JSON_OBJECT()), '$.pinned_nfts', CAST(@seed_pinned_nfts AS JSON)),
+  preferences = JSON_SET(COALESCE(preferences, JSON_OBJECT()), '$.pinned_nfts', JSON_EXTRACT(@seed_pinned_nfts, '$')),
   updated_at = CURRENT_TIMESTAMP;
 
 SELECT JSON_LENGTH(JSON_EXTRACT(preferences, '$.pinned_nfts')) AS seeded_pin_count
