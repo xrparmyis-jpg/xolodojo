@@ -445,8 +445,11 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
                     const markClosedViaButton = () => {
                         popupClosedViaXRef.current = true;
                     };
-                    const onCloseButtonKey = (e: KeyboardEvent) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
+                    const onCloseButtonKey = (e: Event) => {
+                        if (
+                            e instanceof KeyboardEvent
+                            && (e.key === 'Enter' || e.key === ' ')
+                        ) {
                             markClosedViaButton();
                         }
                     };
