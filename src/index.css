@@ -62,8 +62,8 @@ a {
 /* Solid panel + !important: avoids rare “clear” popups when Mapbox repaints during camera moves */
 .mapboxgl-popup.xolo-globe-popup .mapboxgl-popup-content {
   padding: 16px 18px 14px;
-  min-width: 260px;
-  max-width: 320px;
+  min-width: 320px;
+  max-width: 360px;
   border-radius: 0.5rem;
   font-size: 15px;
   line-height: 1.35;
@@ -285,7 +285,10 @@ a {
   color: #c9e8e9;
 }
 
-.mapbox-pin-controls .mapboxgl-ctrl-group button:hover:not(:disabled) .mapboxgl-ctrl-icon,
+.mapbox-pin-controls
+  .mapboxgl-ctrl-group
+  button:hover:not(:disabled)
+  .mapboxgl-ctrl-icon,
 .mapbox-pin-controls
   .mapboxgl-ctrl-group
   button:focus-visible:not(:disabled)
@@ -296,14 +299,24 @@ a {
 }
 
 .mapbox-pin-controls .mapboxgl-ctrl-group button.mapboxgl-ctrl-geolocate-active,
-.mapbox-pin-controls .mapboxgl-ctrl-group button.mapboxgl-ctrl-geolocate-waiting,
-.mapbox-pin-controls .mapboxgl-ctrl-group button.mapboxgl-ctrl-geolocate-active-error {
+.mapbox-pin-controls
+  .mapboxgl-ctrl-group
+  button.mapboxgl-ctrl-geolocate-waiting,
+.mapbox-pin-controls
+  .mapboxgl-ctrl-group
+  button.mapboxgl-ctrl-geolocate-active-error {
   color: #c9e8e9;
   background: #12affc8c;
 }
 
-.mapbox-pin-controls .mapboxgl-ctrl-group button.mapboxgl-ctrl-geolocate-active .mapboxgl-ctrl-icon,
-.mapbox-pin-controls .mapboxgl-ctrl-group button.mapboxgl-ctrl-geolocate-waiting .mapboxgl-ctrl-icon,
+.mapbox-pin-controls
+  .mapboxgl-ctrl-group
+  button.mapboxgl-ctrl-geolocate-active
+  .mapboxgl-ctrl-icon,
+.mapbox-pin-controls
+  .mapboxgl-ctrl-group
+  button.mapboxgl-ctrl-geolocate-waiting
+  .mapboxgl-ctrl-icon,
 .mapbox-pin-controls
   .mapboxgl-ctrl-group
   button.mapboxgl-ctrl-geolocate-active-error
