@@ -81,7 +81,7 @@ function GsapPageSubHeading({ heading, className = "" }: GsapPageSubHeadingProps
                 .to(
                     ".subheading-letter",
                     {
-                        color: "#28aae4",
+                        color: "#642ff8",
                         duration: 0.34,
                         ease: "power2.out",
                         stagger: 0.018,
@@ -96,7 +96,7 @@ function GsapPageSubHeading({ heading, className = "" }: GsapPageSubHeadingProps
         <div ref={containerRef} className={`mb-4 flex w-full items-center justify-center gap-2 ${className}`}>
             <FontAwesomeIcon
                 icon={faAsterisk}
-                className="subheading-icon w-5 h-5 md:w-6 md:h-6 opacity-0 text-[#642ff8]"
+                className="subheading-icon w-5 h-5 md:w-6 md:h-6 opacity-0 text-[#28aae4]"
                 aria-label="subheading icon"
             />
             <h3 ref={headingRef} className="text-2xl md:text-3xl font-bold leading-tight text-center opacity-0">

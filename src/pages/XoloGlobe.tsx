@@ -63,10 +63,9 @@ function XoloGlobe() {
 
                         <div>
                             <GsapPageContent className="mt-4" delay={0.08} staggerChildren staggerEach={0.08}>
-                                <h3 className="mb-3 text-lg font-semibold text-[#891387] md:text-xl">
+                                <h4 className="text-lg text-center md:text-left md:text-xl font-bold text-[#642ff8] mb-2">
                                     How It Works
-                                </h3>
-
+                                </h4>
                                 <ul className="list-items">
                                     <li>
                                         <span><strong className="text-[#28aae4]">Connect Your Wallet</strong> — Click "Connect Wallet," select your XRPL wallet (Xaman Wallet, Joey Wallet, etc.), and sign. We verify your Xolo NFT ownership instantly on the XRP Ledger.</span>
@@ -83,8 +82,8 @@ function XoloGlobe() {
                                 </ul>
                             </GsapPageContent>
                             <GsapPageContent className="mt-4" delay={0.16} staggerChildren staggerEach={0.08}>
-                                <h4 className="mb-3 text-lg font-semibold text-[#891387] md:text-xl">
-                                    Why the Xolo Globe Matters
+                                <h4 className="text-lg text-center md:text-left md:text-xl font-bold text-[#642ff8] my-2">
+                                    Why the Xglobe Matters
                                 </h4>
                                 <ul className="list-items">
                                     <li>
@@ -103,7 +102,9 @@ function XoloGlobe() {
                             </GsapPageContent>
 
                             <GsapPageContent className="mt-4" delay={0.24}>
-                                <h4 className="mb-3 text-lg font-semibold text-[#891387] md:text-xl">A platform for more than one community</h4>
+                                <h4 className="text-lg text-center md:text-left md:text-xl font-bold text-[#642ff8] mb-2">
+                                    A platform for more than one community
+                                </h4>
                                 <p className="text-white/90">
                                     Over time, the Xglobe will open its doors to
                                     other verified, values-aligned NFT communities who

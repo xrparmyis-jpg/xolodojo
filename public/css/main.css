@@ -23,9 +23,7 @@ span {
   align-items: center;
   justify-content: space-between;
 }
-.list-items {
-  margin-top: 25px;
-}
+
 .list-items li {
   position: relative;
   padding-left: 32px;
