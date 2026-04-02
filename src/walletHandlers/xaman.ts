@@ -52,6 +52,26 @@ export function getXamanClient() {
 }
 
 /**
+ * Drop the in-memory Xumm PKCE client so the next connect gets a fresh authorize() flow.
+ * Without this, a rejected / timed-out sign-in can leave the SDK stuck repeating the same error
+ * without opening the QR / sign-in UI again.
+ * Do NOT call when finishing an OAuth redirect (grant is still being exchanged).
+ */
+function resetXamanPkceSilently(): void {
+	if (typeof window === 'undefined') {
+		return;
+	}
+	try {
+		xamanPkce?.logout();
+	} catch {
+		/* session may already be torn down */
+	} finally {
+		xamanPkce = null;
+		delete (window as unknown as { _XummPkce?: unknown })._XummPkce;
+	}
+}
+
+/**
  * Call once after prepareXamanOAuthLanding() if the URL still has OAuth params.
  * Starts the Xumm singleton immediately so the PKCE thread reads `location.search`
  * before React runs (defensive; App.tsx no longer strips Xaman params on /profile).
@@ -207,6 +227,17 @@ export const xamanHandler: IWalletHandler = {
 				setShowToast?.('error', 'Xaman is not configured. Set VITE_XAMAN_API_KEY and restart the app.');
 				return;
 			}
+
+			const urlStillHasReturnFlag = shouldUseRedirectResumePolling();
+			const usePolling = urlStillHasReturnFlag || resumeFromRedirect === true;
+			// After OAuth redirect, React state can still list a wallet row we just deleted — match against API instead.
+			const oauthReturnRecover = resumeFromRedirect === true || urlStillHasReturnFlag;
+
+			// Fresh PKCE client for normal "Add wallet" / connect — avoids stale "request rejected" from a prior attempt.
+			if (!oauthReturnRecover) {
+				resetXamanPkceSilently();
+			}
+
 			const client = getXamanClient();
 			client.on('retrieved', () => {
 				// eslint-disable-next-line no-console
@@ -221,10 +252,6 @@ export const xamanHandler: IWalletHandler = {
 				console.log('[Xaman][SDK] event: success');
 			});
 
-			const urlStillHasReturnFlag = shouldUseRedirectResumePolling();
-			// URL flag is often stripped in Profile before connect runs — use resumeFromRedirect from WalletConnection too
-			const usePolling = urlStillHasReturnFlag || resumeFromRedirect === true;
-
 			// eslint-disable-next-line no-console
 			console.log('[Xaman][connect] start', {
 				href: typeof window !== 'undefined' ? window.location.href : 'n/a',
@@ -234,12 +261,11 @@ export const xamanHandler: IWalletHandler = {
 				resumeFromRedirect: resumeFromRedirect === true,
 				usePolling,
 				walletIdToConnect: walletIdToConnect ?? null,
+				oauthReturnRecover,
+				didResetPkceForFreshAuthorize: !oauthReturnRecover,
 			});
 
-			// After OAuth redirect, React state can still list a wallet row we just deleted — match against API instead.
 			let walletsForMatch: Wallet[] = Array.isArray(wallets) ? filterValidWallets(wallets as Wallet[]) : [];
-			// SDK runs authorize() internally on mobile OAuth return; calling authorize() again races and can clear the grant.
-			const oauthReturnRecover = resumeFromRedirect === true || urlStillHasReturnFlag;
 
 			if (oauthReturnRecover && auth0Id && accessToken) {
 				try {

@@ -233,7 +233,7 @@ export default function MapBoxPinLocation({
             </div>
 
             <div className="mt-3 text-xs text-white/85 backdrop-blur-sm">
-                <div className="flex items-center gap-3">
+                <div className="flex w-full items-center gap-3">
                     <input
                         type="text"
                         value={searchText}
@@ -254,10 +254,15 @@ export default function MapBoxPinLocation({
                             }
                         }}
                         placeholder="Search location"
-                        className="h-11 flex-1 rounded-lg border border-white/20 bg-black/40 px-3 py-2 text-base text-white/90 placeholder:text-white/45 focus:border-blue-500 focus:outline-none"
+                        className="h-11 w-full min-w-0 flex-1 rounded-lg border border-white/20 bg-black/40 px-3 py-2 text-base text-white/90 placeholder:text-white/45 focus:border-blue-500 focus:outline-none"
                     />
-                    {footerAction}
                 </div>
+
+                {footerAction ? (
+                    <div className="mt-3 flex w-full flex-wrap items-center gap-3">
+                        {footerAction}
+                    </div>
+                ) : null}
 
                 {searchResults.length > 0 && (
                     <div className="mt-2 max-h-52 overflow-auto rounded-md border border-white/20 bg-black/80 backdrop-blur-sm">

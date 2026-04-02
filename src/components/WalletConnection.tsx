@@ -460,7 +460,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
 
     const handleConnectXaman = useCallback(
         async (walletIdToConnect?: number, opts?: { resumeFromRedirect?: boolean }) => {
-            clearWalletToasts();
+            clearToasts();
             const resumeFromRedirect = opts?.resumeFromRedirect === true;
             // eslint-disable-next-line no-console
             console.log('[WalletConnection][Xaman] handleConnectXaman', {
@@ -473,7 +473,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                 resumeFromRedirect,
             });
         },
-        [xamanHandlerArgs]
+        [xamanHandlerArgs, clearToasts]
     );
 
     const handleConnectExisting = useCallback(
@@ -626,7 +626,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
     };
 
     const handleSelectWalletType = async (walletType: 'walletconnect' | 'xaman') => {
-        clearWalletToasts();
+        clearToasts();
         setShowAddWalletModal(false);
 
         if (walletType === 'xaman') {
@@ -846,10 +846,10 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                                             title="Copy address"
                                             className="cursor-pointer text-white/60 hover:text-white ml-1"
                                             onClick={() => {
-                                            if (rawAddress) {
-                                                void handleCopyWalletAddress(wallet.id, rawAddress);
-                                            }
-                                        }}
+                                                if (rawAddress) {
+                                                    void handleCopyWalletAddress(wallet.id, rawAddress);
+                                                }
+                                            }}
                                         >
                                             <FontAwesomeIcon icon={faCopy} />
                                         </button>
@@ -915,7 +915,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                 (() => {
                     const offeredWallets = [
                         { type: 'walletconnect', label: 'WalletConnect', color: 'bg-[#0988F0] hover:bg-[#0666b3] active:bg-[#054a7a]', onClick: () => void handleSelectWalletType('walletconnect') },
-                        { type: 'joey', label: 'Joey Wallet', color: 'bg-[#F76807] hover:bg-[#c94e06] active:bg-[#a13d04]', onClick: () => { setShowAddWalletModal(false); void handleConnectJoey(); } },
+                        { type: 'joey', label: 'Joey Wallet', color: 'bg-[#F76807] hover:bg-[#c94e06] active:bg-[#a13d04]', onClick: () => { clearToasts(); setShowAddWalletModal(false); void handleConnectJoey(); } },
                         { type: 'xaman', label: 'Xaman (XUMM)', color: 'bg-[#0030CF] hover:bg-[#002399] active:bg-[#001966]', onClick: () => void handleSelectWalletType('xaman') },
                     ];
                     return (
@@ -960,7 +960,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
 
             <Button
                 onClick={() => {
-                    clearWalletToasts();
+                    clearToasts();
                     setShowAddWalletModal(true);
                 }}
                 disabled={walletBusyMessage !== null || isWalletConnectPending}
@@ -990,7 +990,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                                     <span className="mx-1 inline-flex h-5 w-5 items-center justify-center rounded-full border border-black/55 bg-black text-white/85 align-middle">
                                         <FontAwesomeIcon icon={faThumbtack} className="text-[10px]" />
                                     </span>
-                                    {' to pin an NFT to the XoloGlobe'}
+                                    {' to pin an NFT to the XoloGlobe, Click on the NFT to view more details.'}
                                 </p>
                                 <button
                                     type="button"
