@@ -2,6 +2,7 @@ import GsapPageHeading from "../components/GsapPageHeading";
 import GsapPageContent from "../components/GsapPageContent";
 import GsapPageSubHeading from "../components/GsapPageSubHeading";
 import GsapHeroParallax from "../components/GsapHeroParallax";
+import MintCountdownSection from "../components/MintCountdownSection";
 import SectionParallaxBlobs from "../components/SectionParallaxBlobs";
 import { useSectionParallaxOffsets } from "../hooks/useSectionParallaxOffsets";
 
@@ -46,13 +47,14 @@ function Mint() {
                         <GsapPageContent as="p" className="mb-4" delay={0.1}>
                             One Mint, One Pin, One Friendship at a time
                         </GsapPageContent>
-                        <div className="container mx-auto max-w-7xl px-4">                            <div className="flex flex-col items-center text-center">
-                            <GsapHeroParallax
-                                imageSrc="/paralax-bg.png"
-                                alt="Xoloitzquintle Mint Hero"
-                                className="mb-8"
-                            />
-                        </div>
+                        <div className="container mx-auto max-w-7xl px-4">
+                            <div className="flex flex-col items-center text-center">
+                                <GsapHeroParallax
+                                    imageSrc="/paralax-bg.png"
+                                    alt="Xoloitzquintle Mint Hero"
+                                    className="mb-8"
+                                />
+                            </div>
                         </div>
                         <GsapPageSubHeading heading="Prepare to Mint – 3 Simple Steps" />
                         <GsapPageContent staggerChildren>
@@ -112,6 +114,7 @@ function Mint() {
                         <GsapPageContent className="mt-10 flex justify-center" delay={0.06}>
                             <img src="/xrp-cafe-mint.png" alt="img" className="w-full max-w-md rounded-md" />
                         </GsapPageContent>
+                        <MintCountdownSection />
                     </div>
                 </div>
             </section>
