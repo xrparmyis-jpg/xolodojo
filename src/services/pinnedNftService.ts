@@ -6,6 +6,7 @@ export interface PinnedNftSocials {
   tiktok?: string;
   instagram?: string;
   telegram?: string;
+  linkedin?: string;
 }
 
 export interface PinnedNftItem {

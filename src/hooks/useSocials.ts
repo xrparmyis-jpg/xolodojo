@@ -1,7 +1,7 @@
 import type { ProfileSocials, UserProfile } from '../services/profileService';
 import { updateUserProfile } from '../services/profileService';
 
-import { faDiscord, faInstagram, faTelegram, faTiktok, faXTwitter } from '@fortawesome/free-brands-svg-icons';
+import { faDiscord, faInstagram, faLinkedinIn, faTelegram, faTiktok, faXTwitter } from '@fortawesome/free-brands-svg-icons';
 
 export const socialPlatformOrder: Array<{
     key: SocialPlatformKey;
@@ -13,6 +13,7 @@ export const socialPlatformOrder: Array<{
     { key: 'tiktok', label: 'TikTok', icon: faTiktok },
     { key: 'instagram', label: 'Instagram', icon: faInstagram },
     { key: 'telegram', label: 'Telegram', icon: faTelegram },
+    { key: 'linkedin', label: 'LinkedIn', icon: faLinkedinIn },
 ];
 
 export type SocialPlatformKey = keyof ProfileSocials;
@@ -23,6 +24,7 @@ export const createEmptyVisibleInputs = () => ({
     tiktok: false,
     instagram: false,
     telegram: false,
+    linkedin: false,
 });
 
 export const parseSocialsFromPreferences = (preferences: unknown): ProfileSocials => {
@@ -96,6 +98,13 @@ export const getSocialProfileUrl = (platform: SocialPlatformKey, rawHandle?: str
             return `https://instagram.com/${encodedHandle}`;
         case 'telegram':
             return `https://t.me/${encodedHandle}`;
+        case 'linkedin': {
+            if (/^https?:\/\//i.test(handle)) {
+                return handle;
+            }
+            const slug = handle.replace(/^\/+|\/+$/g, '').replace(/^in\//i, '');
+            return `https://www.linkedin.com/in/${encodeURIComponent(slug)}`;
+        }
         default:
             return undefined;
     }

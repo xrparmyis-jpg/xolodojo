@@ -47,6 +47,7 @@ interface XoloGlobePinSocials {
   tiktok?: string;
   instagram?: string;
   telegram?: string;
+  linkedin?: string;
 }
 
 function normalizeWalletAddress(value: string): string {
@@ -97,6 +98,7 @@ const allowedSocialKeys = [
   'tiktok',
   'instagram',
   'telegram',
+  'linkedin',
 ] as const;
 
 function parsePinSocials(value: unknown): XoloGlobePinSocials | null {

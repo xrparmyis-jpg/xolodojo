@@ -9,6 +9,7 @@ type ProfileSocials = {
   tiktok?: string;
   instagram?: string;
   telegram?: string;
+  linkedin?: string;
 };
 
 function getPool(): mysql.Pool {
@@ -45,7 +46,7 @@ function parsePreferences(preferences: unknown): Record<string, unknown> {
 function sanitizeSocials(input: unknown): ProfileSocials {
   if (!input || typeof input !== 'object') return {};
   const source = input as Record<string, unknown>;
-  const keys: Array<keyof ProfileSocials> = ['twitter', 'discord', 'tiktok', 'instagram', 'telegram'];
+  const keys: Array<keyof ProfileSocials> = ['twitter', 'discord', 'tiktok', 'instagram', 'telegram', 'linkedin'];
   return keys.reduce<ProfileSocials>((acc, key) => {
     const value = source[key];
     if (typeof value !== 'string') return acc;

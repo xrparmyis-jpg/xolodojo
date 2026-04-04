@@ -6,6 +6,7 @@ export interface XoloGlobePinSocials {
   tiktok?: string;
   instagram?: string;
   telegram?: string;
+  linkedin?: string;
 }
 
 export interface XoloGlobePin {

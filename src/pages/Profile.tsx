@@ -10,8 +10,7 @@ import {
     type ProfileSocials,
     type UserProfile,
 } from '../services/profileService';
-import { parseSocialsFromPreferences, useSocials, getSocialProfileUrl } from '../hooks/useSocials';
-import { socialPlatformOrder } from '../hooks/useSocials';
+import { parseSocialsFromPreferences, useSocials, getSocialProfileUrl, socialPlatformOrder, createEmptyVisibleInputs } from '../hooks/useSocials';
 import { shouldResumeXamanPkceConnect } from '../utils/oauthCallbackGuards';
 
 import Button from '../components/Button';
@@ -22,14 +21,6 @@ import { WalletConnection } from '../components/WalletConnection';
 
 
 type SocialPlatformKey = keyof ProfileSocials;
-
-const createEmptyVisibleInputs = () => ({
-    twitter: false,
-    discord: false,
-    tiktok: false,
-    instagram: false,
-    telegram: false,
-});
 
 function Profile() {
     const { user, isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();

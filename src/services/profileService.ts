@@ -20,6 +20,7 @@ export interface ProfileSocials {
   tiktok?: string;
   instagram?: string;
   telegram?: string;
+  linkedin?: string;
 }
 
 interface ProfileResponse {

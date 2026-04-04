@@ -48,6 +48,7 @@ interface PinnedNftSocials {
   tiktok?: string;
   instagram?: string;
   telegram?: string;
+  linkedin?: string;
 }
 
 function normalizeWalletAddress(value: string): string {
@@ -92,7 +93,7 @@ function parsePreferences(preferences: unknown): Record<string, unknown> {
   return {};
 }
 
-const allowedSocialKeys = ['twitter', 'discord', 'tiktok', 'instagram', 'telegram'] as const;
+const allowedSocialKeys = ['twitter', 'discord', 'tiktok', 'instagram', 'telegram', 'linkedin'] as const;
 
 function parsePinnedNftSocials(value: unknown): PinnedNftSocials | null {
   if (!value || typeof value !== 'object') {

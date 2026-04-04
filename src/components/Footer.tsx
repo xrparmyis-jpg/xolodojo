@@ -4,7 +4,10 @@ import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faDiscord,
-  faReddit,
+  faInstagram,
+  faLinkedinIn,
+  faTelegram,
+  faTiktok,
   faXTwitter,
 } from "@fortawesome/free-brands-svg-icons";
 
@@ -114,19 +117,28 @@ function Footer() {
             </div>
           </GsapPageContent>
           <GsapPageContent
-            className="flex items-center gap-2"
+            className="flex flex-wrap items-center justify-center gap-2 md:justify-end"
             delay={0.18}
             intersectionThreshold={0}
             intersectionRootMargin="0px"
           >
-            <a href="#" className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#cfd0d4] text-[#cdcdcd] transition-all duration-300 ease-in-out no-underline hover:bg-black/40 hover:text-[#b7e9f7] hover:no-underline" aria-label="X (Twitter)">
+            <a href="#" title="X (Twitter)" className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#cfd0d4] text-[#cdcdcd] transition-all duration-300 ease-in-out no-underline hover:bg-black/40 hover:text-[#b7e9f7] hover:no-underline" aria-label="X (Twitter)">
               <FontAwesomeIcon icon={faXTwitter} />
             </a>
-            <a href="#" className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#cfd0d4] text-[#cdcdcd] transition-all duration-300 ease-in-out no-underline hover:bg-black/40 hover:text-[#b7e9f7] hover:no-underline" aria-label="Discord">
+            <a href="#" title="Discord" className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#cfd0d4] text-[#cdcdcd] transition-all duration-300 ease-in-out no-underline hover:bg-black/40 hover:text-[#b7e9f7] hover:no-underline" aria-label="Discord">
               <FontAwesomeIcon icon={faDiscord} />
             </a>
-            <a href="#" className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#cfd0d4] text-[#cdcdcd] transition-all duration-300 ease-in-out no-underline hover:bg-black/40 hover:text-[#b7e9f7] hover:no-underline" aria-label="Reddit">
-              <FontAwesomeIcon icon={faReddit} />
+            <a href="#" title="LinkedIn" className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#cfd0d4] text-[#cdcdcd] transition-all duration-300 ease-in-out no-underline hover:bg-black/40 hover:text-[#b7e9f7] hover:no-underline" aria-label="LinkedIn">
+              <FontAwesomeIcon icon={faLinkedinIn} />
+            </a>
+            <a href="#" title="TikTok" className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#cfd0d4] text-[#cdcdcd] transition-all duration-300 ease-in-out no-underline hover:bg-black/40 hover:text-[#b7e9f7] hover:no-underline" aria-label="TikTok">
+              <FontAwesomeIcon icon={faTiktok} />
+            </a>
+            <a href="#" title="Instagram" className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#cfd0d4] text-[#cdcdcd] transition-all duration-300 ease-in-out no-underline hover:bg-black/40 hover:text-[#b7e9f7] hover:no-underline" aria-label="Instagram">
+              <FontAwesomeIcon icon={faInstagram} />
+            </a>
+            <a href="#" title="Telegram" className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#cfd0d4] text-[#cdcdcd] transition-all duration-300 ease-in-out no-underline hover:bg-black/40 hover:text-[#b7e9f7] hover:no-underline" aria-label="Telegram">
+              <FontAwesomeIcon icon={faTelegram} />
             </a>
           </GsapPageContent>
         </div>

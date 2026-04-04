@@ -2,13 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ResilientImage from './ResilientImage';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useNavigate } from 'react-router-dom';
-import {
-    faDiscord,
-    faInstagram,
-    faTelegram,
-    faTiktok,
-    faXTwitter,
-} from '@fortawesome/free-brands-svg-icons';
 import { faCheck, faCopy, faSpinner, faThumbtack } from '@fortawesome/free-solid-svg-icons';
 import Button from './Button';
 import Modal from './Modal';
@@ -28,6 +21,7 @@ import {
 
 type PinFormMode = 'create' | 'edit';
 import { getUserProfile, type ProfileSocials } from '../services/profileService';
+import { socialPlatformOrder } from '../hooks/useSocials';
 
 interface NftGalleryProps {
     nftCount: number;
@@ -37,18 +31,6 @@ interface NftGalleryProps {
     auth0Id: string;
     accessToken?: string;
 }
-
-const socialPlatformOrder: Array<{
-    key: keyof PinnedNftSocials;
-    label: string;
-    icon: typeof faXTwitter;
-}> = [
-        { key: 'twitter', label: 'X (Twitter)', icon: faXTwitter },
-        { key: 'discord', label: 'Discord', icon: faDiscord },
-        { key: 'tiktok', label: 'TikTok', icon: faTiktok },
-        { key: 'instagram', label: 'Instagram', icon: faInstagram },
-        { key: 'telegram', label: 'Telegram', icon: faTelegram },
-    ];
 
 const parseSocialsFromPreferences = (preferences: unknown): PinnedNftSocials => {
     if (!preferences) {

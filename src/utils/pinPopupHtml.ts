@@ -2,6 +2,7 @@ import { icon } from '@fortawesome/fontawesome-svg-core';
 import {
   faDiscord,
   faInstagram,
+  faLinkedinIn,
   faTelegram,
   faTiktok,
   faXTwitter,
@@ -44,6 +45,11 @@ const socialPlatformMeta = {
     hrefPrefix: 'https://t.me/',
     iconSvg: icon(faTelegram).html.join(''),
   },
+  linkedin: {
+    label: 'LinkedIn',
+    hrefPrefix: 'https://www.linkedin.com/in/',
+    iconSvg: icon(faLinkedinIn).html.join(''),
+  },
 } as const;
 
 export type SocialPlatformKey = keyof typeof socialPlatformMeta;
@@ -54,6 +60,7 @@ export const pinPopupSocialPlatformOrder: SocialPlatformKey[] = [
   'tiktok',
   'instagram',
   'telegram',
+  'linkedin',
 ];
 
 export const escapeHtml = (value: string) =>
@@ -65,8 +72,16 @@ export const escapeHtml = (value: string) =>
     .replace(/'/g, '&#039;');
 
 const toSocialHref = (platform: SocialPlatformKey, handle: string) => {
+  const trimmed = handle.trim();
+  if (platform === 'linkedin') {
+    if (/^https?:\/\//i.test(trimmed)) {
+      return trimmed;
+    }
+    const slug = trimmed.replace(/^\/+|\/+$/g, '').replace(/^in\//i, '');
+    return `${socialPlatformMeta.linkedin.hrefPrefix}${encodeURIComponent(slug)}`;
+  }
   const { hrefPrefix } = socialPlatformMeta[platform];
-  return `${hrefPrefix}${encodeURIComponent(handle)}`;
+  return `${hrefPrefix}${encodeURIComponent(trimmed)}`;
 };
 
 const tailwindSocialLink =

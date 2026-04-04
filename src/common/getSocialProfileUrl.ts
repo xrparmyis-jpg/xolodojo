@@ -1,5 +1,5 @@
 // Utility to convert a social platform and username to a full profile URL
-// Supported platforms: twitter, discord, tiktok, instagram, telegram
+// Supported platforms: twitter, discord, tiktok, instagram, telegram, linkedin
 
 export function getSocialProfileUrl(platform: string, username: string): string {
     if (!username || username === "#" || username.trim() === "") return "";
@@ -15,6 +15,11 @@ export function getSocialProfileUrl(platform: string, username: string): string 
             return /^https?:\/\//.test(clean) ? clean : `https://instagram.com/${clean}`;
         case "telegram":
             return /^https?:\/\//.test(clean) ? clean : `https://t.me/${clean}`;
+        case "linkedin":
+            if (/^https?:\/\//.test(clean)) {
+                return clean;
+            }
+            return `https://www.linkedin.com/in/${clean.replace(/^in\//, "")}/`;
         default:
             return clean;
     }

@@ -5,6 +5,7 @@ import {
     faTiktok,
     faInstagram,
     faTelegram,
+    faLinkedinIn,
 } from "@fortawesome/free-brands-svg-icons";
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
 
@@ -23,6 +24,7 @@ interface Owner {
     socials?: {
         twitter?: string;
         discord?: string;
+        linkedin?: string;
         tiktok?: string;
         instagram?: string;
         telegram?: string;
@@ -39,6 +41,7 @@ const owners: Owner[] = [
         socials: {
             twitter: "XoloDojo",
             discord: "XoloDojo",
+            linkedin: "#",
             tiktok: "XoloDojo",
             instagram: "XoloDojo",
             telegram: "XoloDojo",
@@ -53,6 +56,7 @@ const owners: Owner[] = [
         socials: {
             twitter: "#",
             discord: "#",
+            linkedin: "#",
             tiktok: "#",
             instagram: "#",
             telegram: "#",
@@ -67,6 +71,7 @@ const owners: Owner[] = [
         socials: {
             twitter: "#",
             discord: "#",
+            linkedin: "#",
             tiktok: "#",
             instagram: "#",
             telegram: "#",
@@ -95,7 +100,8 @@ function OwnerCard({ owner }: { owner: Owner }) {
                 {isValidLink(owner.email) && (
                     <a
                         href={`mailto:${owner.email}`}
-                        title={owner.title}
+                        title="Email"
+                        aria-label={`Email ${owner.name}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-[#b7e9f7] text-[#cdcdcd] hover:text-white hover:bg-[#b7e9f7]/80 transition-all duration-300 ease-in-out"
@@ -106,7 +112,8 @@ function OwnerCard({ owner }: { owner: Owner }) {
                 {isValidLink(owner.socials?.twitter) && (
                     <a
                         href={getSocialProfileUrl("twitter", owner.socials?.twitter ?? "")}
-                        title={owner.title}
+                        title="X (Twitter)"
+                        aria-label={`${owner.name} on X (Twitter)`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-[#b7e9f7] text-[#cdcdcd] hover:text-white hover:bg-[#b7e9f7]/80 transition-all duration-300 ease-in-out"
@@ -117,7 +124,8 @@ function OwnerCard({ owner }: { owner: Owner }) {
                 {isValidLink(owner.socials?.discord) && (
                     <a
                         href={getSocialProfileUrl("discord", owner.socials?.discord ?? "")}
-                        title={owner.title}
+                        title="Discord"
+                        aria-label={`${owner.name} on Discord`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-[#b7e9f7] text-[#cdcdcd] hover:text-white hover:bg-[#b7e9f7]/80 transition-all duration-300 ease-in-out"
@@ -125,10 +133,23 @@ function OwnerCard({ owner }: { owner: Owner }) {
                         <FontAwesomeIcon icon={faDiscord} size="sm" />
                     </a>
                 )}
+                {isValidLink(owner.socials?.linkedin) && (
+                    <a
+                        href={getSocialProfileUrl("linkedin", owner.socials?.linkedin ?? "")}
+                        title="LinkedIn"
+                        aria-label={`${owner.name} on LinkedIn`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-[#b7e9f7] text-[#cdcdcd] hover:text-white hover:bg-[#b7e9f7]/80 transition-all duration-300 ease-in-out"
+                    >
+                        <FontAwesomeIcon icon={faLinkedinIn} size="sm" />
+                    </a>
+                )}
                 {isValidLink(owner.socials?.tiktok) && (
                     <a
                         href={getSocialProfileUrl("tiktok", owner.socials?.tiktok ?? "")}
-                        title={owner.title}
+                        title="TikTok"
+                        aria-label={`${owner.name} on TikTok`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-[#b7e9f7] text-[#cdcdcd] hover:text-white hover:bg-[#b7e9f7]/80 transition-all duration-300 ease-in-out"
@@ -139,7 +160,8 @@ function OwnerCard({ owner }: { owner: Owner }) {
                 {isValidLink(owner.socials?.instagram) && (
                     <a
                         href={getSocialProfileUrl("instagram", owner.socials?.instagram ?? "")}
-                        title={owner.title}
+                        title="Instagram"
+                        aria-label={`${owner.name} on Instagram`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-[#b7e9f7] text-[#cdcdcd] hover:text-white hover:bg-[#b7e9f7]/80 transition-all duration-300 ease-in-out"
@@ -150,7 +172,8 @@ function OwnerCard({ owner }: { owner: Owner }) {
                 {isValidLink(owner.socials?.telegram) && (
                     <a
                         href={getSocialProfileUrl("telegram", owner.socials?.telegram ?? "")}
-                        title={owner.title}
+                        title="Telegram"
+                        aria-label={`${owner.name} on Telegram`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-[#b7e9f7] text-[#cdcdcd] hover:text-white hover:bg-[#b7e9f7]/80 transition-all duration-300 ease-in-out"
@@ -235,7 +258,7 @@ function Team() {
                                 RedShadow
                             </h3>
                             <h4 className="text-lg text-center md:text-left md:text-xl font-semibold text-[#642ff8] mb-4">
-                                Visionary Artist & Cultural Alchemist
+                                Artist & Cultural Alchemist
                             </h4>
                             <div>
                                 <img src="/xolo-nft-showcase-01.png" alt="RedShadow" className="float-left mr-6 mb-3 mt-2 w-[148px] max-w-[45vw] rounded-md" />
