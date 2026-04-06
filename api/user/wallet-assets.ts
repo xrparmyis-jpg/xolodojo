@@ -1,12 +1,12 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import mysql from 'mysql2/promise';
 import { readFile } from 'node:fs/promises';
-import { deletePinsForWalletNotHeld } from '../lib/userPinsRepo.js';
+import { deletePinsForWalletNotHeld } from '../../server/lib/userPinsRepo.js';
 import {
 	isResolvableLedgerAccount,
 	resolveCanonicalClassicAddress,
 	stripInvisible,
-} from './xrplClassicAddress.js';
+} from '../../server/xrplClassicAddress.js';
 
 let pool: mysql.Pool | null = null;
 let cachedCollectionAddress: string | null | undefined;

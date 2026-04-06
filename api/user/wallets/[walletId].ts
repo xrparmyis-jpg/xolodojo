@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getAppMysqlPool } from '../../lib/mysqlPool.js';
-import { deletePinsForUserWallet } from '../../lib/userPinsRepo.js';
-import { resolveCanonicalClassicAddress } from '../xrplClassicAddress.js';
+import { getAppMysqlPool } from '../../../server/lib/mysqlPool.js';
+import { deletePinsForUserWallet } from '../../../server/lib/userPinsRepo.js';
+import { resolveCanonicalClassicAddress } from '../../../server/xrplClassicAddress.js';
 
 function getDbDebugInfo() {
   return {

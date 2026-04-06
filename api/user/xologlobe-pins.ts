@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getAppMysqlPool } from '../lib/mysqlPool.js';
-import { listGlobePins, type PinnedNftItem } from '../lib/userPinsRepo.js';
+import { getAppMysqlPool } from '../../server/lib/mysqlPool.js';
+import { listGlobePins, type PinnedNftItem } from '../../server/lib/userPinsRepo.js';
 
 interface XoloGlobePin {
   token_id: string;

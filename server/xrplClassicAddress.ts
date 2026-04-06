@@ -1,6 +1,6 @@
 /**
  * Server-only XRPL address canonicalization (uses ripple-address-codec).
- * Lives next to wallet routes so Vercel bundles it with `/api/user/*` functions.
+ * Lives under `server/` (not `api/`) so Vercel does not count it as a Serverless Function.
  * Do not import from `src/` — Vite would bundle Node deps into the browser.
  */
 import {
