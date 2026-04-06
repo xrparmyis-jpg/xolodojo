@@ -1,5 +1,11 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import express, { Request, Response, NextFunction } from 'express';
+
+const projectRoot = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.join(projectRoot, '.env') });
+dotenv.config({ path: path.join(projectRoot, '.env.local'), override: true });
 import cors from 'cors';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 

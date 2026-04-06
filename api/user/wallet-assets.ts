@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import mysql from 'mysql2/promise';
 import { readFile } from 'node:fs/promises';
+import { deletePinsForWalletNotHeld } from '../lib/userPinsRepo.js';
 import {
 	isResolvableLedgerAccount,
 	resolveCanonicalClassicAddress,
@@ -326,6 +327,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         accountForRpc,
         allNftCount: nfts.length,
       });
+    }
+
+    const heldNfTokenIds = new Set(
+      nfts
+        .map(n => n.NFTokenID)
+        .filter((id): id is string => typeof id === 'string' && id.length > 0)
+    );
+    try {
+      const removed = await deletePinsForWalletNotHeld(
+        dbPool,
+        userId,
+        accountForRpc,
+        heldNfTokenIds
+      );
+      if (removed > 0) {
+        console.log('[wallet-assets] Removed stale pins (NFT no longer in wallet)', {
+          userId,
+          account: accountForRpc,
+          removed,
+          onChainNftCount: heldNfTokenIds.size,
+        });
+      }
+    } catch (reconcileErr) {
+      console.warn('[wallet-assets] Pin reconcile failed (non-fatal):', reconcileErr);
     }
 
     return res.status(200).json({

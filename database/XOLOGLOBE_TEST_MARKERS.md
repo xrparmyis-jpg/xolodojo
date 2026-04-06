@@ -42,7 +42,7 @@ You should see `seeded_pin_count` return `15`.
 ## Re-run behavior
 
 - Safe to rerun.
-- It overwrites only the seed user's `preferences.pinned_nfts` with the same 15 markers.
+- It deletes existing rows in `user_pins` for the seed user, then inserts the same 15 markers.
 
 ## Production / live server (same DB your Vercel API uses)
 
@@ -59,12 +59,12 @@ Deploying to Vercel **never** runs migrations or seeds. The globe reads pins fro
 
 3. Reload XoloGlobe; the 15 test markers should include the multi-line `pin_note` text.
 
-No schema migration is required: `pin_note` lives inside the existing `preferences.pinned_nfts` JSON.
+Pins are stored in the `user_pins` table (see `database/migrations/20260405_user_pins_table.sql` for fresh installs / migrating from legacy JSON).
 
-Before your real launch, remove test data (see below) or replace `pinned_nfts` for that seed user.
+Before your real launch, remove test data (see below) or delete the seed user’s rows in `user_pins`.
 
 ## Remove the seed markers
 
 ```bash
-docker compose exec -T mysql mysql -udonovan_user -pdonovan_password donovan_db -e "DELETE up FROM user_profiles up JOIN users u ON u.id = up.user_id WHERE u.auth0_id = 'seed|xologlobe-test-markers'; DELETE FROM users WHERE auth0_id = 'seed|xologlobe-test-markers';"
+docker compose exec -T mysql mysql -udonovan_user -pdonovan_password donovan_db -e "DELETE p FROM user_pins p JOIN users u ON u.id = p.user_id WHERE u.auth0_id = 'seed|xologlobe-test-markers'; DELETE FROM user_profiles WHERE user_id IN (SELECT id FROM users WHERE auth0_id = 'seed|xologlobe-test-markers'); DELETE FROM users WHERE auth0_id = 'seed|xologlobe-test-markers';"
 ```
