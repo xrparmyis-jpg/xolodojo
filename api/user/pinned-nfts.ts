@@ -1,99 +1,24 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import mysql from 'mysql2/promise';
 import { PIN_NOTE_MAX_LENGTH, PIN_NOTE_MIN_LENGTH } from '../../src/constants/pinNote.js';
 import { parsePinWebsiteForStorage } from '../../src/utils/pinWebsiteUrl.js';
+import { getAppMysqlPool } from '../../server/lib/mysqlPool.js';
+import {
+  deleteUserPin,
+  listPinsForUser,
+  normalizeWalletAddress,
+  upsertUserPin,
+  type PinnedNftItem,
+  type PinnedNftSocials,
+} from '../../server/lib/userPinsRepo.js';
 
-let pool: mysql.Pool | null = null;
-
-function getPool(): mysql.Pool {
-  if (!pool) {
-    pool = mysql.createPool({
-      host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT || '3308'),
-      database: process.env.DB_NAME || 'donovan_db',
-      user: process.env.DB_USER || 'donovan_user',
-      password: process.env.DB_PASSWORD || 'donovan_password',
-      ssl:
-        process.env.NODE_ENV === 'production'
-          ? { rejectUnauthorized: false }
-          : undefined,
-      waitForConnections: true,
-      connectionLimit: 1,
-      queueLimit: 0,
-    });
-  }
-  return pool;
-}
-
-interface PinnedNftItem {
-  token_id: string;
-  wallet_address: string;
-  issuer: string | null;
-  uri: string | null;
-  latitude?: number | null;
-  longitude?: number | null;
-  image_url?: string | null;
-  title?: string | null;
-  collection_name?: string | null;
-  socials?: PinnedNftSocials | null;
-  /** Pin description on the globe (see PIN_NOTE_MAX_LENGTH / PIN_NOTE_MIN_LENGTH on POST). */
-  pin_note?: string | null;
-  website_url?: string | null;
-  pinned_at: string;
-}
-
-interface PinnedNftSocials {
-  twitter?: string;
-  discord?: string;
-  tiktok?: string;
-  instagram?: string;
-  telegram?: string;
-  linkedin?: string;
-}
-
-function normalizeWalletAddress(value: string): string {
-  return value.trim().toLowerCase();
-}
-
-function parseOptionalNumber(value: unknown): number | null {
-  if (typeof value === 'number' && Number.isFinite(value)) {
-    return value;
-  }
-
-  if (typeof value === 'string') {
-    const parsed = Number(value);
-    if (Number.isFinite(parsed)) {
-      return parsed;
-    }
-  }
-
-  return null;
-}
-
-function parsePreferences(preferences: unknown): Record<string, unknown> {
-  if (!preferences) {
-    return {};
-  }
-
-  if (typeof preferences === 'string') {
-    try {
-      const parsed = JSON.parse(preferences) as unknown;
-      return parsed && typeof parsed === 'object'
-        ? (parsed as Record<string, unknown>)
-        : {};
-    } catch {
-      return {};
-    }
-  }
-
-  if (typeof preferences === 'object') {
-    return preferences as Record<string, unknown>;
-  }
-
-  return {};
-}
-
-const allowedSocialKeys = ['twitter', 'discord', 'tiktok', 'instagram', 'telegram', 'linkedin'] as const;
+const allowedSocialKeys = [
+  'twitter',
+  'discord',
+  'tiktok',
+  'instagram',
+  'telegram',
+  'linkedin',
+] as const;
 
 function parsePinnedNftSocials(value: unknown): PinnedNftSocials | null {
   if (!value || typeof value !== 'object') {
@@ -146,48 +71,19 @@ function resolvePinWebsiteUrl(
   return parsePinWebsiteForStorage(incoming);
 }
 
-function parsePinnedNfts(preferences: Record<string, unknown>): PinnedNftItem[] {
-  const value = preferences.pinned_nfts;
-  if (!Array.isArray(value)) {
-    return [];
+function parseOptionalNumber(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
   }
 
-  return value
-    .filter(item => item && typeof item === 'object')
-    .map(item => {
-      const record = item as Record<string, unknown>;
-      const walletAddress =
-        typeof record.wallet_address === 'string'
-          ? normalizeWalletAddress(record.wallet_address)
-          : '';
-      return {
-        token_id:
-          typeof record.token_id === 'string' ? record.token_id : '',
-        wallet_address: walletAddress,
-        issuer:
-          typeof record.issuer === 'string' ? record.issuer : null,
-        uri: typeof record.uri === 'string' ? record.uri : null,
-        latitude: parseOptionalNumber(record.latitude),
-        longitude: parseOptionalNumber(record.longitude),
-        image_url:
-          typeof record.image_url === 'string' ? record.image_url : null,
-        title: typeof record.title === 'string' ? record.title : null,
-        collection_name:
-          typeof record.collection_name === 'string'
-            ? record.collection_name
-            : null,
-        socials: parsePinnedNftSocials(record.socials),
-        pin_note: parsePinNote(record.pin_note),
-        website_url: parsePinWebsiteForStorage(
-          typeof record.website_url === 'string' ? record.website_url : ''
-        ),
-        pinned_at:
-          typeof record.pinned_at === 'string'
-            ? record.pinned_at
-            : new Date().toISOString(),
-      };
-    })
-    .filter(item => item.token_id.length > 0 && item.wallet_address.length > 0);
+  if (typeof value === 'string') {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+
+  return null;
 }
 
 function filterPinnedByWallet(
@@ -204,48 +100,18 @@ function filterPinnedByWallet(
   );
 }
 
-async function getUserAndPreferences(
-  auth0Id: string
-): Promise<{ userId: number; preferences: Record<string, unknown> }> {
-  const dbPool = getPool();
-
-  const [userResult] = (await dbPool.execute(
+async function getUserId(auth0Id: string): Promise<number> {
+  const pool = getAppMysqlPool();
+  const [userResult] = (await pool.execute(
     'SELECT id FROM users WHERE auth0_id = ?',
     [auth0Id]
-  )) as [any[], any];
+  )) as [Array<{ id: number }>, unknown];
 
   if (!Array.isArray(userResult) || userResult.length === 0) {
     throw new Error('USER_NOT_FOUND');
   }
 
-  const userId = userResult[0].id as number;
-
-  const [profileResult] = (await dbPool.execute(
-    'SELECT preferences FROM user_profiles WHERE user_id = ?',
-    [userId]
-  )) as [any[], any];
-
-  const preferences =
-    Array.isArray(profileResult) && profileResult.length > 0
-      ? parsePreferences(profileResult[0].preferences)
-      : {};
-
-  return { userId, preferences };
-}
-
-async function upsertPreferences(
-  userId: number,
-  preferences: Record<string, unknown>
-): Promise<void> {
-  const dbPool = getPool();
-  const preferencesJson = JSON.stringify(preferences);
-
-  await dbPool.execute(
-    `INSERT INTO user_profiles (user_id, preferences, updated_at)
-     VALUES (?, ?, CURRENT_TIMESTAMP)
-     ON DUPLICATE KEY UPDATE preferences = ?, updated_at = CURRENT_TIMESTAMP`,
-    [userId, preferencesJson, preferencesJson]
-  );
+  return userResult[0].id;
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -261,7 +127,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           ? req.query.auth0_id[0]
           : req.query.auth0_id
         : (req.body?.auth0_id as string | undefined);
-    const walletAddressInput =
+    const walletAddressInput: string | undefined =
       req.method === 'GET'
         ? Array.isArray(req.query.wallet_address)
           ? req.query.wallet_address[0]
@@ -276,8 +142,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
-    const { userId, preferences } = await getUserAndPreferences(auth0Id);
-    const pinnedNfts = parsePinnedNfts(preferences);
+    const userId = await getUserId(auth0Id);
+    const pool = getAppMysqlPool();
+    const pinnedNfts = await listPinsForUser(pool, userId);
     const scopedPinnedNfts = filterPinnedByWallet(pinnedNfts, walletAddress);
 
     if (req.method === 'GET') {
@@ -349,48 +216,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return;
       }
 
-      const nextPinnedNfts = existing
-        ? pinnedNfts.map(item =>
-            item.token_id === tokenId &&
-            item.wallet_address === pinWalletAddress
-              ? {
-                  ...item,
-                  issuer: nft?.issuer ?? item.issuer,
-                  uri: nft?.uri ?? item.uri,
-                  latitude,
-                  longitude,
-                  image_url: nft?.image_url ?? item.image_url ?? null,
-                  title: nft?.title ?? item.title,
-                  collection_name: nft?.collection_name ?? item.collection_name,
-                  socials,
-                  pin_note: resolvePinNote(item.pin_note),
-                  website_url: resolveWebsiteUrlField(item.website_url),
-                }
-              : item
-          )
-        : [
-            ...pinnedNfts,
-            {
-              token_id: tokenId,
-              wallet_address: pinWalletAddress,
-              issuer: nft?.issuer ?? null,
-              uri: nft?.uri ?? null,
-              latitude,
-              longitude,
-              image_url: nft?.image_url ?? null,
-              title: nft?.title ?? null,
-              collection_name: nft?.collection_name ?? null,
-              socials,
-              pin_note: resolvePinNote(undefined),
-              website_url: resolveWebsiteUrlField(undefined),
-              pinned_at: nowIso,
-            },
-          ];
-
-      const savedPin = nextPinnedNfts.find(
-        item => item.token_id === tokenId && item.wallet_address === pinWalletAddress
+      const mergedPinNote = existing
+        ? resolvePinNote(existing.pin_note ?? null)
+        : resolvePinNote(undefined);
+      const mergedWebsite = resolveWebsiteUrlField(
+        existing?.website_url ?? undefined
       );
-      const pinDesc = savedPin?.pin_note;
+
+      const pinDesc = mergedPinNote;
       if (!pinDesc || pinDesc.length < PIN_NOTE_MIN_LENGTH) {
         res.status(400).json({
           error: `Pin description must be at least ${PIN_NOTE_MIN_LENGTH} characters.`,
@@ -398,14 +231,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return;
       }
 
-      await upsertPreferences(userId, {
-        ...preferences,
-        pinned_nfts: nextPinnedNfts,
+      await upsertUserPin(pool, {
+        userId,
+        tokenId,
+        walletAddress: pinWalletAddress,
+        issuer: nft?.issuer ?? existing?.issuer ?? null,
+        uri: nft?.uri ?? existing?.uri ?? null,
+        latitude,
+        longitude,
+        imageUrl: nft?.image_url ?? existing?.image_url ?? null,
+        title: nft?.title ?? existing?.title ?? null,
+        collectionName: nft?.collection_name ?? existing?.collection_name ?? null,
+        socials,
+        pinNote: pinDesc,
+        websiteUrl: mergedWebsite,
+        pinnedAtIsoForInsert: existing?.pinned_at ?? nowIso,
       });
 
+      const nextPins = await listPinsForUser(pool, userId);
       return res.status(200).json({
         success: true,
-        pinned_nfts: filterPinnedByWallet(nextPinnedNfts, pinWalletAddress),
+        pinned_nfts: filterPinnedByWallet(nextPins, pinWalletAddress),
       });
     }
 
@@ -420,22 +266,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .json({ error: 'Missing wallet_address for unpin operation' });
     }
 
-    const nextPinnedNfts = pinnedNfts.filter(
-      item =>
-        !(
-          item.token_id === tokenId &&
-          item.wallet_address === walletAddress
-        )
-    );
+    await deleteUserPin(pool, userId, tokenId, walletAddress);
 
-    await upsertPreferences(userId, {
-      ...preferences,
-      pinned_nfts: nextPinnedNfts,
-    });
-
+    const nextPins = await listPinsForUser(pool, userId);
     return res.status(200).json({
       success: true,
-      pinned_nfts: filterPinnedByWallet(nextPinnedNfts, walletAddress),
+      pinned_nfts: filterPinnedByWallet(nextPins, walletAddress),
     });
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error));

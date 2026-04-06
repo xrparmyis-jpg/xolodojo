@@ -1,11 +1,10 @@
 -- Seed 15 XoloGlobe test markers into MySQL
--- Safe to re-run: it updates/overwrites pinned_nfts for the seed user only.
--- Each pin includes pin_note (multi-line allowed; shown in globe popup).
+-- Safe to re-run: replaces pins for the seed user only (via DELETE + INSERT).
+-- Requires `user_pins` table (see 20260405_user_pins_table.sql / database/schema.sql).
 
 SET @seed_auth0_id := 'seed|xologlobe-test-markers';
 SET @seed_email := 'xologlobe-seed@example.com';
 SET @seed_name := 'XoloGlobe Test Markers';
-SET @seed_pinned_at := DATE_FORMAT(UTC_TIMESTAMP(), '%Y-%m-%dT%H:%i:%sZ');
 
 INSERT INTO users (auth0_id, email, name, picture_url)
 VALUES (@seed_auth0_id, @seed_email, @seed_name, '/image.png')
@@ -20,35 +19,31 @@ FROM users
 WHERE auth0_id = @seed_auth0_id
 LIMIT 1;
 
-SET @seed_pinned_nfts := JSON_ARRAY(
-  JSON_OBJECT('token_id','test-marker-001','wallet_address','rtestmarker001','issuer',NULL,'uri',NULL,'latitude',37.7749,'longitude',-122.4194,'image_url','/03c.jpg','title','San Francisco Test Pin','collection_name','Xolo Test Pins','pin_note','Pacific-edge city — fog, hills, and the bay nearby.\n\nStaging test pin only.','socials',JSON_OBJECT('twitter','xolo_sf','instagram','xolo.sf'),'pinned_at',@seed_pinned_at),
-  JSON_OBJECT('token_id','test-marker-002','wallet_address','rtestmarker002','issuer',NULL,'uri',NULL,'latitude',19.4326,'longitude',-99.1332,'image_url','/03a.jpg','title','Mexico City Test Pin','collection_name','Xolo Test Pins','pin_note','High valley capital ringed by mountains and volcanoes.\n\nTest data only.','socials',JSON_OBJECT('telegram','xolo_mexico','tiktok','xolomx'),'pinned_at',@seed_pinned_at),
-  JSON_OBJECT('token_id','test-marker-003','wallet_address','rtestmarker003','issuer',NULL,'uri',NULL,'latitude',-22.9068,'longitude',-43.1729,'image_url','/03b.jpg','title','Rio Test Pin','collection_name','Xolo Test Pins','pin_note','Granite peaks and Atlantic beaches along the same coast.\n\nStaging marker.','socials',JSON_OBJECT('instagram','xolo.rio','discord','421337009911223344'),'pinned_at',@seed_pinned_at),
-  JSON_OBJECT('token_id','test-marker-004','wallet_address','rtestmarker004','issuer',NULL,'uri',NULL,'latitude',-34.6037,'longitude',-58.3816,'image_url','/03.jpg','title','Buenos Aires Test Pin','collection_name','Xolo Test Pins','pin_note','Pampas edge meeting a wide river estuary.\n\nTest pin.','socials',JSON_OBJECT('twitter','xolo_ba'),'pinned_at',@seed_pinned_at),
-  JSON_OBJECT('token_id','test-marker-005','wallet_address','rtestmarker005','issuer',NULL,'uri',NULL,'latitude',38.7223,'longitude',-9.1393,'image_url','/01.jpg','title','Lisbon Test Pin','collection_name','Xolo Test Pins','pin_note','River mouth opening to the Atlantic swell.\n\nStaging only.','socials',JSON_OBJECT('telegram','xolo_lisbon','instagram','xolo.lx'),'pinned_at',@seed_pinned_at),
-  JSON_OBJECT('token_id','test-marker-006','wallet_address','rtestmarker006','issuer',NULL,'uri',NULL,'latitude',51.5072,'longitude',-0.1276,'image_url','/02a.jpg','title','London Test Pin','collection_name','Xolo Test Pins','pin_note','Thames corridor through a low clay basin.\n\nTest marker.','socials',JSON_OBJECT('discord','998877665544332211','twitter','xolo_ldn'),'pinned_at',@seed_pinned_at),
-  JSON_OBJECT('token_id','test-marker-007','wallet_address','rtestmarker007','issuer',NULL,'uri',NULL,'latitude',30.0444,'longitude',31.2357,'image_url','/image.png','title','Cairo Test Pin','collection_name','Xolo Test Pins','pin_note','Nile brightness against desert haze.\n\nStaging pin.','socials',JSON_OBJECT('tiktok','xolo.cairo'),'pinned_at',@seed_pinned_at),
-  JSON_OBJECT('token_id','test-marker-008','wallet_address','rtestmarker008','issuer',NULL,'uri',NULL,'latitude',-1.2921,'longitude',36.8219,'image_url','/03b.jpg','title','Nairobi Test Pin','collection_name','Xolo Test Pins','pin_note','Cool highlands before the Rift drops east.\n\nTest data.','socials',JSON_OBJECT('instagram','xolo.nairobi','telegram','xolo_nairobi'),'pinned_at',@seed_pinned_at),
-  JSON_OBJECT('token_id','test-marker-009','wallet_address','rtestmarker009','issuer',NULL,'uri',NULL,'latitude',-33.9249,'longitude',18.4241,'image_url','/03.jpg','title','Cape Town Test Pin','collection_name','Xolo Test Pins','pin_note','Table Mountain above two ocean strands.\n\nStaging only.','socials',JSON_OBJECT('twitter','xolo_capetown','tiktok','xolo.ct'),'pinned_at',@seed_pinned_at),
-  JSON_OBJECT('token_id','test-marker-010','wallet_address','rtestmarker010','issuer',NULL,'uri',NULL,'latitude',25.2048,'longitude',55.2708,'image_url','/03c.jpg','title','Dubai Test Pin','collection_name','Xolo Test Pins','pin_note','Desert coast with a fast-built shoreline.\n\nTest pin.','socials',JSON_OBJECT('instagram','xolo.dubai'),'pinned_at',@seed_pinned_at),
-  JSON_OBJECT('token_id','test-marker-011','wallet_address','rtestmarker011','issuer',NULL,'uri',NULL,'latitude',19.0760,'longitude',72.8777,'image_url','/01.jpg','title','Mumbai Test Pin','collection_name','Xolo Test Pins','pin_note','Dense grid facing the Arabian Sea.\n\nStaging marker.','socials',JSON_OBJECT('discord','776655443322110099','telegram','xolo_mumbai'),'pinned_at',@seed_pinned_at),
-  JSON_OBJECT('token_id','test-marker-012','wallet_address','rtestmarker012','issuer',NULL,'uri',NULL,'latitude',13.7563,'longitude',100.5018,'image_url','/image.png','title','Bangkok Test Pin','collection_name','Xolo Test Pins','pin_note','Delta heat and river-laced sprawl.\n\nTest data.','socials',JSON_OBJECT('twitter','xolo_bkk','instagram','xolo.bkk'),'pinned_at',@seed_pinned_at),
-  JSON_OBJECT('token_id','test-marker-013','wallet_address','rtestmarker013','issuer',NULL,'uri',NULL,'latitude',35.6895,'longitude',139.6917,'image_url','/02a.jpg','title','Tokyo Test Pin','collection_name','Xolo Test Pins','pin_note','Deep bays and layered ridges toward the Pacific.\n\nStaging pin.','socials',JSON_OBJECT('twitter','xolo_tokyo','discord','112233445566778899'),'pinned_at',@seed_pinned_at),
-  JSON_OBJECT('token_id','test-marker-014','wallet_address','rtestmarker014','issuer',NULL,'uri',NULL,'latitude',-33.8688,'longitude',151.2093,'image_url','/03a.jpg','title','Sydney Test Pin','collection_name','Xolo Test Pins','pin_note','Sandstone rims around a drowned valley harbour.\n\nTest only.','socials',JSON_OBJECT('tiktok','xolo.sydney','telegram','xolo_sydney'),'pinned_at',@seed_pinned_at),
-  JSON_OBJECT('token_id','test-marker-015','wallet_address','rtestmarker015','issuer',NULL,'uri',NULL,'latitude',-36.8485,'longitude',174.7633,'image_url','/03.jpg','title','Auckland Test Pin','collection_name','Xolo Test Pins','pin_note','Volcanic cones between two busy harbours.\n\nStaging marker.','socials',JSON_OBJECT('instagram','xolo.auckland'),'pinned_at',@seed_pinned_at)
-);
-
--- Use JSON_EXTRACT (not CAST AS JSON) for MariaDB/phpMyAdmin compatibility.
 INSERT INTO user_profiles (user_id, preferences, updated_at)
-VALUES (
-  @seed_user_id,
-  JSON_OBJECT('pinned_nfts', JSON_EXTRACT(@seed_pinned_nfts, '$')),
-  CURRENT_TIMESTAMP
-)
-ON DUPLICATE KEY UPDATE
-  preferences = JSON_SET(COALESCE(preferences, JSON_OBJECT()), '$.pinned_nfts', JSON_EXTRACT(@seed_pinned_nfts, '$')),
-  updated_at = CURRENT_TIMESTAMP;
+VALUES (@seed_user_id, JSON_OBJECT(), CURRENT_TIMESTAMP)
+ON DUPLICATE KEY UPDATE updated_at = CURRENT_TIMESTAMP;
 
-SELECT JSON_LENGTH(JSON_EXTRACT(preferences, '$.pinned_nfts')) AS seeded_pin_count
-FROM user_profiles
-WHERE user_id = @seed_user_id;
+DELETE FROM user_pins WHERE user_id = @seed_user_id;
+
+INSERT INTO user_pins (
+  user_id, token_id, wallet_address, issuer, uri,
+  latitude, longitude, image_url, title, collection_name,
+  socials, pin_note, website_url, pinned_at
+) VALUES
+  (@seed_user_id, 'test-marker-001', 'rtestmarker001', NULL, NULL, 37.7749, -122.4194, '/03c.jpg', 'San Francisco Test Pin', 'Xolo Test Pins', JSON_OBJECT('twitter', 'xolo_sf', 'instagram', 'xolo.sf'), 'Pacific-edge city — fog, hills, and the bay nearby.\n\nStaging test pin only.', NULL, UTC_TIMESTAMP(3)),
+  (@seed_user_id, 'test-marker-002', 'rtestmarker002', NULL, NULL, 19.4326, -99.1332, '/03a.jpg', 'Mexico City Test Pin', 'Xolo Test Pins', JSON_OBJECT('telegram', 'xolo_mexico', 'tiktok', 'xolomx'), 'High valley capital ringed by mountains and volcanoes.\n\nTest data only.', NULL, UTC_TIMESTAMP(3)),
+  (@seed_user_id, 'test-marker-003', 'rtestmarker003', NULL, NULL, -22.9068, -43.1729, '/03b.jpg', 'Rio Test Pin', 'Xolo Test Pins', JSON_OBJECT('instagram', 'xolo.rio', 'discord', '421337009911223344'), 'Granite peaks and Atlantic beaches along the same coast.\n\nStaging marker.', NULL, UTC_TIMESTAMP(3)),
+  (@seed_user_id, 'test-marker-004', 'rtestmarker004', NULL, NULL, -34.6037, -58.3816, '/03.jpg', 'Buenos Aires Test Pin', 'Xolo Test Pins', JSON_OBJECT('twitter', 'xolo_ba'), 'Pampas edge meeting a wide river estuary.\n\nTest pin.', NULL, UTC_TIMESTAMP(3)),
+  (@seed_user_id, 'test-marker-005', 'rtestmarker005', NULL, NULL, 38.7223, -9.1393, '/01.jpg', 'Lisbon Test Pin', 'Xolo Test Pins', JSON_OBJECT('telegram', 'xolo_lisbon', 'instagram', 'xolo.lx'), 'River mouth opening to the Atlantic swell.\n\nStaging only.', NULL, UTC_TIMESTAMP(3)),
+  (@seed_user_id, 'test-marker-006', 'rtestmarker006', NULL, NULL, 51.5072, -0.1276, '/02a.jpg', 'London Test Pin', 'Xolo Test Pins', JSON_OBJECT('discord', '998877665544332211', 'twitter', 'xolo_ldn'), 'Thames corridor through a low clay basin.\n\nTest marker.', NULL, UTC_TIMESTAMP(3)),
+  (@seed_user_id, 'test-marker-007', 'rtestmarker007', NULL, NULL, 30.0444, 31.2357, '/image.png', 'Cairo Test Pin', 'Xolo Test Pins', JSON_OBJECT('tiktok', 'xolo.cairo'), 'Nile brightness against desert haze.\n\nStaging pin.', NULL, UTC_TIMESTAMP(3)),
+  (@seed_user_id, 'test-marker-008', 'rtestmarker008', NULL, NULL, -1.2921, 36.8219, '/03b.jpg', 'Nairobi Test Pin', 'Xolo Test Pins', JSON_OBJECT('instagram', 'xolo.nairobi', 'telegram', 'xolo_nairobi'), 'Cool highlands before the Rift drops east.\n\nTest data.', NULL, UTC_TIMESTAMP(3)),
+  (@seed_user_id, 'test-marker-009', 'rtestmarker009', NULL, NULL, -33.9249, 18.4241, '/03.jpg', 'Cape Town Test Pin', 'Xolo Test Pins', JSON_OBJECT('twitter', 'xolo_capetown', 'tiktok', 'xolo.ct'), 'Table Mountain above two ocean strands.\n\nStaging only.', NULL, UTC_TIMESTAMP(3)),
+  (@seed_user_id, 'test-marker-010', 'rtestmarker010', NULL, NULL, 25.2048, 55.2708, '/03c.jpg', 'Dubai Test Pin', 'Xolo Test Pins', JSON_OBJECT('instagram', 'xolo.dubai'), 'Desert coast with a fast-built shoreline.\n\nTest pin.', NULL, UTC_TIMESTAMP(3)),
+  (@seed_user_id, 'test-marker-011', 'rtestmarker011', NULL, NULL, 19.0760, 72.8777, '/01.jpg', 'Mumbai Test Pin', 'Xolo Test Pins', JSON_OBJECT('discord', '776655443322110099', 'telegram', 'xolo_mumbai'), 'Dense grid facing the Arabian Sea.\n\nStaging marker.', NULL, UTC_TIMESTAMP(3)),
+  (@seed_user_id, 'test-marker-012', 'rtestmarker012', NULL, NULL, 13.7563, 100.5018, '/image.png', 'Bangkok Test Pin', 'Xolo Test Pins', JSON_OBJECT('twitter', 'xolo_bkk', 'instagram', 'xolo.bkk'), 'Delta heat and river-laced sprawl.\n\nTest data.', NULL, UTC_TIMESTAMP(3)),
+  (@seed_user_id, 'test-marker-013', 'rtestmarker013', NULL, NULL, 35.6895, 139.6917, '/02a.jpg', 'Tokyo Test Pin', 'Xolo Test Pins', JSON_OBJECT('twitter', 'xolo_tokyo', 'discord', '112233445566778899'), 'Deep bays and layered ridges toward the Pacific.\n\nStaging pin.', NULL, UTC_TIMESTAMP(3)),
+  (@seed_user_id, 'test-marker-014', 'rtestmarker014', NULL, NULL, -33.8688, 151.2093, '/03a.jpg', 'Sydney Test Pin', 'Xolo Test Pins', JSON_OBJECT('tiktok', 'xolo.sydney', 'telegram', 'xolo_sydney'), 'Sandstone rims around a drowned valley harbour.\n\nTest only.', NULL, UTC_TIMESTAMP(3)),
+  (@seed_user_id, 'test-marker-015', 'rtestmarker015', NULL, NULL, -36.8485, 174.7633, '/03.jpg', 'Auckland Test Pin', 'Xolo Test Pins', JSON_OBJECT('instagram', 'xolo.auckland'), 'Volcanic cones between two busy harbours.\n\nStaging marker.', NULL, UTC_TIMESTAMP(3));
+
+SELECT COUNT(*) AS seeded_pin_count FROM user_pins WHERE user_id = @seed_user_id;

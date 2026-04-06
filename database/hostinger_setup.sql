@@ -31,9 +31,35 @@ CREATE TABLE IF NOT EXISTS user_profiles (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Globe pins (one row per user + token + wallet)
+CREATE TABLE IF NOT EXISTS user_pins (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  token_id VARCHAR(512) NOT NULL,
+  wallet_address VARCHAR(255) NOT NULL,
+  issuer VARCHAR(255) NULL,
+  uri TEXT NULL,
+  latitude DECIMAL(10, 7) NOT NULL,
+  longitude DECIMAL(10, 7) NOT NULL,
+  image_url TEXT NULL,
+  title VARCHAR(512) NULL,
+  collection_name VARCHAR(512) NULL,
+  socials JSON NULL,
+  pin_note VARCHAR(512) NULL,
+  website_url VARCHAR(512) NULL,
+  pinned_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  UNIQUE KEY uq_user_pins_owner_token_wallet (user_id, token_id(180), wallet_address(180)),
+  INDEX idx_user_pins_user_id (user_id),
+  INDEX idx_user_pins_pinned_at (pinned_at),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Verify tables were created
 SHOW TABLES;
 
 -- Check table structure
 DESCRIBE users;
 DESCRIBE user_profiles;
+DESCRIBE user_pins;

@@ -1,8 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import mysql from 'mysql2/promise';
-import { resolveCanonicalClassicAddress } from '../xrplClassicAddress.js';
-
-let pool: mysql.Pool | null = null;
+import { getAppMysqlPool } from '../../../server/lib/mysqlPool.js';
+import { deletePinsForUserWallet } from '../../../server/lib/userPinsRepo.js';
+import { resolveCanonicalClassicAddress } from '../../../server/xrplClassicAddress.js';
 
 function getDbDebugInfo() {
   return {
@@ -12,49 +11,6 @@ function getDbDebugInfo() {
     nodeEnv: process.env.NODE_ENV || 'development',
     vercelEnv: process.env.VERCEL_ENV || 'local',
   };
-}
-
-function getPool(): mysql.Pool {
-  if (!pool) {
-    pool = mysql.createPool({
-      host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT || '3308'),
-      database: process.env.DB_NAME || 'donovan_db',
-      user: process.env.DB_USER || 'donovan_user',
-      password: process.env.DB_PASSWORD || 'donovan_password',
-      ssl:
-        process.env.NODE_ENV === 'production'
-          ? { rejectUnauthorized: false }
-          : undefined,
-      waitForConnections: true,
-      connectionLimit: 1,
-      queueLimit: 0,
-    });
-  }
-  return pool;
-}
-
-function parsePreferences(preferences: unknown): Record<string, unknown> {
-  if (!preferences) {
-    return {};
-  }
-
-  if (typeof preferences === 'string') {
-    try {
-      const parsed = JSON.parse(preferences) as unknown;
-      return parsed && typeof parsed === 'object'
-        ? (parsed as Record<string, unknown>)
-        : {};
-    } catch {
-      return {};
-    }
-  }
-
-  if (typeof preferences === 'object') {
-    return preferences as Record<string, unknown>;
-  }
-
-  return {};
 }
 
 function isLikelyXrplAddress(value: string): boolean {
@@ -85,38 +41,8 @@ function normalizeWalletAddress(value: string): string {
   return value.trim().toLowerCase();
 }
 
-function removePinnedNftsForWallet(
-  preferences: Record<string, unknown>,
-  walletAddress: string
-): Record<string, unknown> {
-  const pinned = preferences.pinned_nfts;
-  if (!Array.isArray(pinned)) {
-    return preferences;
-  }
-
-  const normalizedWalletAddress = normalizeWalletAddress(walletAddress);
-  const nextPinned = pinned.filter(item => {
-    if (!item || typeof item !== 'object') {
-      return false;
-    }
-
-    const record = item as Record<string, unknown>;
-    const itemWalletAddress =
-      typeof record.wallet_address === 'string'
-        ? normalizeWalletAddress(record.wallet_address)
-        : '';
-
-    return itemWalletAddress.length > 0 && itemWalletAddress !== normalizedWalletAddress;
-  });
-
-  return {
-    ...preferences,
-    pinned_nfts: nextPinned,
-  };
-}
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const pool = getPool();
+  const pool = getAppMysqlPool();
   // walletId may be passed via query or as part of path; VercelRequest sometimes puts params in query
   let walletId = req.query.walletId as string;
   if (!walletId) {
@@ -337,23 +263,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const walletAddressToDelete = walletLookup[0].wallet_address as string;
 
-      const [profileResult] = (await pool.execute(
-        'SELECT preferences FROM user_profiles WHERE user_id = ?',
-        [userId]
-      )) as [any[], any];
-
-      if (Array.isArray(profileResult) && profileResult.length > 0) {
-        const currentPreferences = parsePreferences(profileResult[0].preferences);
-        const nextPreferences = removePinnedNftsForWallet(
-          currentPreferences,
-          walletAddressToDelete
-        );
-
-        await pool.execute(
-          'UPDATE user_profiles SET preferences = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?',
-          [JSON.stringify(nextPreferences), userId]
-        );
-      }
+      await deletePinsForUserWallet(
+        pool,
+        userId,
+        normalizeWalletAddress(walletAddressToDelete)
+      );
 
       // Delete wallet (verify it belongs to user)
       const [result] = (await pool.execute(
