@@ -76,6 +76,44 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
       </>
     ),
   },
+  {
+    id: "utility",
+    imageAtLg: "right",
+    imageSrc: "/03.jpg",
+    imageAlt: "Map and travel icons",
+    eyebrow: "Future Utility",
+    title: (
+      <>
+        Fostering Global Travel &amp; Connection
+      </>
+    ),
+    body: (
+      <>
+        The collection&apos;s long-term vision is to build a decentralized
+        platform for Xolo NFT holders to network and share travel experiences, fostering global connection through
+        wallet-to-wallet networking and person to person experiences on the XRPL.
+      </>
+    ),
+  },
+  {
+    id: "utility",
+    imageAtLg: "left",
+    imageSrc: "/fireman.png",
+    imageAlt: "Map and travel icons",
+    eyebrow: "Future Utility",
+    title: (
+      <>
+        Fostering Global Travel &amp; Connection
+      </>
+    ),
+    body: (
+      <>
+        The collection&apos;s long-term vision is to build a decentralized
+        platform for Xolo NFT holders to network and share travel experiences, fostering global connection through
+        wallet-to-wallet networking and person to person experiences on the XRPL.
+      </>
+    ),
+  },
 ];
 
 /** Stagger for welcome section service rows (GsapPageContent `delay`). */
