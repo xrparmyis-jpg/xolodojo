@@ -1,5 +1,8 @@
 -- User pins stored separately from user_profiles.preferences (MySQL 8+ / MariaDB 10.6+).
 -- Run once on existing DBs. After backfill, `preferences.pinned_nfts` is removed.
+--
+-- JSON_TABLE uses portable column definitions (no MySQL-only NULL ON EMPTY / ON ERROR),
+-- so this runs on MariaDB (e.g. Hostinger) as well as MySQL 8.
 
 CREATE TABLE IF NOT EXISTS user_pins (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -53,7 +56,13 @@ SELECT
   NULLIF(TRIM(jt.image_url), ''),
   NULLIF(TRIM(jt.title), ''),
   NULLIF(TRIM(jt.collection_name), ''),
-  jt.socials,
+  IF(
+    jt.socials IS NOT NULL
+    AND TRIM(jt.socials) <> ''
+    AND JSON_VALID(jt.socials),
+    jt.socials,
+    NULL
+  ),
   NULLIF(TRIM(jt.pin_note), ''),
   NULLIF(TRIM(jt.website_url), ''),
   COALESCE(
@@ -67,19 +76,19 @@ FROM user_profiles up
 CROSS JOIN JSON_TABLE(
   COALESCE(JSON_EXTRACT(up.preferences, '$.pinned_nfts'), JSON_ARRAY()),
   '$[*]' COLUMNS (
-    token_id VARCHAR(512) PATH '$.token_id' DEFAULT NULL NULL ON EMPTY NULL ON ERROR,
-    wallet_address VARCHAR(255) PATH '$.wallet_address' DEFAULT NULL NULL ON EMPTY NULL ON ERROR,
-    issuer VARCHAR(255) PATH '$.issuer' DEFAULT NULL NULL ON EMPTY NULL ON ERROR,
-    uri VARCHAR(8192) PATH '$.uri' DEFAULT NULL NULL ON EMPTY NULL ON ERROR,
-    latitude DECIMAL(10, 7) PATH '$.latitude' DEFAULT NULL NULL ON EMPTY NULL ON ERROR,
-    longitude DECIMAL(10, 7) PATH '$.longitude' DEFAULT NULL NULL ON EMPTY NULL ON ERROR,
-    image_url VARCHAR(2048) PATH '$.image_url' DEFAULT NULL NULL ON EMPTY NULL ON ERROR,
-    title VARCHAR(512) PATH '$.title' DEFAULT NULL NULL ON EMPTY NULL ON ERROR,
-    collection_name VARCHAR(512) PATH '$.collection_name' DEFAULT NULL NULL ON EMPTY NULL ON ERROR,
-    socials JSON PATH '$.socials' DEFAULT NULL NULL ON EMPTY NULL ON ERROR,
-    pin_note VARCHAR(512) PATH '$.pin_note' DEFAULT NULL NULL ON EMPTY NULL ON ERROR,
-    website_url VARCHAR(512) PATH '$.website_url' DEFAULT NULL NULL ON EMPTY NULL ON ERROR,
-    pinned_at_raw VARCHAR(80) PATH '$.pinned_at' DEFAULT NULL NULL ON EMPTY NULL ON ERROR
+    token_id VARCHAR(512) PATH '$.token_id',
+    wallet_address VARCHAR(255) PATH '$.wallet_address',
+    issuer VARCHAR(255) PATH '$.issuer',
+    uri VARCHAR(8192) PATH '$.uri',
+    latitude DECIMAL(10, 7) PATH '$.latitude',
+    longitude DECIMAL(10, 7) PATH '$.longitude',
+    image_url VARCHAR(2048) PATH '$.image_url',
+    title VARCHAR(512) PATH '$.title',
+    collection_name VARCHAR(512) PATH '$.collection_name',
+    socials LONGTEXT PATH '$.socials',
+    pin_note VARCHAR(512) PATH '$.pin_note',
+    website_url VARCHAR(512) PATH '$.website_url',
+    pinned_at_raw VARCHAR(80) PATH '$.pinned_at'
   )
 ) AS jt
 WHERE
