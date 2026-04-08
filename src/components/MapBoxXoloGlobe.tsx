@@ -3,7 +3,25 @@ import mapboxgl from 'mapbox-gl';
 import type { Map } from 'mapbox-gl';
 import { useSearchParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPause, faPlay, faPlus, faMinus, faSpinner, faSun, faMoon, faMap, faSatellite } from '@fortawesome/free-solid-svg-icons';
+import {
+    faAnglesDown,
+    faAnglesUp,
+    faMap,
+    faMinus,
+    faMoon,
+    faPause,
+    faPlay,
+    faPlus,
+    faSatellite,
+    faSpinner,
+    faSun,
+} from '@fortawesome/free-solid-svg-icons';
+import {
+    GLOBE_DEFAULT_CENTER,
+    GLOBE_DEFAULT_ZOOM,
+    MAP_ZOOM_BUTTON_STEP,
+    PIN_FOCUS_MIN_ZOOM,
+} from '../constants/xoloGlobeMap';
 import { getXoloGlobePins, type XoloGlobePin } from '../services/xoloGlobePinService';
 import { buildPinPopupHtml } from '../utils/pinPopupHtml';
 import { bindPinPopupLocalTimeClock } from '../utils/pinLocalTime';
@@ -46,9 +64,6 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
     const [loadError, setLoadError] = useState<string | null>(null);
 
     const secondsPerRevolution = 120;
-    /** Same delta as `handleZoom` (+/− buttons); pin focus is two zoom-out steps from the prior 16.5 target. */
-    const mapZoomButtonStep = 1;
-    const pinFocusMinZoom = 16.5 - 2 * mapZoomButtonStep;
     /** Pin-focus animation: base duration plus extra per zoom level changed (keeps long flies smooth). */
     const pinFocusDurationMinMs = 1900;
     const pinFocusDurationMaxMs = 4000;
@@ -60,7 +75,7 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
     /** Vertical gap from pin: Mapbox `bottom` anchor uses [0, -n]; larger n lifts the bubble slightly. */
     const globePinPopupOffset = 78;
 
-    const [mapZoom, setMapZoom] = useState(1.15);
+    const [mapZoom, setMapZoom] = useState(GLOBE_DEFAULT_ZOOM);
     const spinLockedByZoom = mapZoom >= rotationMaxZoom;
 
     const accessToken = useMemo(() => import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || '', []);
@@ -195,8 +210,34 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
         }
 
         const currentZoom = map.getZoom();
-        const targetZoom = direction === 'in' ? currentZoom + mapZoomButtonStep : currentZoom - mapZoomButtonStep;
+        const targetZoom = direction === 'in'
+            ? currentZoom + MAP_ZOOM_BUTTON_STEP
+            : currentZoom - MAP_ZOOM_BUTTON_STEP;
         map.zoomTo(targetZoom, { duration: 350 });
+    };
+
+    const handleZoomToPinDetailLevel = () => {
+        const map = mapRef.current;
+        if (!map) {
+            return;
+        }
+        map.easeTo({
+            zoom: PIN_FOCUS_MIN_ZOOM,
+            duration: 650,
+            essential: true,
+        });
+    };
+
+    const handleZoomToGlobeDefault = () => {
+        const map = mapRef.current;
+        if (!map) {
+            return;
+        }
+        map.easeTo({
+            zoom: GLOBE_DEFAULT_ZOOM,
+            duration: 900,
+            essential: true,
+        });
     };
 
     const applyLightPreset = (preset: 'day' | 'night') => {
@@ -256,8 +297,8 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
             container: mapContainerRef.current,
             style: 'mapbox://styles/mapbox/standard-satellite',
             attributionControl: false,
-            center: [130, 35],
-            zoom: 1.15,
+            center: GLOBE_DEFAULT_CENTER,
+            zoom: GLOBE_DEFAULT_ZOOM,
         });
 
         mapRef.current = map;
@@ -426,7 +467,7 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
                     // Remove pointer cursor while popup is open
                     markerVisualElement.style.cursor = '';
                     const currentZoom = map.getZoom();
-                    const targetZoom = Math.max(currentZoom, pinFocusMinZoom);
+                    const targetZoom = Math.max(currentZoom, PIN_FOCUS_MIN_ZOOM);
                     const zoomDelta = Math.max(0, targetZoom - currentZoom);
                     const pinFocusDuration = Math.round(
                         Math.min(
@@ -594,79 +635,103 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
         <div className={className || 'relative'}>
             <div ref={mapContainerRef} className="h-full w-full overflow-hidden rounded-lg border border-[#36e9e424]" />
 
-            <div className="absolute left-3 top-3 z-20 inline-flex overflow-hidden rounded-md border border-[#12affc]/35 bg-[#12affc5c] shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
+            <div className="absolute left-3 top-3 z-20 xologlobe-map-ctrl-group">
                 <button
                     type="button"
                     onClick={() => applyLightPreset('day')}
-                    className={`group flex h-8 w-8 cursor-pointer items-center justify-center border-r border-black/15 bg-[#12affc5c] transition-colors hover:bg-[#12affc8c] ${lightPreset === 'day' ? 'text-[#C9E8E9]' : 'text-black/85 hover:text-[#C9E8E9]'}`}
+                    className={`xologlobe-map-ctrl-btn ${lightPreset === 'day' ? 'xologlobe-map-ctrl-btn--on' : ''}`}
                     title="Day"
                     aria-label="Day"
+                    aria-pressed={lightPreset === 'day'}
                 >
-                    <FontAwesomeIcon icon={faSun} className="text-sm" />
+                    <FontAwesomeIcon icon={faSun} />
                 </button>
 
                 <button
                     type="button"
                     onClick={() => applyLightPreset('night')}
-                    className={`group flex h-8 w-8 cursor-pointer items-center justify-center bg-[#12affc5c] transition-colors hover:bg-[#12affc8c] ${lightPreset === 'night' ? 'text-[#C9E8E9]' : 'text-black/85 hover:text-[#C9E8E9]'}`}
+                    className={`xologlobe-map-ctrl-btn ${lightPreset === 'night' ? 'xologlobe-map-ctrl-btn--on' : ''}`}
                     title="Night"
                     aria-label="Night"
+                    aria-pressed={lightPreset === 'night'}
                 >
-                    <FontAwesomeIcon icon={faMoon} className="text-sm" />
+                    <FontAwesomeIcon icon={faMoon} />
                 </button>
             </div>
 
-            <div className="absolute left-3 top-1/2 z-20 -translate-y-1/2 overflow-hidden rounded-md border border-[#12affc]/35 bg-[#12affc5c] shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
+            <div className="absolute left-3 top-1/2 z-20 -translate-y-1/2 xologlobe-map-ctrl-group">
+                <button
+                    type="button"
+                    onClick={handleZoomToPinDetailLevel}
+                    className="xologlobe-map-ctrl-btn"
+                    title="Full zoom in"
+                    aria-label="Full zoom in"
+                >
+                    <FontAwesomeIcon icon={faAnglesUp} />
+                </button>
+
                 <button
                     type="button"
                     onClick={() => handleZoom('in')}
-                    className="flex h-8 w-8 cursor-pointer items-center justify-center border-b border-black/15 bg-[#12affc5c] text-black/85 transition-colors hover:bg-[#12affc8c] hover:text-[#C9E8E9]"
+                    className="xologlobe-map-ctrl-btn"
                     title="Zoom in"
                     aria-label="Zoom in"
                 >
-                    <FontAwesomeIcon icon={faPlus} className="text-sm" />
+                    <FontAwesomeIcon icon={faPlus} />
                 </button>
 
                 <button
                     type="button"
                     onClick={() => handleZoom('out')}
-                    className="flex h-8 w-8 cursor-pointer items-center justify-center border-b border-black/15 bg-[#12affc5c] text-black/85 transition-colors hover:bg-[#12affc8c] hover:text-[#C9E8E9]"
+                    className="xologlobe-map-ctrl-btn"
                     title="Zoom out"
                     aria-label="Zoom out"
                 >
-                    <FontAwesomeIcon icon={faMinus} className="text-sm" />
+                    <FontAwesomeIcon icon={faMinus} />
+                </button>
+
+                <button
+                    type="button"
+                    onClick={handleZoomToGlobeDefault}
+                    className="xologlobe-map-ctrl-btn"
+                    title="Full zoom out"
+                    aria-label="Full zoom out"
+                >
+                    <FontAwesomeIcon icon={faAnglesDown} />
                 </button>
 
                 <button
                     type="button"
                     onClick={handleToggleSpin}
                     disabled={spinLockedByZoom}
-                    className={`flex h-8 w-8 items-center justify-center bg-[#12affc5c] transition-colors hover:bg-[#12affc8c] ${spinLockedByZoom ? 'cursor-not-allowed opacity-45 text-black/50' : `cursor-pointer ${isSpinning ? 'text-[#C9E8E9]' : 'text-black/85 hover:text-[#C9E8E9]'}`}`}
+                    className={`xologlobe-map-ctrl-btn ${!spinLockedByZoom && isSpinning ? 'xologlobe-map-ctrl-btn--on' : ''}`}
                     title={spinLockedByZoom ? 'Zoom out to use rotation (max zoom 3)' : (isSpinning ? 'Pause globe rotation' : 'Start globe rotation')}
                     aria-label={spinLockedByZoom ? 'Rotation unavailable while zoomed in; zoom out to enable' : (isSpinning ? 'Pause globe rotation' : 'Start globe rotation')}
                 >
-                    <FontAwesomeIcon icon={isSpinning ? faPause : faPlay} className="text-xs" />
+                    <FontAwesomeIcon icon={isSpinning ? faPause : faPlay} />
                 </button>
             </div>
 
-            <div className="absolute right-3 top-3 z-20 inline-flex overflow-hidden rounded-md border border-[#12affc]/35 bg-[#12affc5c] shadow-[0_2px_8px_rgba(0,0,0,0.35)] text-black">
+            <div className="absolute right-3 top-3 z-20 xologlobe-map-ctrl-group xologlobe-map-ctrl-group--row">
                 <button
                     type="button"
                     onClick={() => handleStyleMode('street')}
-                    className={`flex h-8 w-8 cursor-pointer items-center justify-center bg-[#12affc5c] transition-colors hover:bg-[#12affc8c] ${mapStyleMode === 'street' ? 'text-[#C9E8E9]' : 'text-black/85 hover:text-[#C9E8E9]'}`}
+                    className={`xologlobe-map-ctrl-btn ${mapStyleMode === 'street' ? 'xologlobe-map-ctrl-btn--on' : ''}`}
                     title="Street"
                     aria-label="Street"
+                    aria-pressed={mapStyleMode === 'street'}
                 >
-                    <FontAwesomeIcon icon={faMap} className="text-xs" />
+                    <FontAwesomeIcon icon={faMap} />
                 </button>
                 <button
                     type="button"
                     onClick={() => handleStyleMode('satellite')}
-                    className={`flex h-8 w-8 cursor-pointer items-center justify-center border-l border-black/15 bg-[#12affc5c] transition-colors hover:bg-[#12affc8c] ${mapStyleMode === 'satellite' ? 'text-[#C9E8E9]' : 'text-black/85 hover:text-[#C9E8E9]'}`}
+                    className={`xologlobe-map-ctrl-btn ${mapStyleMode === 'satellite' ? 'xologlobe-map-ctrl-btn--on' : ''}`}
                     title="Satellite"
                     aria-label="Satellite"
+                    aria-pressed={mapStyleMode === 'satellite'}
                 >
-                    <FontAwesomeIcon icon={faSatellite} className="text-xs" />
+                    <FontAwesomeIcon icon={faSatellite} />
                 </button>
             </div>
 

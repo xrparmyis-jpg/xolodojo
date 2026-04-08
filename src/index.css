@@ -381,3 +381,85 @@ span {
   filter: brightness(0) saturate(100%) invert(89%) sepia(10%) saturate(568%)
     hue-rotate(138deg) brightness(101%) contrast(93%);
 }
+
+/* XoloGlobe React controls — match MapBoxPinLocation / .mapbox-pin-controls Mapbox buttons */
+.xologlobe-map-ctrl-group {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgb(18 175 252 / 35%);
+  border-radius: 0.375rem;
+  overflow: hidden;
+  background: #12affc5c;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.xologlobe-map-ctrl-group > button.xologlobe-map-ctrl-btn {
+  display: flex;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-bottom: 1px solid rgb(0 0 0 / 15%);
+  background: #12affc5c;
+  color: rgb(0 0 0 / 85%);
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.xologlobe-map-ctrl-group > button.xologlobe-map-ctrl-btn:last-child {
+  border-bottom: 0;
+}
+
+.xologlobe-map-ctrl-group > button.xologlobe-map-ctrl-btn svg {
+  width: 14px;
+  height: 14px;
+  opacity: 0.85;
+  transition: opacity 0.2s ease;
+}
+
+.xologlobe-map-ctrl-group > button.xologlobe-map-ctrl-btn:hover:not(:disabled),
+.xologlobe-map-ctrl-group > button.xologlobe-map-ctrl-btn:focus-visible:not(:disabled) {
+  background: #12affc8c;
+  color: #c9e8e9;
+}
+
+.xologlobe-map-ctrl-group > button.xologlobe-map-ctrl-btn:hover:not(:disabled) svg,
+.xologlobe-map-ctrl-group > button.xologlobe-map-ctrl-btn:focus-visible:not(:disabled) svg {
+  opacity: 1;
+}
+
+.xologlobe-map-ctrl-group > button.xologlobe-map-ctrl-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  color: rgb(0 0 0 / 50%);
+}
+
+.xologlobe-map-ctrl-group > button.xologlobe-map-ctrl-btn:disabled svg {
+  opacity: 0.5;
+}
+
+.xologlobe-map-ctrl-group > button.xologlobe-map-ctrl-btn--on {
+  background: #12affc8c;
+  color: #c9e8e9;
+}
+
+.xologlobe-map-ctrl-group > button.xologlobe-map-ctrl-btn--on svg {
+  opacity: 1;
+}
+
+.xologlobe-map-ctrl-group.xologlobe-map-ctrl-group--row {
+  flex-direction: row;
+}
+
+.xologlobe-map-ctrl-group.xologlobe-map-ctrl-group--row > button.xologlobe-map-ctrl-btn {
+  border-bottom: 0;
+  border-right: 1px solid rgb(0 0 0 / 15%);
+}
+
+.xologlobe-map-ctrl-group.xologlobe-map-ctrl-group--row > button.xologlobe-map-ctrl-btn:last-child {
+  border-right: 0;
+}
