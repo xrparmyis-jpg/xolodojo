@@ -152,7 +152,7 @@ export function buildPinPopupHtml(pin: PinPopupContent): string {
     Number.isFinite(pin.latitude) &&
     Number.isFinite(pin.longitude);
   const localTimeHtml = hasCoords
-    ? `<p class="xolo-popup-local-time mt-2 flex items-center gap-1.5 text-xs text-[#9ec9d4]/95" role="group" aria-label="Local time at pin location"><span class="${tailwindLocalTimeClock}" aria-hidden="true">${localTimeClockSvg}</span><span class="xolo-popup-local-time-value tabular-nums">—</span></p>`
+    ? `<p class="xolo-popup-local-time mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-[#9ec9d4]/95" role="group" aria-label="Local time at pin location"><span class="${tailwindLocalTimeClock} shrink-0" aria-hidden="true">${localTimeClockSvg}</span><span class="xolo-popup-local-time-value tabular-nums min-w-0">—</span><span class="xolo-popup-local-time-zone shrink-0 text-[#9ec9d4]/90"></span></p>`
     : '';
 
   return (
