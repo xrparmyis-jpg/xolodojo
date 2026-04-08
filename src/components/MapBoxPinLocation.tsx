@@ -9,7 +9,7 @@ import {
     faPlus,
     faSpinner,
 } from '@fortawesome/free-solid-svg-icons';
-import { MAP_ZOOM_BUTTON_STEP, PIN_FOCUS_MIN_ZOOM } from '../constants/xoloGlobeMap';
+import { GLOBE_DEFAULT_ZOOM, MAP_ZOOM_BUTTON_STEP } from '../constants/xoloGlobeMap';
 import type { PinnedNftSocials } from '../services/pinnedNftService';
 import { buildPinPopupHtml } from '../utils/pinPopupHtml';
 import { bindPinPopupLocalTimeClock } from '../utils/pinLocalTime';
@@ -47,6 +47,32 @@ interface MapBoxPinLocationProps {
     footerAction?: ReactNode;
     markerImageUrl?: string | null;
     popupPreview?: MapBoxPinPopupPreview | null;
+}
+
+/** Mapbox defers marker opacity (~60ms) using fog on globe; that can leave pin/state popup semi-faded after camera moves. */
+const PLACEMENT_PIN_OPACITY_REINFORCE_MS = 120;
+
+function reinforcePlacementPinOpacity(marker: mapboxgl.Marker, popup: mapboxgl.Popup | null) {
+    const bump = (el: HTMLElement | null | undefined) => {
+        if (!el) {
+            return;
+        }
+        const o = parseFloat(window.getComputedStyle(el).opacity);
+        if (!Number.isFinite(o) || o <= 0.02 || o >= 0.99) {
+            return;
+        }
+        el.style.setProperty('opacity', '1', 'important');
+    };
+    bump(marker.getElement());
+    if (popup?.isOpen()) {
+        bump(popup.getElement() ?? undefined);
+    }
+}
+
+function scheduleReinforcePlacementPinOpacity(marker: mapboxgl.Marker, popup: mapboxgl.Popup | null | undefined) {
+    const run = () => reinforcePlacementPinOpacity(marker, popup ?? null);
+    requestAnimationFrame(() => requestAnimationFrame(run));
+    window.setTimeout(run, PLACEMENT_PIN_OPACITY_REINFORCE_MS);
 }
 
 function reinforcePinPreviewPopupChrome(popup: mapboxgl.Popup) {
@@ -138,7 +164,39 @@ export default function MapBoxPinLocation({
             const next = marker.getLngLat();
             return { lat: next.lat, lng: next.lng };
         });
+        scheduleReinforcePlacementPinOpacity(marker, popup);
     }, []);
+
+    const schedulePinOpacityIfMarker = useCallback(() => {
+        const marker = markerRef.current;
+        if (!marker) {
+            return;
+        }
+        scheduleReinforcePlacementPinOpacity(marker, popupRef.current);
+    }, []);
+
+    /** After globe-scale zoom, horizon-aligned markers can vanish; keep popup attached and content fresh. */
+    const ensurePreviewPopupVisible = useCallback(() => {
+        const map = mapRef.current;
+        const marker = markerRef.current;
+        const preview = pinUiRef.current.popupPreview;
+        if (!map || !marker || !preview) {
+            return;
+        }
+        const popup = marker.getPopup();
+        if (!popup) {
+            return;
+        }
+        if (!popup.isOpen()) {
+            popup.addTo(map);
+        }
+        attachOrUpdatePreviewPopup(map, marker, preview);
+    }, [attachOrUpdatePreviewPopup]);
+
+    const afterPlacementCameraMove = useCallback(() => {
+        ensurePreviewPopupVisible();
+        schedulePinOpacityIfMarker();
+    }, [ensurePreviewPopupVisible, schedulePinOpacityIfMarker]);
 
     const removePreviewPopup = useCallback(() => {
         previewLocalTimeDisposeRef.current?.();
@@ -170,8 +228,10 @@ export default function MapBoxPinLocation({
                 element: markerElement,
                 draggable: true,
                 anchor: 'bottom',
-                rotationAlignment: 'horizon',
+                rotationAlignment: 'viewport',
+                pitchAlignment: 'viewport',
                 offset: [0, 7],
+                occludedOpacity: 1,
             })
                 .setLngLat([lng, lat])
                 .addTo(map);
@@ -184,6 +244,7 @@ export default function MapBoxPinLocation({
                     return;
                 }
                 pinUiRef.current.onLocationChange({ lng: next.lng, lat: next.lat });
+                scheduleReinforcePlacementPinOpacity(marker, marker.getPopup());
             });
 
             if (preview) {
@@ -203,13 +264,15 @@ export default function MapBoxPinLocation({
 
         if (shouldFly) {
             map.flyTo({ ...cameraOpts, duration: 1400 });
+            map.once('moveend', schedulePinOpacityIfMarker);
         } else if (preview) {
             // Globe preview: nudge camera so the bubble above the pin is not clipped (no pan when preview is off).
             map.easeTo({ ...cameraOpts, duration: 0 });
+            map.once('moveend', schedulePinOpacityIfMarker);
         }
 
         onLoc({ lng, lat });
-    }, [attachOrUpdatePreviewPopup]);
+    }, [attachOrUpdatePreviewPopup, schedulePinOpacityIfMarker]);
 
     const tryCenterOnUser = useCallback(() => {
         const map = mapRef.current;
@@ -254,24 +317,28 @@ export default function MapBoxPinLocation({
         }
         const z = map.getZoom();
         map.zoomTo(dir === 'in' ? z + MAP_ZOOM_BUTTON_STEP : z - MAP_ZOOM_BUTTON_STEP, { duration: 350 });
-    }, []);
+        map.once('moveend', afterPlacementCameraMove);
+    }, [afterPlacementCameraMove]);
 
-    const handlePlacementZoomPinLevel = useCallback(() => {
+    /** Match opening “placement” zoom (e.g. 10 with a pin, ~2 when locating on the globe). */
+    const handlePlacementZoomPinStart = useCallback(() => {
         const map = mapRef.current;
         if (!map) {
             return;
         }
-        map.easeTo({ zoom: PIN_FOCUS_MIN_ZOOM, duration: 550, essential: true });
-    }, []);
+        map.easeTo({ zoom: defaultPinMapViewRef.current.zoom, duration: 550, essential: true });
+        map.once('moveend', afterPlacementCameraMove);
+    }, [afterPlacementCameraMove]);
 
-    const handlePlacementZoomDefault = useCallback(() => {
+    /** Same world scale as XoloGlobe default so users can drag the pin across regions. */
+    const handlePlacementZoomGlobe = useCallback(() => {
         const map = mapRef.current;
         if (!map) {
             return;
         }
-        const { zoom } = defaultPinMapViewRef.current;
-        map.easeTo({ zoom, duration: 650, essential: true });
-    }, []);
+        map.easeTo({ zoom: GLOBE_DEFAULT_ZOOM, duration: 650, essential: true });
+        map.once('moveend', afterPlacementCameraMove);
+    }, [afterPlacementCameraMove]);
 
     useEffect(() => {
         if (!mapContainerRef.current) {
@@ -415,7 +482,7 @@ export default function MapBoxPinLocation({
                         className="xologlobe-map-ctrl-btn"
                         title="Full zoom in"
                         aria-label="Full zoom in"
-                        onClick={handlePlacementZoomPinLevel}
+                        onClick={handlePlacementZoomPinStart}
                     >
                         <FontAwesomeIcon icon={faAnglesUp} />
                     </button>
@@ -442,7 +509,7 @@ export default function MapBoxPinLocation({
                         className="xologlobe-map-ctrl-btn"
                         title="Full zoom out"
                         aria-label="Full zoom out"
-                        onClick={handlePlacementZoomDefault}
+                        onClick={handlePlacementZoomGlobe}
                     >
                         <FontAwesomeIcon icon={faAnglesDown} />
                     </button>
