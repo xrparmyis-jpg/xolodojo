@@ -7,6 +7,7 @@ import {
   faTiktok,
   faXTwitter,
 } from '@fortawesome/free-brands-svg-icons';
+import { faClock } from '@fortawesome/free-solid-svg-icons';
 import { pinWebsiteStorageToHref } from './pinWebsiteUrl';
 
 /** Data needed to render the same popup markup as XoloGlobe / pin form preview. */
@@ -18,8 +19,8 @@ export interface PinPopupContent {
   website_url?: string | null;
   socials?: Partial<Record<SocialPlatformKey, string>> | null;
   /**
-   * When both are set, the popup includes a “Local time” row; Mapbox code updates
-   * `.xolo-popup-local-time-value` every second from the pin coordinates.
+   * When both are set, the popup includes a local-time row (clock icon + value);
+   * Mapbox code updates `.xolo-popup-local-time-value` every second from the pin coordinates.
    */
   latitude?: number;
   longitude?: number;
@@ -95,6 +96,10 @@ const tailwindSocialLink =
 const tailwindSocialIcon =
   'inline-block align-middle w-[17px] h-[17px] text-[14px] leading-[17px] text-[#cdcdcd] group-hover:text-white transition-colors duration-200';
 
+const localTimeClockSvg = icon(faClock).html.join('');
+const tailwindLocalTimeClock =
+  'inline-block align-middle w-[14px] h-[14px] text-[13px] leading-[14px] text-[#C9E8E9]';
+
 export function buildPinPopupHtml(pin: PinPopupContent): string {
   const fallbackTitle = `NFT ${pin.token_id.slice(0, 8)}...`;
   const rawTitle = typeof pin.title === 'string' ? pin.title.trim() : '';
@@ -142,21 +147,21 @@ export function buildPinPopupHtml(pin: PinPopupContent): string {
     : '';
 
   const hasCoords =
-    typeof pin.latitude === 'number'
-    && typeof pin.longitude === 'number'
-    && Number.isFinite(pin.latitude)
-    && Number.isFinite(pin.longitude);
+    typeof pin.latitude === 'number' &&
+    typeof pin.longitude === 'number' &&
+    Number.isFinite(pin.latitude) &&
+    Number.isFinite(pin.longitude);
   const localTimeHtml = hasCoords
-    ? `<p class="xolo-popup-local-time mt-1.5 text-xs text-[#9ec9d4]/95"><span class="font-semibold text-[#C9E8E9]">Local time:</span> <span class="xolo-popup-local-time-value tabular-nums">—</span></p>`
+    ? `<p class="xolo-popup-local-time mt-2 flex items-center gap-1.5 text-xs text-[#9ec9d4]/95" role="group" aria-label="Local time at pin location"><span class="${tailwindLocalTimeClock}" aria-hidden="true">${localTimeClockSvg}</span><span class="xolo-popup-local-time-value tabular-nums">—</span></p>`
     : '';
 
   return (
     `<div class="xolo-popup">` +
-    `<h2 class="xolo-popup-title">${title}</h2>` +
-    `${localTimeHtml}` +
+    `<h2 class="xolo-popup-title !mb-0">${title}</h2>` +
     `${noteHtml}` +
     `${websiteHtml}` +
     `${socialsHtml}` +
+    `${localTimeHtml}` +
     '</div>'
   );
 }
