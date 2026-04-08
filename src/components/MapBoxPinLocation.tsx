@@ -2,7 +2,14 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import mapboxgl from 'mapbox-gl';
 import type { LngLatLike, Map } from 'mapbox-gl';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSpinner } from '@fortawesome/free-solid-svg-icons';
+import {
+    faAnglesDown,
+    faAnglesUp,
+    faMinus,
+    faPlus,
+    faSpinner,
+} from '@fortawesome/free-solid-svg-icons';
+import { MAP_ZOOM_BUTTON_STEP, PIN_FOCUS_MIN_ZOOM } from '../constants/xoloGlobeMap';
 import type { PinnedNftSocials } from '../services/pinnedNftService';
 import { buildPinPopupHtml } from '../utils/pinPopupHtml';
 import { bindPinPopupLocalTimeClock } from '../utils/pinLocalTime';
@@ -76,6 +83,10 @@ export default function MapBoxPinLocation({
     const geolocateControlRef = useRef<mapboxgl.GeolocateControl | null>(null);
     const previewLocalTimeDisposeRef = useRef<(() => void) | null>(null);
     const suppressResultsForQueryRef = useRef<string | null>(null);
+    const defaultPinMapViewRef = useRef<{ center: [number, number]; zoom: number }>({
+        center: [0, 20],
+        zoom: 1.9,
+    });
     const [searchText, setSearchText] = useState('');
     const [searchResults, setSearchResults] = useState<SearchFeature[]>([]);
     const [hasMapToken, setHasMapToken] = useState(true);
@@ -236,6 +247,32 @@ export default function MapBoxPinLocation({
         handleSelectSearchResult(searchResults[0]);
     };
 
+    const handlePlacementZoomStep = useCallback((dir: 'in' | 'out') => {
+        const map = mapRef.current;
+        if (!map) {
+            return;
+        }
+        const z = map.getZoom();
+        map.zoomTo(dir === 'in' ? z + MAP_ZOOM_BUTTON_STEP : z - MAP_ZOOM_BUTTON_STEP, { duration: 350 });
+    }, []);
+
+    const handlePlacementZoomPinLevel = useCallback(() => {
+        const map = mapRef.current;
+        if (!map) {
+            return;
+        }
+        map.easeTo({ zoom: PIN_FOCUS_MIN_ZOOM, duration: 550, essential: true });
+    }, []);
+
+    const handlePlacementZoomDefault = useCallback(() => {
+        const map = mapRef.current;
+        if (!map) {
+            return;
+        }
+        const { zoom } = defaultPinMapViewRef.current;
+        map.easeTo({ zoom, duration: 650, essential: true });
+    }, []);
+
     useEffect(() => {
         if (!mapContainerRef.current) {
             return;
@@ -253,19 +290,18 @@ export default function MapBoxPinLocation({
         const startingCenter: [number, number] = initial
             ? [initial.lng, initial.lat]
             : [0, 20];
+        const startingZoom = initial ? 10 : 1.9;
+        defaultPinMapViewRef.current = { center: startingCenter, zoom: startingZoom };
 
         const map = new mapboxgl.Map({
             container: mapContainerRef.current,
             style: 'mapbox://styles/mapbox/standard-satellite',
             center: startingCenter as LngLatLike,
-            zoom: initial ? 10 : 1.9,
+            zoom: startingZoom,
             attributionControl: false,
         });
 
         mapRef.current = map;
-
-        const navControl = new mapboxgl.NavigationControl({ showCompass: false, visualizePitch: false });
-        map.addControl(navControl, 'top-left');
 
         const geolocateControl = new mapboxgl.GeolocateControl({
             positionOptions: { enableHighAccuracy: true },
@@ -372,6 +408,45 @@ export default function MapBoxPinLocation({
         <div className={`${className || 'relative'} mapbox-pin-controls`}>
             <div className="relative">
                 <div ref={mapContainerRef} className={`${mapHeightClassName} w-full overflow-hidden rounded-lg border border-[#3fcfcf2e]`} />
+
+                <div className="pointer-events-auto absolute left-3 top-3 z-10 xologlobe-map-ctrl-group">
+                    <button
+                        type="button"
+                        className="xologlobe-map-ctrl-btn"
+                        title="Full zoom in"
+                        aria-label="Full zoom in"
+                        onClick={handlePlacementZoomPinLevel}
+                    >
+                        <FontAwesomeIcon icon={faAnglesUp} />
+                    </button>
+                    <button
+                        type="button"
+                        className="xologlobe-map-ctrl-btn"
+                        title="Zoom in"
+                        aria-label="Zoom in"
+                        onClick={() => handlePlacementZoomStep('in')}
+                    >
+                        <FontAwesomeIcon icon={faPlus} />
+                    </button>
+                    <button
+                        type="button"
+                        className="xologlobe-map-ctrl-btn"
+                        title="Zoom out"
+                        aria-label="Zoom out"
+                        onClick={() => handlePlacementZoomStep('out')}
+                    >
+                        <FontAwesomeIcon icon={faMinus} />
+                    </button>
+                    <button
+                        type="button"
+                        className="xologlobe-map-ctrl-btn"
+                        title="Full zoom out"
+                        aria-label="Full zoom out"
+                        onClick={handlePlacementZoomDefault}
+                    >
+                        <FontAwesomeIcon icon={faAnglesDown} />
+                    </button>
+                </div>
 
                 {isLocatingUser && (
                     <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-lg">

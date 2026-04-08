@@ -1202,7 +1202,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                                             openPinModalForCreate(nft.token_id);
                                         }}
                                         title={isPinned ? 'Edit NFT pin' : 'Pin NFT'}
-                                        className={`pointer-events-auto z-10 cursor-pointer absolute bottom-2 right-2 inline-flex h-7 w-7 items-center justify-center rounded-full border border-black/55 transition-colors hover:text-emerald-200 hover:bg-[color-mix(in_oklab,rgba(25,_59,_192,_0.8)_55%,black)] ${isPinned ? 'bg-[color-mix(in_oklab,rgba(25,_59,_192,_0.8)_55%,black)] text-emerald-200' : 'bg-black text-white/55'}`.trim()}
+                                        className="pointer-events-auto z-10 cursor-pointer absolute bottom-2 right-2 inline-flex h-7 w-7 items-center justify-center rounded-full border border-black/55 bg-black text-emerald-500 transition-colors hover:text-emerald-400"
                                     >
                                         <FontAwesomeIcon icon={faThumbtack} className="text-sm" />
                                         <span className="sr-only">{isPinned ? 'Edit NFT pin' : 'Pin NFT'}</span>
@@ -1379,7 +1379,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                                 >
                                     <FontAwesomeIcon
                                         icon={faThumbtack}
-                                        className="text-[11px] text-emerald-200"
+                                        className="text-[11px] text-emerald-500"
                                         aria-hidden
                                     />
                                 </span>
