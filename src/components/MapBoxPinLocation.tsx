@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import type { PinnedNftSocials } from '../services/pinnedNftService';
 import { buildPinPopupHtml } from '../utils/pinPopupHtml';
+import { bindPinPopupLocalTimeClock } from '../utils/pinLocalTime';
 import { createGlobeStylePinMarkerElements } from '../utils/globeStyleMapMarker';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || '';
@@ -73,6 +74,7 @@ export default function MapBoxPinLocation({
     const popupRef = useRef<mapboxgl.Popup | null>(null);
     const setMarkerAvatarRef = useRef<((url: string | null) => void) | null>(null);
     const geolocateControlRef = useRef<mapboxgl.GeolocateControl | null>(null);
+    const previewLocalTimeDisposeRef = useRef<(() => void) | null>(null);
     const suppressResultsForQueryRef = useRef<string | null>(null);
     const [searchText, setSearchText] = useState('');
     const [searchResults, setSearchResults] = useState<SearchFeature[]>([]);
@@ -107,6 +109,7 @@ export default function MapBoxPinLocation({
             map.once('moveend', () => reinforcePinPreviewPopupChrome(popup!));
         }
 
+        const ll = marker.getLngLat();
         popup.setHTML(
             buildPinPopupHtml({
                 token_id: preview.tokenId,
@@ -114,12 +117,21 @@ export default function MapBoxPinLocation({
                 pin_note: preview.pinNote,
                 website_url: preview.websiteUrl ?? null,
                 socials: preview.socials,
+                latitude: ll.lat,
+                longitude: ll.lng,
             }),
         );
         reinforcePinPreviewPopupChrome(popup);
+        previewLocalTimeDisposeRef.current?.();
+        previewLocalTimeDisposeRef.current = bindPinPopupLocalTimeClock(popup.getElement(), () => {
+            const next = marker.getLngLat();
+            return { lat: next.lat, lng: next.lng };
+        });
     }, []);
 
     const removePreviewPopup = useCallback(() => {
+        previewLocalTimeDisposeRef.current?.();
+        previewLocalTimeDisposeRef.current = null;
         const popup = popupRef.current;
         if (popup) {
             popup.remove();
@@ -284,6 +296,8 @@ export default function MapBoxPinLocation({
         });
 
         return () => {
+            previewLocalTimeDisposeRef.current?.();
+            previewLocalTimeDisposeRef.current = null;
             popupRef.current = null;
             setMarkerAvatarRef.current = null;
             markerRef.current?.remove();
