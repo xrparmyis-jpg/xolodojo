@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPause, faPlay, faPlus, faMinus, faSpinner, faSun, faMoon, faMap, faSatellite } from '@fortawesome/free-solid-svg-icons';
 import { getXoloGlobePins, type XoloGlobePin } from '../services/xoloGlobePinService';
 import { buildPinPopupHtml } from '../utils/pinPopupHtml';
+import { bindPinPopupLocalTimeClock } from '../utils/pinLocalTime';
 import { createGlobeStylePinMarkerElements } from '../utils/globeStyleMapMarker';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || '';
@@ -35,6 +36,7 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
     } | null>(null);
     /** True when the popup's close button was used; skip camera restore (map-dismiss still restores). */
     const popupClosedViaXRef = useRef(false);
+    const activePinLocalTimeDisposeRef = useRef<(() => void) | null>(null);
     const [pins, setPins] = useState<XoloGlobePin[]>([]);
     const [isSpinning, setIsSpinning] = useState(true);
     const [lightPreset, setLightPreset] = useState<'day' | 'night'>('night');
@@ -317,6 +319,8 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
         });
 
         return () => {
+            activePinLocalTimeDisposeRef.current?.();
+            activePinLocalTimeDisposeRef.current = null;
             markersRef.current.forEach(marker => marker.remove());
             markersRef.current = [];
             markerElementsRef.current = [];
@@ -340,6 +344,8 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
             return;
         }
 
+        activePinLocalTimeDisposeRef.current?.();
+        activePinLocalTimeDisposeRef.current = null;
         markersRef.current.forEach(marker => marker.remove());
         markersRef.current = [];
         pinPopupControllersRef.current = {};
@@ -366,6 +372,8 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
                         pin_note: pin.pin_note,
                         website_url: pin.website_url,
                         socials: pin.socials,
+                        latitude: pin.latitude,
+                        longitude: pin.longitude,
                     })
                 );
 
@@ -436,11 +444,18 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
                 };
 
                 popup.on('open', () => {
+                    activePinLocalTimeDisposeRef.current?.();
+                    activePinLocalTimeDisposeRef.current = null;
+                    const root = popup.getElement();
+                    activePinLocalTimeDisposeRef.current = bindPinPopupLocalTimeClock(root, () => ({
+                        lat: pin.latitude,
+                        lng: pin.longitude,
+                    }));
+
                     focusOnPin();
                     reinforcePopupChrome();
                     map.once('moveend', reinforcePopupChrome);
 
-                    const root = popup.getElement();
                     const closeBtn = root?.querySelector('.mapboxgl-popup-close-button');
                     const markClosedViaButton = () => {
                         popupClosedViaXRef.current = true;
@@ -463,6 +478,8 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
                 });
 
                 popup.on('close', () => {
+                    activePinLocalTimeDisposeRef.current?.();
+                    activePinLocalTimeDisposeRef.current = null;
                     // Restore pointer cursor when popup closes
                     markerVisualElement.style.cursor = 'pointer';
                     const closedViaXButton = popupClosedViaXRef.current;

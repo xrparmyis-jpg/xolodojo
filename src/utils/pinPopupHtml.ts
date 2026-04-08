@@ -17,6 +17,12 @@ export interface PinPopupContent {
   /** Host/path only (e.g. example.com); rendered as https://… */
   website_url?: string | null;
   socials?: Partial<Record<SocialPlatformKey, string>> | null;
+  /**
+   * When both are set, the popup includes a “Local time” row; Mapbox code updates
+   * `.xolo-popup-local-time-value` every second from the pin coordinates.
+   */
+  latitude?: number;
+  longitude?: number;
 }
 
 const socialPlatformMeta = {
@@ -135,9 +141,19 @@ export function buildPinPopupHtml(pin: PinPopupContent): string {
     ? `<p class="xolo-popup-website mt-2"><a class="text-sm font-medium text-cyan-300/95 underline decoration-cyan-400/50 underline-offset-2 hover:text-cyan-200 hover:decoration-cyan-300" href="${escapeHtml(websiteHref)}" target="_blank" rel="noopener noreferrer">Website/Project</a></p>`
     : '';
 
+  const hasCoords =
+    typeof pin.latitude === 'number'
+    && typeof pin.longitude === 'number'
+    && Number.isFinite(pin.latitude)
+    && Number.isFinite(pin.longitude);
+  const localTimeHtml = hasCoords
+    ? `<p class="xolo-popup-local-time mt-1.5 text-xs text-[#9ec9d4]/95"><span class="font-semibold text-[#C9E8E9]">Local time:</span> <span class="xolo-popup-local-time-value tabular-nums">—</span></p>`
+    : '';
+
   return (
     `<div class="xolo-popup">` +
     `<h2 class="xolo-popup-title">${title}</h2>` +
+    `${localTimeHtml}` +
     `${noteHtml}` +
     `${websiteHtml}` +
     `${socialsHtml}` +
