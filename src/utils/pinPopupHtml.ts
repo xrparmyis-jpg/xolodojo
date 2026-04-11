@@ -10,18 +10,12 @@ import {
 import { faClock } from '@fortawesome/free-solid-svg-icons';
 import { pinWebsiteStorageToHref } from './pinWebsiteUrl';
 
-/** Data needed to render the same popup markup as XoloGlobe / pin form preview. */
 export interface PinPopupContent {
   token_id: string;
   title?: string | null;
   pin_note?: string | null;
-  /** Host/path only (e.g. example.com); rendered as https://… */
   website_url?: string | null;
   socials?: Partial<Record<SocialPlatformKey, string>> | null;
-  /**
-   * When both are set, the popup includes a local-time row (clock icon + value);
-   * Mapbox code updates `.xolo-popup-local-time-value` every second from the pin coordinates.
-   */
   latitude?: number;
   longitude?: number;
 }
