@@ -65,7 +65,20 @@ function GsapPageHeading({
 
     useGSAP(
         () => {
-            const timeline = gsap.timeline({ defaults: { ease: "power2.out" } });
+            const root = containerRef.current;
+            const finalizeEyebrowLetters = () => {
+                if (!root) return;
+                const letters = root.querySelectorAll<HTMLElement>(".eyebrow-letter");
+                if (!letters.length) return;
+                gsap.killTweensOf(letters);
+                // Strip GSAP transform/scale so no letter can stay visually offset; keep text visible.
+                gsap.set(letters, { autoAlpha: 1, clearProps: "transform" });
+            };
+
+            const timeline = gsap.timeline({
+                defaults: { ease: "power2.out" },
+                onComplete: finalizeEyebrowLetters,
+            });
 
             timeline
                 .fromTo(
@@ -84,6 +97,8 @@ function GsapPageHeading({
                         duration: 0.38,
                         ease: "bounce.out",
                         stagger: 0.02,
+                        // Runs when the full stagger finishes (not on a timer tied to unrelated tweens).
+                        onComplete: finalizeEyebrowLetters,
                     },
                     0.1
                 )
@@ -122,13 +137,6 @@ function GsapPageHeading({
                     "-=0.82"
                 );
             }
-
-            // Ensure eyebrow letters end at the correct position after animation
-            timeline.add(() => {
-                setTimeout(() => {
-                    gsap.set(".eyebrow-letter", { y: 0, scale: 1, autoAlpha: 1 });
-                }, 120);
-            }, "+=0.1");
         },
         { scope: containerRef }
     );
@@ -141,7 +149,7 @@ function GsapPageHeading({
             >
                 {iconType === "star" && eyebrowIcons ? <span className="flex items-center gap-1">{eyebrowIcons}</span> : null}
                 {iconType === "asterisk" ? <img src="/has.png" alt="icon" className="eyebrow-icon w-4 h-4 md:w-5 md:h-5 opacity-0" /> : null}
-                <span aria-label={eyebrow}>
+                <span aria-label={eyebrow} className="whitespace-nowrap inline-block">
                     {eyebrowLetters.map((letter, index) => (
                         <span key={`${letter}-${index}`} className="eyebrow-letter inline-block opacity-0" aria-hidden="true">
                             {letter === " " ? "\u00A0" : letter}

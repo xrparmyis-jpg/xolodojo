@@ -987,7 +987,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                                 <p>
                                     NFTs Found: <span className="font-semibold text-white">{connectedWalletAssets.nft_count}</span>
                                     {' - Click the '}
-                                    <span className="mx-1 inline-flex h-5 w-5 items-center justify-center rounded-full border border-black/55 bg-black text-white/85 align-middle">
+                                    <span className="mx-1 inline-flex h-5 w-5 items-center justify-center rounded-full border border-black/55 bg-black text-emerald-500 align-middle">
                                         <FontAwesomeIcon icon={faThumbtack} className="text-[10px]" />
                                     </span>
                                     {' to pin an NFT to the Xglobe, Click on the NFT to view more details.'}

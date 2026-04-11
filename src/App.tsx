@@ -18,7 +18,6 @@ import Xoloitzquintle from "./pages/Xoloitzquintle";
 import Vision from "./pages/Vision";
 import Team from "./pages/Team";
 import XoloGlobe from "./pages/XoloGlobe";
-import Mint from "./pages/Mint";
 import { isAuth0SpaCallbackUrl } from "./utils/oauthCallbackGuards";
 
 function AppContent() {
@@ -89,7 +88,6 @@ function AppContent() {
           <Route path="/vision" element={<Vision />} />
           <Route path="/team" element={<Team />} />
           <Route path="/xologlobe" element={<XoloGlobe />} />
-          <Route path="/mint" element={<Mint />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
