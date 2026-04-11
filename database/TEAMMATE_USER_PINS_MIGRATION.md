@@ -9,6 +9,7 @@ Use this when you’ve pulled the latest `xolodojo` code and the API expects a *
 ```
 We use the xolodojo repo. I pulled the latest main (or shared branch). The app now reads/writes globe pins in MySQL table `user_pins` instead of JSON in `user_profiles.preferences.pinned_nfts`.
 
+
 My database already existed and worked yesterday; same Docker/env as the team (`DB_*` in .env.local). 
 
 Please:
