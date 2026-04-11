@@ -49,7 +49,7 @@ export default function MintCountdownSection() {
         <GsapPageContent className="mt-12 md:mt-16" delay={0.08} intersectionThreshold={0.12}>
             <div className="mx-auto max-w-4xl rounded-2xl border border-[#36e9e4]/35 bg-black/50 px-4 py-8 shadow-[0_0_40px_rgba(54,233,228,0.08)] backdrop-blur-sm sm:px-8 md:px-10 md:py-10">
                 <p className="mb-6 text-center text-sm font-medium uppercase tracking-[0.2em] text-white/80 md:text-base">
-                    Minting soon
+                    Minting starts here in:
                 </p>
 
                 {isComplete ? (

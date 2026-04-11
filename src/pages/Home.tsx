@@ -22,9 +22,9 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
   {
     id: "ancient",
     imageAtLg: "left",
-    imageSrc: "/01.jpg",
-    imageAlt: "Ancient Xolo Sculpture",
-    eyebrow: "Ancient Mesoamerica",
+    imageSrc: "/home/GhostXoloGecko.jpg",
+    imageAlt: "Ghost Xolo Gecko",
+    eyebrow: "Xoloitzquintle: An Ancient Breed",
     title: (
       <>
         A Sacred Heritage
@@ -41,8 +41,8 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
   {
     id: "team",
     imageAtLg: "right",
-    imageSrc: "/02.jpg",
-    imageAlt: "Artist and Creator",
+    imageSrc: "/home/TeamFireXolo.jpg",
+    imageAlt: "Team Fire Xolo",
     eyebrow: "The Team",
     title: (
       <>
@@ -60,9 +60,9 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
   {
     id: "utility",
     imageAtLg: "left",
-    imageSrc: "/03.jpg",
-    imageAlt: "Map and travel icons",
-    eyebrow: "Future Utility",
+    imageSrc: "/home/AbstractXoloBlue.jpg",
+    imageAlt: "Abstract Xolo Blue",
+    eyebrow: "Vision ",
     title: (
       <>
         Fostering Global Travel &amp; Connection
@@ -79,9 +79,9 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
   {
     id: "utility",
     imageAtLg: "right",
-    imageSrc: "/03.jpg",
-    imageAlt: "Map and travel icons",
-    eyebrow: "Future Utility",
+    imageSrc: "/home/StaindGlassXoloSkiGoggles.jpg",
+    imageAlt: "Staind Glass Xolo",
+    eyebrow: "Mint",
     title: (
       <>
         Fostering Global Travel &amp; Connection
@@ -98,9 +98,9 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
   {
     id: "utility",
     imageAtLg: "left",
-    imageSrc: "/fireman.png",
-    imageAlt: "Map and travel icons",
-    eyebrow: "Future Utility",
+    imageSrc: "/home/SpacesuitXoloRed.jpg",
+    imageAlt: "Spacesuit Xolo",
+    eyebrow: "Xglobe",
     title: (
       <>
         Fostering Global Travel &amp; Connection
