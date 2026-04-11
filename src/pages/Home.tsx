@@ -27,7 +27,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     eyebrow: "Xoloitzquintle: An Ancient Breed",
     title: (
       <>
-        A Sacred Heritage
+        The XoloDojo
       </>
     ),
     body: (
