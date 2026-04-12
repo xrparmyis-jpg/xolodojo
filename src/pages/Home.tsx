@@ -1,18 +1,20 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 
-import GsapPageContent from "../components/GsapPageContent";
-import GsapPageHeading from "../components/GsapPageHeading";
-import SectionParallaxBlobs from "../components/SectionParallaxBlobs";
-import CounterSection from "../components/CounterSection";
+import GsapPageContent from '../components/GsapPageContent';
+import GsapPageHeading from '../components/GsapPageHeading';
+import SectionParallaxBlobs from '../components/SectionParallaxBlobs';
+import CounterSection from '../components/CounterSection';
 
-import { useSectionParallaxOffsets } from "../hooks/useSectionParallaxOffsets";
-import MintCountdownSection from "../components/MintCountdownSection";
+import { useSectionParallaxOffsets } from '../hooks/useSectionParallaxOffsets';
+import MintCountdownSection from '../components/MintCountdownSection';
 
 type LegacyStoryRow = {
   id: string;
-  imageAtLg: "left" | "right";
+  imageAtLg: 'left' | 'right';
   imageSrc: string;
   imageAlt: string;
+  /** Tailwind border-color utility (include the `border-` prefix), e.g. `border-cyan-400` or `border-[#b7e9f7]`. */
+  borderColor: string;
   eyebrow: string;
   title: ReactNode;
   body: ReactNode;
@@ -20,100 +22,135 @@ type LegacyStoryRow = {
 
 const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
   {
-    id: "ancient",
-    imageAtLg: "left",
-    imageSrc: "/home/GhostXoloGecko.jpg",
-    imageAlt: "Ghost Xolo Gecko",
-    eyebrow: "The XoloDojo",
+    id: 'ancient',
+    imageAtLg: 'left',
+    imageSrc: '/home/GhostXoloGecko.jpg',
+    imageAlt: 'Ghost Xolo Gecko',
+    borderColor: 'border-cyan-400',
+    eyebrow: 'The XoloDojo',
     title: (
       <>
-        The XoloDojo:  道 (Dō), meaning "path" or "way," and 場 (Jō), meaning "place."
-      </>
-    ),
-    body: (
-      <>Welcome to the XoloDojo — a sacred digital sanctuary rooted in the Xoloitzquintli’s timeless values of unwavering loyalty, transformative guardianship, deep respect, humility, resilience, and shared reverence. These principles form the ethical heart of our community — a space of trust, honor, and genuine harmony where every holder is welcomed as family. At the living heart of the XoloDojo is Xglobe, a token-gated global platform where you network wallet-to-wallet, share skills and cultures, and forge real person-to-person adventures across the planet. XoloDojo members are represented by their XoloNFT pinned on the Xglobe, symbolising a personal talisman and lifelong companion inviting you to step into a growing circle of aligned souls, pin your place in history, and co-create a legacy of connection, community, and future growth. LfG!!! Own your Xolo. Own your Adventure. Own your Journey.
-
-
-
-
-      </>
-    ),
-  },
-  {
-    id: "team",
-    imageAtLg: "right",
-    imageSrc: "/home/TeamFireXolo.jpg",
-    imageAlt: "Team Fire Xolo",
-    eyebrow: "Introducing Team Fire",
-    title: (
-      <>
-        Cryptonite, Code &amp; RedShadow
+        The XoloDojo: 道 (Dō), meaning "path" or "way," and 場 (Jō), meaning
+        "place."
       </>
     ),
     body: (
       <>
-  Meet the XoloDojo Team — a driven global crew of three grinding hard, dreaming big, and shooting for the moon together.
-Cryptonite, the degen founder and networking visionary currently residing in Anchorage, Alaska, is the spark who turned raw ideas into a living vision of trust and real-world connection. Code, the battle-hardened coding wizard based in the Silicon Valley of California, has been building since the Commodore 64 days and now serves as the github guru and technical architect powering the XoloDojo & Xglobe community ecosystem. 
-RedShadow, the passionate artist and loyal hired gun from Pakistan, pours his soul into every hand-drawn trait on the iPad, crafting the visual heartbeat of the collection.
-This unstoppable trio — united by grit, loyalty, and relentless drive — is forging the XoloDojo and Xglobe from the ground up. Men of few words, dive a bit more into their stories, passions, and journeys on the Team page and see how their combined fire is building a community where every holder truly belongs. If you ain't bullish, you're foolish!!!
-Own a Xolo. Own the Adventure. Own your Journey.
+        <p className="mb-4">
+          Welcome to the XoloDojo — a sacred digital sanctuary rooted in the
+          Xoloitzquintli’s timeless values of unwavering loyalty, transformative
+          guardianship, deep respect, humility, resilience, and shared
+          reverence.{' '}
+        </p>
+        <p className="mb-4">
+          These principles form the ethical heart of our community — a space of
+          trust, honor, and genuine harmony where every holder is welcomed as
+          family. At the living heart of the XoloDojo is Xglobe, a token-gated
+          global platform where you network wallet-to-wallet, share skills and
+          cultures, and forge real person-to-person adventures across the
+          planet.
+        </p>
+        <p>
+          XoloDojo members are represented by their XoloNFT pinned on the
+          Xglobe, symbolising a personal talisman and lifelong companion
+          inviting you to step into a growing circle of aligned souls, pin your
+          place in history, and co-create a legacy of connection, community, and
+          future growth. LfG!!! Own your Xolo. Own your Adventure. Own your
+          Journey.
+        </p>
       </>
     ),
   },
   {
-    id: "utility",
-    imageAtLg: "left",
-    imageSrc: "/home/AbstractXoloBlue.jpg",
-    imageAlt: "Abstract Xolo Blue",
-    eyebrow: "A Vision of Unity &amp; Connection",
-    title: (
+    id: 'team',
+    imageAtLg: 'right',
+    imageSrc: '/home/TeamFireXolo.jpg',
+    imageAlt: 'Team Fire Xolo',
+    borderColor: 'border-emerald-400',
+    eyebrow: 'Introducing Team Fire',
+    title: <>Cryptonite, Code &amp; RedShadow</>,
+    body: (
       <>
-        Fostering Global Travel &amp; Connection
+        <p className="mb-4">
+          Meet the XoloDojo Team — a driven global crew of three grinding hard,
+          dreaming big, and shooting for the moon together.
+        </p>
+        <p className="mb-4">
+          Cryptonite, the degen founder and networking visionary currently
+          residing in Anchorage, Alaska, is the spark who turned raw ideas into
+          a living vision of trust and real-world connection.
+        </p>
+        <p className="mb-4">
+          Code, the battle-hardened coding wizard based in the Silicon Valley of
+          California, has been building since the Commodore 64 days and now
+          serves as the github guru and technical architect powering the
+          XoloDojo & Xglobe community ecosystem.
+        </p>
+        <p className="mb-4">
+          RedShadow, the passionate artist and loyal hired gun from Pakistan,
+          pours his soul the passionate artist and loyal hired gun from
+          Pakistan, pours his soul into every hand-drawn trait on the iPad,
+          crafting the visual heartbeat of the collection.
+        </p>
+        <p className="mb-4">
+          This unstoppable trio — united by grit, loyalty, and relentless drive
+          — is forging the XoloDojo and Xglobe from the ground up. Men of few
+          words, dive a bit more into their stories, passions, and journeys on
+          the Team page and see how their combined fire is building a community
+          where every holder truly belongs. If you ain't bullish, you're
+          foolish!!! Own a Xolo. Own the Adventure. Own your Journey.
+        </p>
       </>
     ),
+  },
+  {
+    id: 'utility',
+    imageAtLg: 'left',
+    imageSrc: '/home/AbstractXoloBlue.jpg',
+    imageAlt: 'Abstract Xolo Blue',
+    borderColor: 'border-sky-400',
+    eyebrow: 'A Vision of Unity &amp; Connection',
+    title: <>Fostering Global Travel &amp; Connection</>,
     body: (
       <>
         The collection&apos;s long-term vision is to build a decentralized
-        platform for Xolo NFT holders to network and share travel experiences, fostering global connection through
-        wallet-to-wallet networking and person to person experiences on the XRPL.
+        platform for Xolo NFT holders to network and share travel experiences,
+        fostering global connection through wallet-to-wallet networking and
+        person to person experiences on the XRPL.
       </>
     ),
   },
   {
-    id: "utility",
-    imageAtLg: "right",
-    imageSrc: "/home/StaindGlassXoloSkiGoggles.jpg",
-    imageAlt: "Staind Glass Xolo",
-    eyebrow: "Mint",
-    title: (
-      <>
-        Fostering Global Travel &amp; Connection
-      </>
-    ),
+    id: 'utility',
+    imageAtLg: 'right',
+    imageSrc: '/home/StaindGlassXoloSkiGoggles.jpg',
+    imageAlt: 'Staind Glass Xolo',
+    borderColor: 'border-fuchsia-400',
+    eyebrow: 'Mint',
+    title: <>Fostering Global Travel &amp; Connection</>,
     body: (
       <>
         The collection&apos;s long-term vision is to build a decentralized
-        platform for Xolo NFT holders to network and share travel experiences, fostering global connection through
-        wallet-to-wallet networking and person to person experiences on the XRPL.
+        platform for Xolo NFT holders to network and share travel experiences,
+        fostering global connection through wallet-to-wallet networking and
+        person to person experiences on the XRPL.
       </>
     ),
   },
   {
-    id: "utility",
-    imageAtLg: "left",
-    imageSrc: "/home/SpacesuitXoloRed.jpg",
-    imageAlt: "Spacesuit Xolo",
-    eyebrow: "Xglobe",
-    title: (
-      <>
-        Fostering Global Travel &amp; Connection
-      </>
-    ),
+    id: 'utility',
+    imageAtLg: 'left',
+    imageSrc: '/home/SpacesuitXoloRed.jpg',
+    imageAlt: 'Spacesuit Xolo',
+    borderColor: 'border-amber-400',
+    eyebrow: 'Xglobe',
+    title: <>Fostering Global Travel &amp; Connection</>,
     body: (
       <>
         The collection&apos;s long-term vision is to build a decentralized
-        platform for Xolo NFT holders to network and share travel experiences, fostering global connection through
-        wallet-to-wallet networking and person to person experiences on the XRPL.
+        platform for Xolo NFT holders to network and share travel experiences,
+        fostering global connection through wallet-to-wallet networking and
+        person to person experiences on the XRPL.
       </>
     ),
   },
@@ -123,13 +160,13 @@ Own a Xolo. Own the Adventure. Own your Journey.
 const SERVICE_ROW_DELAY = [0, 0.06, 0.12, 0.18] as const;
 
 function Home() {
-
   const projectSectionRef = useRef<HTMLElement>(null);
   const projectColorBgRef = useRef<HTMLDivElement>(null);
 
   const [projectBlobOffset, setProjectBlobOffset] = useState(0);
 
-  const { sectionRef, bgShapeOffset, colorBgOffset, colorBg2Offset } = useSectionParallaxOffsets();
+  const { sectionRef, bgShapeOffset, colorBgOffset, colorBg2Offset } =
+    useSectionParallaxOffsets();
 
   useEffect(() => {
     const handleProjectScroll = () => {
@@ -142,7 +179,10 @@ function Home() {
         const sectionTop = rect.top;
         const sectionHeight = rect.height;
 
-        const scrollProgress = Math.max(0, (windowHeight - sectionTop) / (windowHeight + sectionHeight));
+        const scrollProgress = Math.max(
+          0,
+          (windowHeight - sectionTop) / (windowHeight + sectionHeight)
+        );
         const offset = scrollProgress * sectionHeight * 0.4;
 
         setProjectBlobOffset(offset);
@@ -190,7 +230,10 @@ function Home() {
           />
           <MintCountdownSection />
           <div className="mt-8 flex flex-col items-center gap-6">
-            <GsapPageContent className="mx-auto w-full max-w-4xl" delay={SERVICE_ROW_DELAY[0]}>
+            <GsapPageContent
+              className="mx-auto w-full max-w-4xl"
+              delay={SERVICE_ROW_DELAY[0]}
+            >
               <div className="mt-[30px] flex flex-col items-center justify-center gap-4 md:flex-row md:items-start md:gap-6">
                 <div className="max-w-75 shrink-0">
                   <img
@@ -204,13 +247,17 @@ function Home() {
                     10,001 Unique NFT Masterpieces
                   </h3>
                   <p>
-                    A meaningful collection featuring 10,001 unique Xolo
-                    NFTs with a combination of 11 distinct traits and 311 sub traits, hand-drawn by RedShadow.
+                    A meaningful collection featuring 10,001 unique Xolo NFTs
+                    with a combination of 11 distinct traits and 311 sub traits,
+                    hand-drawn by RedShadow.
                   </p>
                 </div>
               </div>
             </GsapPageContent>
-            <GsapPageContent className="mx-auto w-full max-w-4xl" delay={SERVICE_ROW_DELAY[1]}>
+            <GsapPageContent
+              className="mx-auto w-full max-w-4xl"
+              delay={SERVICE_ROW_DELAY[1]}
+            >
               <div className="mt-[30px] flex flex-col items-center justify-center gap-4 md:flex-row md:items-start md:gap-6">
                 <div className="max-w-75 shrink-0">
                   <img
@@ -230,7 +277,10 @@ function Home() {
                 </div>
               </div>
             </GsapPageContent>
-            <GsapPageContent className="mx-auto w-full max-w-4xl" delay={SERVICE_ROW_DELAY[2]}>
+            <GsapPageContent
+              className="mx-auto w-full max-w-4xl"
+              delay={SERVICE_ROW_DELAY[2]}
+            >
               <div className="mt-[30px] flex flex-col items-center justify-center gap-4 md:flex-row md:items-start md:gap-6">
                 <div className="max-w-75 shrink-0">
                   <img
@@ -244,14 +294,18 @@ function Home() {
                     Decentralized Travel Vision
                   </h3>
                   <p>
-                    Our long-term goal: a platform for holders to network, share skills, and explore the
-                    world person to person, interacting wallet-to-wallet to foster global connection through travel
+                    Our long-term goal: a platform for holders to network, share
+                    skills, and explore the world person to person, interacting
+                    wallet-to-wallet to foster global connection through travel
                     experiences on the XRPL.
                   </p>
                 </div>
               </div>
             </GsapPageContent>
-            <GsapPageContent className="mx-auto w-full max-w-4xl" delay={SERVICE_ROW_DELAY[3]}>
+            <GsapPageContent
+              className="mx-auto w-full max-w-4xl"
+              delay={SERVICE_ROW_DELAY[3]}
+            >
               <div className="mt-[30px] flex flex-col items-center justify-center gap-4 md:flex-row md:items-start md:gap-6">
                 <div className="max-w-75 shrink-0">
                   <img
@@ -265,8 +319,8 @@ function Home() {
                     Upcoming Mint in the xrp.cafe
                   </h3>
                   <p>
-                    Prepare your Xaman or Joey wallet with recommended 20 XRP minimum reserve
-                    for the Xoloitzquintle mint on the XRPL.
+                    Prepare your Xaman or Joey wallet with recommended 20 XRP
+                    minimum reserve for the Xoloitzquintle mint on the XRPL.
                   </p>
                 </div>
               </div>
@@ -284,12 +338,12 @@ function Home() {
           ref={projectColorBgRef}
           className="pointer-events-none absolute -z-10"
           style={{
-            top: "-12%",
-            right: "-50px",
+            top: '-12%',
+            right: '-50px',
             transform: `translateY(${projectBlobOffset}px)`,
-            willChange: "transform",
-            transition: "transform 0.1s ease-out",
-            filter: "brightness(1.2)",
+            willChange: 'transform',
+            transition: 'transform 0.1s ease-out',
+            filter: 'brightness(1.2)',
           }}
         >
           <img src="/color-bg-shape-2.png" alt="" aria-hidden />
@@ -306,14 +360,14 @@ function Home() {
                 src="/has.png"
                 alt="asterisk"
                 className="mx-1 inline-block h-5 w-5 align-middle md:h-6 md:w-6"
-              />{" "}
+              />{' '}
               Legacy
             </GsapPageContent>
           </div>
 
           <div className="flex flex-col gap-12 lg:gap-16">
             {LEGACY_STORY_ROWS.map((row, index) => {
-              const imageLeft = row.imageAtLg === "left";
+              const imageLeft = row.imageAtLg === 'left';
               return (
                 <GsapPageContent
                   key={row.id}
@@ -321,30 +375,37 @@ function Home() {
                   delay={index * 0.06}
                 >
                   <div
-                    className={`min-w-0 w-full lg:w-1/2 order-1 ${imageLeft ? "lg:order-1" : "lg:order-2"
-                      }`}
+                    className={`min-w-0 w-full lg:w-1/2 order-1 ${
+                      imageLeft ? 'lg:order-1' : 'lg:order-2'
+                    }`}
                   >
                     <div
-                      className={`w-full transition-transform duration-300 ease-in-out ${imageLeft ? "hover:rotate-[10deg]" : "hover:-rotate-[10deg]"
-                        }`}
+                      className={`w-full transition-transform duration-300 ease-in-out ${
+                        imageLeft
+                          ? 'hover:rotate-[10deg]'
+                          : 'hover:-rotate-[10deg]'
+                      }`}
                     >
                       <img
                         src={row.imageSrc}
                         alt={row.imageAlt}
-                        className="h-auto w-full rounded-[50px] object-cover max-w-[480px] lg:max-w-full mx-auto"
+                        className={`h-auto w-full rounded-[50px] object-cover max-w-[480px] border-2 lg:max-w-full mx-auto ${row.borderColor}`}
                       />
                     </div>
                   </div>
                   <div
-                    className={`min-w-0 w-full lg:w-1/2 order-2 ${imageLeft ? "lg:order-2" : "lg:order-1"
-                      }`}
+                    className={`min-w-0 w-full lg:w-1/2 order-2 ${
+                      imageLeft ? 'lg:order-2' : 'lg:order-1'
+                    }`}
                   >
                     <div className="flex min-w-0 flex-col text-left mt-4 lg:mt-0">
-                      <span className="mb-5 inline-block rounded-2xl border border-[rgba(207,208,212,0.2)] px-5 py-2 text-[15px] font-bold leading-none">{row.eyebrow}</span>
+                      <span className="mb-5 inline-block rounded-2xl border border-[rgba(207,208,212,0.2)] px-5 py-2 text-[15px] font-bold leading-none">
+                        {row.eyebrow}
+                      </span>
                       <h3 className="my-2 lg:mb-6 text-2xl font-bold md:text-3xl lg:text-4xl">
                         {row.title}
                       </h3>
-                      <div className="max-w-[350px] leading-relaxed">
+                      <div className="w-full max-w-none leading-relaxed">
                         {row.body}
                       </div>
                     </div>
