@@ -24,17 +24,18 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageAtLg: "left",
     imageSrc: "/home/GhostXoloGecko.jpg",
     imageAlt: "Ghost Xolo Gecko",
-    eyebrow: "Xoloitzquintle: An Ancient Breed",
+    eyebrow: "The XoloDojo",
     title: (
       <>
-        The XoloDojo
+        The XoloDojo:  道 (Dō), meaning "path" or "way," and 場 (Jō), meaning "place."
       </>
     ),
     body: (
-      <>
-        Dating back over 3,000 years, the Xoloitzquintle (Show Low eats queentlee) is a living symbol
-        of Mesoamerican heritage, revered as a spiritual guide to
-        Mictlan, the Aztec afterlife.
+      <>Welcome to the XoloDojo — a sacred digital sanctuary rooted in the Xoloitzquintli’s timeless values of unwavering loyalty, transformative guardianship, deep respect, humility, resilience, and shared reverence. These principles form the ethical heart of our community — a space of trust, honor, and genuine harmony where every holder is welcomed as family. At the living heart of the XoloDojo is Xglobe, a token-gated global platform where you network wallet-to-wallet, share skills and cultures, and forge real person-to-person adventures across the planet. XoloDojo members are represented by their XoloNFT pinned on the Xglobe, symbolising a personal talisman and lifelong companion inviting you to step into a growing circle of aligned souls, pin your place in history, and co-create a legacy of connection, community, and future growth. LfG!!! Own your Xolo. Own your Adventure. Own your Journey.
+
+
+
+
       </>
     ),
   },
@@ -43,17 +44,19 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageAtLg: "right",
     imageSrc: "/home/TeamFireXolo.jpg",
     imageAlt: "Team Fire Xolo",
-    eyebrow: "The Team",
+    eyebrow: "Introducing Team Fire",
     title: (
       <>
-        RedShadow, Cryptonite &amp; Code
+        Cryptonite, Code &amp; RedShadow
       </>
     ),
     body: (
       <>
-        Cryptonite, the global explorer and XRPL enthusiast,
-        partnered with RedShadow, the talented artist,and Code, the skilled developer, to bring
-        to bring the 10,001 Xolo NFTs and Xglobe into reality, blending art, culture, and blockchain innovation.
+  Meet the XoloDojo Team — a driven global crew of three grinding hard, dreaming big, and shooting for the moon together.
+Cryptonite, the degen founder and networking visionary currently residing in Anchorage, Alaska, is the spark who turned raw ideas into a living vision of trust and real-world connection. Code, the battle-hardened coding wizard based in the Silicon Valley of California, has been building since the Commodore 64 days and now serves as the github guru and technical architect powering the XoloDojo & Xglobe community ecosystem. 
+RedShadow, the passionate artist and loyal hired gun from Pakistan, pours his soul into every hand-drawn trait on the iPad, crafting the visual heartbeat of the collection.
+This unstoppable trio — united by grit, loyalty, and relentless drive — is forging the XoloDojo and Xglobe from the ground up. Men of few words, dive a bit more into their stories, passions, and journeys on the Team page and see how their combined fire is building a community where every holder truly belongs. If you ain't bullish, you're foolish!!!
+Own a Xolo. Own the Adventure. Own your Journey.
       </>
     ),
   },
@@ -62,7 +65,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageAtLg: "left",
     imageSrc: "/home/AbstractXoloBlue.jpg",
     imageAlt: "Abstract Xolo Blue",
-    eyebrow: "Vision ",
+    eyebrow: "A Vision of Unity &amp; Connection",
     title: (
       <>
         Fostering Global Travel &amp; Connection
