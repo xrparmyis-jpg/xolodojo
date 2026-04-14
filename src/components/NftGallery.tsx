@@ -1526,7 +1526,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading }:
                                             type="button"
                                             onClick={() => setPendingUnpinTokenId(pinTargetNft.token_id)}
                                             disabled={isPinActionLoading}
-                                            className="h-11 border border-red-500/50 bg-red-600/90 px-5 text-sm font-semibold text-white hover:bg-red-500 active:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                            className="btn-cta-danger"
                                         >
                                             Remove
                                         </Button>
@@ -1535,7 +1535,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading }:
                                         type="button"
                                         onClick={() => setPinFormStep(2)}
                                         disabled={!canContinuePinFormStep1}
-                                        className="h-11 text-white/85 font-semibold hover:text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-cyan-300 hover:shadow-lg dark:focus:ring-cyan-800 rounded-base text-sm px-5 text-center transition-all duration-500 ease-out disabled:opacity-60 disabled:cursor-not-allowed"
+                                        className="btn-cta-primary"
                                     >
                                         Continue
                                     </Button>
@@ -1559,7 +1559,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading }:
                                                 type="button"
                                                 onClick={() => setPinFormStep(1)}
                                                 disabled={isPinActionLoading}
-                                                className="h-11 border border-white/15 bg-white/10 px-5 text-sm font-semibold text-white/85 hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-60"
+                                                className="btn-cta-secondary"
                                             >
                                                 Back
                                             </Button>
@@ -1569,7 +1569,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading }:
                                                         type="button"
                                                         onClick={() => setPendingUnpinTokenId(pinTargetNft.token_id)}
                                                         disabled={isPinActionLoading}
-                                                        className="h-11 border border-red-500/50 bg-red-600/90 px-5 text-sm font-semibold text-white hover:bg-red-500 active:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                                        className="btn-cta-danger"
                                                     >
                                                         Remove
                                                     </Button>
@@ -1578,7 +1578,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading }:
                                                     type="button"
                                                     onClick={() => void handleSubmitPin()}
                                                     disabled={!canSubmitPin}
-                                                    className="h-11 text-white/85 font-semibold hover:text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-cyan-300 hover:shadow-lg dark:focus:ring-cyan-800 rounded-base text-sm px-5 text-center transition-all duration-500 ease-out disabled:opacity-60 disabled:cursor-not-allowed"
+                                                    className="btn-cta-primary"
                                                 >
                                                     {isPinActionLoading ? 'Submitting...' : 'Submit'}
                                                 </Button>
