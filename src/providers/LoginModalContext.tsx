@@ -23,6 +23,10 @@ export function LoginModalProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [initialView, setInitialView] = useState<AuthModalView>('login');
   const [resetToken, setResetToken] = useState<string | null>(null);
+  const [urlAuthNotice, setUrlAuthNotice] = useState<{
+    variant: 'success' | 'error';
+    message: string;
+  } | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -31,7 +35,56 @@ export function LoginModalProvider({ children }: { children: ReactNode }) {
       setResetToken(token);
       setInitialView('reset-password');
       setIsOpen(true);
+      return;
     }
+
+    let shouldStrip = false;
+    if (params.get('verified') === '1') {
+      setResetToken(null);
+      setInitialView('login');
+      setUrlAuthNotice({
+        variant: 'success',
+        message: 'Your email is verified. You can sign in below.',
+      });
+      setIsOpen(true);
+      params.delete('verified');
+      shouldStrip = true;
+    }
+    const authError = params.get('authError');
+    if (authError === 'verify') {
+      setResetToken(null);
+      setInitialView('login');
+      setUrlAuthNotice({
+        variant: 'error',
+        message: 'Email verification failed. The link may be invalid or already used.',
+      });
+      setIsOpen(true);
+      params.delete('authError');
+      shouldStrip = true;
+    } else if (authError === 'expired') {
+      setResetToken(null);
+      setInitialView('login');
+      setUrlAuthNotice({
+        variant: 'error',
+        message:
+          'That verification link has expired. Sign in and use "Resend verification" if your email is not verified yet.',
+      });
+      setIsOpen(true);
+      params.delete('authError');
+      shouldStrip = true;
+    }
+    if (shouldStrip) {
+      const q = params.toString();
+      window.history.replaceState(
+        {},
+        '',
+        q ? `${window.location.pathname}?${q}` : window.location.pathname
+      );
+    }
+  }, []);
+
+  const consumeUrlAuthNotice = useCallback(() => {
+    setUrlAuthNotice(null);
   }, []);
 
   const openLogin = useCallback(() => {
@@ -74,6 +127,8 @@ export function LoginModalProvider({ children }: { children: ReactNode }) {
         onClose={close}
         initialView={initialView}
         resetToken={resetToken}
+        urlAuthNotice={urlAuthNotice}
+        onConsumeUrlAuthNotice={consumeUrlAuthNotice}
       />
     </LoginModalContext.Provider>
   );

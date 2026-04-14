@@ -1,22 +1,41 @@
--- Seed 15 XoloGlobe test markers into MySQL
--- Safe to re-run: replaces pins for the seed user only (via DELETE + INSERT).
--- Requires `user_pins` table (see 20260405_user_pins_table.sql / database/schema.sql).
+-- Seed 15 XoloGlobe test markers + shared seed user (session auth).
+-- Safe to re-run: replaces pins for the seed user only (DELETE + INSERT).
+-- Does not rotate password if the seed user already exists (ON DUPLICATE KEY).
+--
+-- Seed account (login to manage pins if needed):
+--   Email:    xologlobe-seed@example.com
+--   Username: xologlobe_seed
+--   Password: XoloGlobeSeed!
+--
+-- Requires tables from database/migrations/20260210_replace_auth0_with_session_auth.sql (or equivalent).
 
-SET @seed_auth0_id := 'seed|xologlobe-test-markers';
+SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
+
 SET @seed_email := 'xologlobe-seed@example.com';
+SET @seed_username := 'xologlobe_seed';
 SET @seed_name := 'XoloGlobe Test Markers';
+-- scrypt hash for password XoloGlobeSeed! (matches server/lib/sessionAuth.ts hashPassword)
+SET @seed_password := 'scrypt:a1b2c3d4e5f60718293a4b5c6d7e8f01:78c75732ee04a37138b2d6645cbe2cd8cd49c0d0297ead1c9444b0b8b5077548b0b27a40d004325d981f2ad344e1c4551d392351e113e62ccb47e49adfefdaa7';
 
-INSERT INTO users (auth0_id, email, name, picture_url)
-VALUES (@seed_auth0_id, @seed_email, @seed_name, '/image.png')
+INSERT INTO users (email, username, name, password, role, picture_url, email_verified_at)
+VALUES (
+  @seed_email,
+  @seed_username,
+  @seed_name,
+  @seed_password,
+  'user',
+  '/image.png',
+  UTC_TIMESTAMP()
+)
 ON DUPLICATE KEY UPDATE
-  email = VALUES(email),
   name = VALUES(name),
   picture_url = VALUES(picture_url),
+  email_verified_at = COALESCE(email_verified_at, UTC_TIMESTAMP()),
   updated_at = CURRENT_TIMESTAMP;
 
 SELECT id INTO @seed_user_id
 FROM users
-WHERE auth0_id = @seed_auth0_id
+WHERE email = @seed_email
 LIMIT 1;
 
 INSERT INTO user_profiles (user_id, preferences, updated_at)
