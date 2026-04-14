@@ -1194,7 +1194,11 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading }:
                                             openPinModalForCreate(nft.token_id);
                                         }}
                                         title={isPinned ? 'Edit NFT pin' : 'Pin NFT'}
-                                        className="pointer-events-auto z-10 cursor-pointer absolute bottom-2 right-2 inline-flex h-7 w-7 items-center justify-center rounded-full border border-black/55 bg-black text-emerald-500 transition-colors hover:text-emerald-400"
+                                        className={`pointer-events-auto z-10 cursor-pointer absolute bottom-2 right-2 inline-flex h-7 w-7 items-center justify-center rounded-full border border-black/55 bg-black transition-colors ${
+                                            isPinned
+                                                ? 'text-blue-600 hover:text-blue-700'
+                                                : 'text-white/65 hover:text-blue-600'
+                                        }`}
                                     >
                                         <FontAwesomeIcon icon={faThumbtack} className="text-sm" />
                                         <span className="sr-only">{isPinned ? 'Edit NFT pin' : 'Pin NFT'}</span>
@@ -1349,7 +1353,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading }:
             >
                 {pinSuccessState ? (
                     <div className="space-y-4 text-sm text-white/85">
-                        <div className="rounded-lg border border-emerald-400/20 bg-emerald-500/10 px-4 py-3">
+                        <div className="rounded-lg border border-blue-500/25 bg-blue-600/10 px-4 py-3">
                             <p className="mt-1 text-white/75">
                                 <span className="font-medium text-white">{pinSuccessState.title}</span>
                                 {' '}
@@ -1371,7 +1375,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading }:
                                 >
                                     <FontAwesomeIcon
                                         icon={faThumbtack}
-                                        className="text-[11px] text-emerald-500"
+                                        className="text-[11px] text-blue-600"
                                         aria-hidden
                                     />
                                 </span>
