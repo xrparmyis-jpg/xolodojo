@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useLocation, Link } from 'react-router-dom';
-import { useAuth0 } from '@auth0/auth0-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBars, faTimes, faUser, faSignOutAlt, faSignInAlt } from '@fortawesome/free-solid-svg-icons';
+import { faBars, faTimes, faUser, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
+import { useAuth } from '../providers/AuthContext';
+import { useLoginModal } from '../providers/LoginModalContext';
 
 interface MenuProps {
     onLinkClick?: () => void;
@@ -21,7 +22,8 @@ function Menu({
 }: MenuProps) {
     const [internalIsOpen, setInternalIsOpen] = useState(false);
     const location = useLocation();
-    const { isAuthenticated, isLoading, loginWithRedirect, logout } = useAuth0();
+    const { user, loading: authLoading, logout } = useAuth();
+    const { openLogin, openRegister } = useLoginModal();
 
     const isMobileMenuOpen =
         externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
@@ -148,9 +150,9 @@ function Menu({
                                             </NavLink>
                                         </li>
                                     ))}
-                                    {!isLoading && (
+                                    {!authLoading && (
                                         <>
-                                            {isAuthenticated ? (
+                                            {user ? (
                                                 <>
                                                     <li className="mb-2">
                                                         <Link
@@ -166,11 +168,7 @@ function Menu({
                                                         <button
                                                             type="button"
                                                             onClick={() => {
-                                                                logout({
-                                                                    logoutParams: {
-                                                                        returnTo: window.location.origin,
-                                                                    },
-                                                                });
+                                                                void logout();
                                                                 closeMobileMenu();
                                                             }}
                                                             className="mt-2 flex w-full cursor-pointer items-center gap-3 border-0 border-b border-white/10 bg-transparent py-3 text-left text-base font-medium text-white transition-colors hover:text-[#b7e9f7]"
@@ -181,19 +179,32 @@ function Menu({
                                                     </li>
                                                 </>
                                             ) : (
-                                                <li className="mb-2">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            loginWithRedirect();
-                                                            closeMobileMenu();
-                                                        }}
-                                                        className="mt-2 flex w-full cursor-pointer items-center gap-3 border-0 border-b border-white/10 bg-transparent py-3 text-left text-base font-medium text-white transition-colors hover:text-[#b7e9f7]"
-                                                    >
-                                                        <FontAwesomeIcon icon={faSignInAlt} className="h-[18px] w-[18px] shrink-0" />
-                                                        <span>Login</span>
-                                                    </button>
-                                                </li>
+                                                <>
+                                                    <li className="mb-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                openRegister();
+                                                                closeMobileMenu();
+                                                            }}
+                                                            className="mt-2 flex w-full cursor-pointer items-center gap-3 border-0 border-b border-white/10 bg-transparent py-3 text-left text-base font-medium text-white transition-colors hover:text-[#b7e9f7]"
+                                                        >
+                                                            <span>Register</span>
+                                                        </button>
+                                                    </li>
+                                                    <li className="mb-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                openLogin();
+                                                                closeMobileMenu();
+                                                            }}
+                                                            className="mt-2 flex w-full cursor-pointer items-center gap-3 border-0 border-b border-white/10 bg-transparent py-3 text-left text-base font-medium text-white transition-colors hover:text-[#b7e9f7]"
+                                                        >
+                                                            <span>Login</span>
+                                                        </button>
+                                                    </li>
+                                                </>
                                             )}
                                         </>
                                     )}

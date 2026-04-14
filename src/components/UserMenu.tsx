@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../providers/AuthContext';
+import { useLoginModal } from '../providers/LoginModalContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
 
@@ -9,7 +10,11 @@ interface UserMenuProps {
 }
 
 function UserMenu({ isSticky = false }: UserMenuProps) {
-    const { isAuthenticated, isLoading, user, loginWithRedirect, logout } = useAuth0();
+    const { user, loading, logout } = useAuth();
+    const { openLogin, openRegister } = useLoginModal();
+
+    const desktopAuthLinkClass =
+        `cursor-pointer border-0 bg-transparent text-left inline-block text-lg font-medium capitalize no-underline transition-all duration-300 ease-in-out ${isSticky ? 'py-1.5' : 'py-5'} text-white hover:text-[#b7e9f7]`;
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -29,22 +34,8 @@ function UserMenu({ isSticky = false }: UserMenuProps) {
         };
     }, [isDropdownOpen]);
 
-    const handleLogin = () => {
-        // Store returnTo in sessionStorage for redirect after login
-        sessionStorage.setItem('auth0_app_state', JSON.stringify({ returnTo: '/profile' }));
-        loginWithRedirect({
-            appState: {
-                returnTo: '/profile',
-            },
-        });
-    };
-
     const handleLogout = () => {
-        logout({
-            logoutParams: {
-                returnTo: window.location.origin,
-            },
-        });
+        void logout();
         setIsDropdownOpen(false);
     };
 
@@ -58,18 +49,20 @@ function UserMenu({ isSticky = false }: UserMenuProps) {
         return 'U';
     };
 
-    if (isLoading) {
+    if (loading) {
         return null;
     }
 
-    if (!isAuthenticated) {
+    if (!user) {
         return (
-            <button
-                onClick={handleLogin}
-                className="px-4 py-2 rounded-md bg-[#1d1d21] text-white border border-[#cfd0d4] hover:bg-black/40 transition-all duration-200"
-            >
-                Login
-            </button>
+            <nav className="flex items-center gap-6" aria-label="Account">
+                <button type="button" className={desktopAuthLinkClass} onClick={openRegister}>
+                    Register
+                </button>
+                <button type="button" className={desktopAuthLinkClass} onClick={openLogin}>
+                    Login
+                </button>
+            </nav>
         );
     }
 
@@ -81,9 +74,9 @@ function UserMenu({ isSticky = false }: UserMenuProps) {
                 className={`cursor-pointer flex items-center justify-center overflow-hidden rounded-full border-2 border-white/30 bg-gradient-to-br from-[#667eea] to-[#764ba2] p-0 font-bold text-white transition-all duration-300 hover:scale-105 hover:border-white/60 ${isSticky ? 'h-10 w-10 text-sm' : 'h-12 w-12 text-base md:text-xl'}`}
                 aria-label="User menu"
             >
-                {user?.picture ? (
+                {user.pictureUrl ? (
                     <img
-                        src={user.picture}
+                        src={user.pictureUrl}
                         alt={user.name || 'User'}
                         className="w-full h-full rounded-full object-cover"
                     />

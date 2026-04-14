@@ -1,7 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { PIN_NOTE_MAX_LENGTH, PIN_NOTE_MIN_LENGTH } from '../../src/constants/pinNote.js';
-import { parsePinWebsiteForStorage } from '../../src/utils/pinWebsiteUrl.js';
-import { getAppMysqlPool } from '../../server/lib/mysqlPool.js';
+import { PIN_NOTE_MAX_LENGTH, PIN_NOTE_MIN_LENGTH } from '../../../src/constants/pinNote.js';
+import { parsePinWebsiteForStorage } from '../../../src/utils/pinWebsiteUrl.js';
+import { getAppMysqlPool } from '../../lib/mysqlPool.js';
+import { requireSessionUserId } from '../../lib/sessionAuth.js';
 import {
   deleteUserPin,
   listPinsForUser,
@@ -9,7 +10,7 @@ import {
   upsertUserPin,
   type PinnedNftItem,
   type PinnedNftSocials,
-} from '../../server/lib/userPinsRepo.js';
+} from '../../lib/userPinsRepo.js';
 
 const allowedSocialKeys = [
   'twitter',
@@ -100,20 +101,6 @@ function filterPinnedByWallet(
   );
 }
 
-async function getUserId(auth0Id: string): Promise<number> {
-  const pool = getAppMysqlPool();
-  const [userResult] = (await pool.execute(
-    'SELECT id FROM users WHERE auth0_id = ?',
-    [auth0Id]
-  )) as [Array<{ id: number }>, unknown];
-
-  if (!Array.isArray(userResult) || userResult.length === 0) {
-    throw new Error('USER_NOT_FOUND');
-  }
-
-  return userResult[0].id;
-}
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET' && req.method !== 'POST' && req.method !== 'DELETE') {
     res.status(405).json({ error: 'Method not allowed' });
@@ -121,12 +108,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const auth0Id =
-      req.method === 'GET'
-        ? Array.isArray(req.query.auth0_id)
-          ? req.query.auth0_id[0]
-          : req.query.auth0_id
-        : (req.body?.auth0_id as string | undefined);
+    const userId = await requireSessionUserId(req, res);
+    if (userId === null) return;
+
     const walletAddressInput: string | undefined =
       req.method === 'GET'
         ? Array.isArray(req.query.wallet_address)
@@ -136,13 +120,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const walletAddress = walletAddressInput
       ? normalizeWalletAddress(walletAddressInput)
       : undefined;
-
-    if (!auth0Id) {
-      res.status(400).json({ error: 'Missing auth0_id' });
-      return;
-    }
-
-    const userId = await getUserId(auth0Id);
     const pool = getAppMysqlPool();
     const pinnedNfts = await listPinsForUser(pool, userId);
     const scopedPinnedNfts = filterPinnedByWallet(pinnedNfts, walletAddress);
@@ -275,10 +252,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error));
-
-    if (err.message === 'USER_NOT_FOUND') {
-      return res.status(404).json({ error: 'User not found' });
-    }
 
     console.error('Error handling pinned NFTs:', err);
     return res

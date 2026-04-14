@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import mysql from 'mysql2/promise';
+import { requireSessionUserId } from '../../lib/sessionAuth.js';
 
 let pool: mysql.Pool | null = null;
 
@@ -114,20 +115,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
   if (req.method === 'GET') {
     try {
-      const authHeader = req.headers.authorization;
-      const auth0Id = Array.isArray(req.query.auth0_id) ? req.query.auth0_id[0] : req.query.auth0_id;
-      if (!auth0Id) {
-        res.status(400).json({ error: 'Missing auth0_id', query: req.query, receivedParams: Object.keys(req.query) });
-        return;
-      }
+      const userId = await requireSessionUserId(req, res);
+      if (userId === null) return;
+
       const pool = getPool();
       try {
         const [result] = await pool.execute(
-          `SELECT u.*, up.bio, up.wallet_address, up.wallet_type, up.preferences
+          `SELECT u.id, u.email, u.username, u.name, u.role, u.picture_url, u.email_verified_at, u.created_at, u.updated_at,
+ up.bio, up.wallet_address, up.wallet_type, up.preferences
            FROM users u
            LEFT JOIN user_profiles up ON u.id = up.user_id
-           WHERE u.auth0_id = ?`,
-          [auth0Id]
+           WHERE u.id = ?`,
+          [userId]
         ) as [any[], any];
         if (!Array.isArray(result) || result.length === 0) {
           res.status(404).json({ error: 'User not found' });
@@ -147,23 +146,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
   if (req.method === 'PUT') {
     try {
-      const authHeader = req.headers.authorization;
-      const { auth0_id, bio, socials } = req.body;
-      if (!auth0_id) {
-        res.status(400).json({ error: 'Missing auth0_id' });
-        return;
-      }
+      const userId = await requireSessionUserId(req, res);
+      if (userId === null) return;
+
+      const { bio, socials } = req.body as { bio?: string; socials?: unknown };
       const pool = getPool();
       try {
-        const [userResult] = await pool.execute(
-          'SELECT id FROM users WHERE auth0_id = ?',
-          [auth0_id]
-        ) as [any[], any];
-        if (!Array.isArray(userResult) || userResult.length === 0) {
-          res.status(404).json({ error: 'User not found' });
-          return;
-        }
-        const userId = userResult[0].id;
         const [profileResult] = await pool.execute(
           'SELECT preferences FROM user_profiles WHERE user_id = ?',
           [userId]
@@ -189,7 +177,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
           ]
         );
         const [result] = await pool.execute(
-          `SELECT u.*, up.bio, up.wallet_address, up.wallet_type, up.preferences
+          `SELECT u.id, u.email, u.username, u.name, u.role, u.picture_url, u.email_verified_at, u.created_at, u.updated_at,
+                  up.bio, up.wallet_address, up.wallet_type, up.preferences
            FROM users u
            LEFT JOIN user_profiles up ON u.id = up.user_id
            WHERE u.id = ?`,

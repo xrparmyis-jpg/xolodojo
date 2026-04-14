@@ -1,6 +1,9 @@
 // Use relative path for API - works with both Vite dev and Vercel dev
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
+const credFetch = (input: string, init?: RequestInit) =>
+  fetch(input, { ...init, credentials: 'include' });
+
 export interface Wallet {
   id: number;
   user_id: number;
@@ -27,7 +30,6 @@ interface WalletResponse {
   wallet?: Wallet;
   wallets?: Wallet[];
   message?: string;
-  /** True when POST matched an existing address; client should show success (e.g. connect flow). */
   already_exists?: boolean;
 }
 
@@ -42,7 +44,6 @@ async function parseApiError(response: Response): Promise<ApiErrorBody> {
   try {
     return JSON.parse(text) as ApiErrorBody;
   } catch {
-    // Fallback for non-JSON API responses (eg: HTML proxy errors)
     return { error: text };
   }
 }
@@ -63,27 +64,18 @@ function isTransientNetworkError(err: unknown): boolean {
 }
 
 /**
- * Get all wallets for a user
+ * Get all wallets for the logged-in user (session cookie).
  */
-export async function getUserWallets(
-  auth0Id: string,
-  accessToken?: string
-): Promise<{ success: boolean; wallets: Wallet[] }> {
+export async function getUserWallets(): Promise<{ success: boolean; wallets: Wallet[] }> {
   const maxAttempts = 3;
   let lastError: unknown;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/user/wallets?auth0_id=${encodeURIComponent(auth0Id)}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
-          },
-        }
-      );
+      const response = await credFetch(`${API_BASE_URL}/user/wallets`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
 
       if (!response.ok) {
         const error = await parseApiError(response);
@@ -95,10 +87,7 @@ export async function getUserWallets(
     } catch (error) {
       lastError = error;
       console.error('Error fetching wallets:', error);
-      if (
-        attempt < maxAttempts &&
-        isTransientNetworkError(error)
-      ) {
+      if (attempt < maxAttempts && isTransientNetworkError(error)) {
         await new Promise((r) => setTimeout(r, 350 * attempt));
         continue;
       }
@@ -109,173 +98,90 @@ export async function getUserWallets(
   throw lastError;
 }
 
-/**
- * Add a new wallet for a user
- */
 export async function addWallet(
-  auth0Id: string,
   walletAddress: string,
   walletType: string,
-  walletLabel?: string,
-  accessToken?: string
+  walletLabel?: string
 ): Promise<WalletResponse> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/user/wallets`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
-      },
-      body: JSON.stringify({
-        auth0_id: auth0Id,
-        wallet_address: walletAddress,
-        wallet_type: walletType,
-        wallet_label: walletLabel,
-      }),
-    });
+  const response = await credFetch(`${API_BASE_URL}/user/wallets`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      wallet_address: walletAddress,
+      wallet_type: walletType,
+      wallet_label: walletLabel,
+    }),
+  });
 
-    if (!response.ok) {
-      const error = await parseApiError(response);
-      throw new Error(toApiErrorMessage(response.status, error));
-    }
-
-    const data: WalletResponse = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error adding wallet:', error);
-    throw error;
+  if (!response.ok) {
+    const error = await parseApiError(response);
+    throw new Error(toApiErrorMessage(response.status, error));
   }
+
+  return response.json();
 }
 
-/**
- * Connect a wallet (set as active)
- */
-export async function connectWallet(
-  auth0Id: string,
-  walletId: number,
-  accessToken?: string
-): Promise<WalletResponse> {
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/user/wallets/${walletId}/connect`,
-      {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
-        },
-        body: JSON.stringify({
-          auth0_id: auth0Id,
-        }),
-      }
-    );
+export async function connectWallet(walletId: number): Promise<WalletResponse> {
+  const response = await credFetch(`${API_BASE_URL}/user/wallets/${walletId}/connect`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({}),
+  });
 
-    if (!response.ok) {
-      const error = await parseApiError(response);
-      throw new Error(toApiErrorMessage(response.status, error));
-    }
-
-    const data: WalletResponse = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error connecting wallet:', error);
-    throw error;
+  if (!response.ok) {
+    const error = await parseApiError(response);
+    throw new Error(toApiErrorMessage(response.status, error));
   }
+
+  return response.json();
 }
 
-/**
- * Disconnect the currently connected wallet
- */
-export async function disconnectWallet(
-  auth0Id: string,
-  accessToken?: string
-): Promise<WalletResponse> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/user/wallets/disconnect`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
-      },
-      body: JSON.stringify({
-        auth0_id: auth0Id,
-      }),
-    });
+export async function disconnectWallet(): Promise<WalletResponse> {
+  const response = await credFetch(`${API_BASE_URL}/user/wallets/disconnect`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({}),
+  });
 
-    if (!response.ok) {
-      const error = await parseApiError(response);
-      throw new Error(toApiErrorMessage(response.status, error));
-    }
-
-    const data: WalletResponse = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error disconnecting wallet:', error);
-    throw error;
+  if (!response.ok) {
+    const error = await parseApiError(response);
+    throw new Error(toApiErrorMessage(response.status, error));
   }
+
+  return response.json();
 }
 
-/**
- * Delete a wallet
- */
-export async function deleteWallet(
-  walletId: number,
-  auth0Id: string,
-  accessToken?: string
-): Promise<WalletResponse> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/user/wallets/${walletId}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
-      },
-      body: JSON.stringify({
-        auth0_id: auth0Id,
-      }),
-    });
+export async function deleteWallet(walletId: number): Promise<WalletResponse> {
+  const response = await credFetch(`${API_BASE_URL}/user/wallets/${walletId}`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({}),
+  });
 
-    if (!response.ok) {
-      const error = await parseApiError(response);
-      throw new Error(toApiErrorMessage(response.status, error));
-    }
-
-    const data: WalletResponse = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error deleting wallet:', error);
-    throw error;
+  if (!response.ok) {
+    const error = await parseApiError(response);
+    throw new Error(toApiErrorMessage(response.status, error));
   }
+
+  return response.json();
 }
 
 export async function updateWalletAddress(
   walletId: number,
-  auth0Id: string,
-  walletAddress: string,
-  accessToken?: string
+  walletAddress: string
 ): Promise<WalletResponse> {
-  try {
-    const response = await fetch(`${API_BASE_URL}/user/wallets/${walletId}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
-      },
-      body: JSON.stringify({
-        auth0_id: auth0Id,
-        wallet_address: walletAddress,
-      }),
-    });
+  const response = await credFetch(`${API_BASE_URL}/user/wallets/${walletId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      wallet_address: walletAddress,
+    }),
+  });
 
-    if (!response.ok) {
-      const error = await parseApiError(response);
-      throw new Error(toApiErrorMessage(response.status, error));
-    }
-
-    const data: WalletResponse = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error updating wallet address:', error);
-    throw error;
+  if (!response.ok) {
+    const error = await parseApiError(response);
+    throw new Error(toApiErrorMessage(response.status, error));
   }
+
+  return response.json();
 }

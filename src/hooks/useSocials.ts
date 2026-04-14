@@ -111,7 +111,7 @@ export const getSocialProfileUrl = (platform: SocialPlatformKey, rawHandle?: str
 };
 
 export function useSocials({
-    user,
+    canPersist,
     dbUser,
     socials,
     visibleSocialInputs,
@@ -119,10 +119,9 @@ export function useSocials({
     setVisibleSocialInputs,
     setDbUser,
     showToast,
-    getAccessTokenSilently,
     setIsSavingSocials,
 }: {
-    user: any;
+    canPersist: boolean;
     dbUser: UserProfile | null;
     socials: ProfileSocials;
     visibleSocialInputs: Record<SocialPlatformKey, boolean>;
@@ -130,7 +129,6 @@ export function useSocials({
     setVisibleSocialInputs: (v: Record<SocialPlatformKey, boolean>) => void;
     setDbUser: (u: UserProfile) => void;
     showToast: (type: string, msg: string) => void;
-    getAccessTokenSilently: () => Promise<string | undefined>;
     setIsSavingSocials: (b: boolean) => void;
 }) {
     const handleConfirmRemoveSocial = async (pendingRemoveSocial: SocialPlatformKey | null) => {
@@ -144,19 +142,14 @@ export function useSocials({
         };
         setSocials(nextSocials);
         setVisibleSocialInputs(nextVisibleSocialInputs);
-        if (!user?.sub) return;
+        if (!canPersist) return;
         try {
             setIsSavingSocials(true);
-            const accessToken = await getAccessTokenSilently().catch(() => undefined);
             const normalizedSocials = normalizeSocials(nextSocials);
-            const result = await updateUserProfile(
-                user.sub,
-                {
-                    bio: dbUser?.bio || '',
-                    socials: normalizedSocials,
-                },
-                accessToken
-            );
+            const result = await updateUserProfile({
+                bio: dbUser?.bio || '',
+                socials: normalizedSocials,
+            });
             if (!result.success || !result.user) {
                 throw new Error('Failed to remove social handle');
             }
@@ -173,19 +166,14 @@ export function useSocials({
     };
 
     const handleSaveSocials = async () => {
-        if (!user?.sub) return;
+        if (!canPersist) return;
         try {
             setIsSavingSocials(true);
-            const accessToken = await getAccessTokenSilently().catch(() => undefined);
             const normalizedSocials = normalizeSocials(socials);
-            const result = await updateUserProfile(
-                user.sub,
-                {
-                    bio: dbUser?.bio || '',
-                    socials: normalizedSocials,
-                },
-                accessToken
-            );
+            const result = await updateUserProfile({
+                bio: dbUser?.bio || '',
+                socials: normalizedSocials,
+            });
             if (!result.success || !result.user) {
                 throw new Error('Failed to save social handles');
             }

@@ -1,15 +1,15 @@
 import { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth0 } from '@auth0/auth0-react';
+import { useAuth } from '../providers/AuthContext';
 
 interface ProtectedRouteProps {
     children: ReactNode;
 }
 
 function ProtectedRoute({ children }: ProtectedRouteProps) {
-    const { isAuthenticated, isLoading } = useAuth0();
+    const { user, loading } = useAuth();
 
-    if (isLoading) {
+    if (loading) {
         return (
             <div
                 style={{
@@ -25,7 +25,7 @@ function ProtectedRoute({ children }: ProtectedRouteProps) {
         );
     }
 
-    if (!isAuthenticated) {
+    if (!user) {
         return <Navigate to="/" replace />;
     }
 
