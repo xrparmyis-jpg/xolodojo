@@ -6,19 +6,7 @@
   "devCommand": "vite",
   "rewrites": [
     {
-      "source": "/api/user/wallets/:walletId/connect",
-      "destination": "/api/user/wallets/[walletId]?walletId=:walletId"
-    },
-    {
-      "source": "/api/user/wallets/:walletId",
-      "destination": "/api/user/wallets/[walletId]?walletId=:walletId"
-    },
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
-    },
-    {
-      "source": "/(.*)",
+      "source": "/((?!api(?:/|$)).*)",
       "destination": "/index.html"
     }
   ]

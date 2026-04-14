@@ -5,7 +5,7 @@ export const walletConnectHandler: IWalletHandler = {
        console.log(args)
      // TODO: Implement WalletConnect connect logic
      // Example: await wagmiConnector.connect(...)
-     // await connectWallet(auth0Id, walletId, accessToken);
+     // await connectWallet(walletId);
      // await loadWallets();
      // showToast('success', 'WalletConnect wallet connected');
   },

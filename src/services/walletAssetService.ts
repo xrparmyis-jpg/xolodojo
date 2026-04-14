@@ -25,28 +25,19 @@ export interface WalletAssetSummary {
   xrpl_rpc_urls_attempted?: string[];
 }
 
-export async function getWalletAssetSummary(
-  auth0Id: string,
-  walletAddress: string,
-  accessToken?: string
-): Promise<WalletAssetSummary> {
-  const url = `${API_BASE_URL}/user/wallet-assets?auth0_id=${encodeURIComponent(auth0Id)}&wallet_address=${encodeURIComponent(walletAddress)}`;
+export async function getWalletAssetSummary(walletAddress: string): Promise<WalletAssetSummary> {
+  const url = `${API_BASE_URL}/user/wallet-assets?wallet_address=${encodeURIComponent(walletAddress)}`;
   walletTraceLog('GET wallet-assets (NFT summary)', {
     apiBase: API_BASE_URL,
     addressPreview: walletAddressPreview(walletAddress),
     addressLen: walletAddress.trim().length,
   });
 
-  const response = await fetch(
-    url,
-    {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
-      },
-    }
-  );
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+  });
 
   if (!response.ok) {
     const error = await response

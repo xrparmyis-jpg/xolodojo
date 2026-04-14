@@ -104,7 +104,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     ),
   },
   {
-    id: 'utility',
+    id: 'utility-vision',
     imageAtLg: 'left',
     imageSrc: '/home/AbstractXoloBlue.jpg',
     imageAlt: 'Abstract Xolo Blue',
@@ -121,7 +121,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     ),
   },
   {
-    id: 'utility',
+    id: 'utility-mint',
     imageAtLg: 'right',
     imageSrc: '/home/StaindGlassXoloSkiGoggles.jpg',
     imageAlt: 'Staind Glass Xolo',
@@ -138,7 +138,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     ),
   },
   {
-    id: 'utility',
+    id: 'utility-xglobe',
     imageAtLg: 'left',
     imageSrc: '/home/SpacesuitXoloRed.jpg',
     imageAlt: 'Spacesuit Xolo',

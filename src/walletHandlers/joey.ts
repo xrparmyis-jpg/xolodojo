@@ -9,8 +9,8 @@ export const joeyHandler: IWalletHandler = {
   async connect() {
     return Promise.resolve();
   },
-  async disconnect({ auth0Id, accessToken }: { auth0Id: string; accessToken?: string }) {
-    await disconnectWallet(auth0Id, accessToken);
+  async disconnect() {
+    await disconnectWallet();
   },
   async repair() {
     // Implement Joey repair logic if needed

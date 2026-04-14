@@ -1,13 +1,11 @@
-import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { useAuth0 } from "@auth0/auth0-react";
 import "./App.css";
 import AppLoadingOverlay from "./components/AppLoadingOverlay";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import { ToastProvider } from "./components/ToastProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { useUserSync } from "./hooks/useUserSync";
 import Home from "./pages/Home";
 import FAQ from "./pages/FAQ";
 import Profile from "./pages/Profile";
@@ -18,15 +16,10 @@ import Xoloitzquintle from "./pages/Xoloitzquintle";
 import Vision from "./pages/Vision";
 import Team from "./pages/Team";
 import XoloGlobe from "./pages/XoloGlobe";
-import { isAuth0SpaCallbackUrl } from "./utils/oauthCallbackGuards";
 
 function AppContent() {
-  const { isAuthenticated, isLoading } = useAuth0();
-  const navigate = useNavigate();
   const location = useLocation();
   const [isInitialLoading, setIsInitialLoading] = useState(import.meta.env.DEV);
-
-  useUserSync();
 
   useEffect(() => {
     window.scrollTo({
@@ -45,37 +38,6 @@ function AppContent() {
 
     return () => window.clearTimeout(timeoutId);
   }, []);
-
-  // Redirect to profile ONLY after Auth0 login callback at `/` (redirect_uri = origin).
-  // Do NOT strip query params for Xaman/Xumm OAuth returns — they also use code/state
-  // (or authorization_code / scope=XummPkce) and land on /profile or other paths.
-  useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      const { pathname, search } = window.location;
-      if (!isAuth0SpaCallbackUrl(pathname, search)) {
-        return;
-      }
-
-      const appState = sessionStorage.getItem('auth0_app_state');
-      let returnTo = '/profile';
-
-      if (appState) {
-        try {
-          const parsed = JSON.parse(appState);
-          returnTo = parsed.returnTo || '/profile';
-          sessionStorage.removeItem('auth0_app_state');
-        } catch {
-          // Ignore parse errors
-        }
-      }
-
-      window.history.replaceState({}, '', returnTo);
-
-      window.setTimeout(() => {
-        navigate(returnTo, { replace: true });
-      }, 300);
-    }
-  }, [isAuthenticated, isLoading, navigate]);
 
   return (
     <div className="min-h-screen flex flex-col">
