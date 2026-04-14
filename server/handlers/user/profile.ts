@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import mysql from 'mysql2/promise';
-import { requireSessionUserId } from '../../server/lib/sessionAuth.js';
+import { requireSessionUserId } from '../../lib/sessionAuth.js';
 
 let pool: mysql.Pool | null = null;
 

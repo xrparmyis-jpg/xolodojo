@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getAppMysqlPool } from '../../server/lib/mysqlPool.js';
-import { getAppPublicOrigin } from '../../server/lib/sessionAuth.js';
+import type { RowDataPacket } from 'mysql2';
+import { getAppMysqlPool } from '../../lib/mysqlPool.js';
+import { getAppPublicOrigin } from '../../lib/sessionAuth.js';
 
 function redirect(res: VercelResponse, pathWithQuery: string): void {
   const base = getAppPublicOrigin();
@@ -26,11 +27,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
   try {
     const pool = getAppMysqlPool();
-    const [rows] = await pool.query<Record<string, unknown>>(
+    const [rows] = await pool.query<RowDataPacket[]>(
       'SELECT id, verification_token_expiry FROM users WHERE verification_token = ? LIMIT 1',
       [token]
     );
-    const list = rows as Record<string, unknown>[];
+    const list = rows;
     if (!Array.isArray(list) || list.length === 0) {
       redirect(res, '/?authError=verify');
       return;

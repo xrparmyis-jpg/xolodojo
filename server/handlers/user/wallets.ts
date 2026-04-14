@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import mysql from 'mysql2/promise';
-import { resolveCanonicalClassicAddress } from '../../server/xrplClassicAddress.js';
-import { requireSessionUserId } from '../../server/lib/sessionAuth.js';
+import { resolveCanonicalClassicAddress } from '../../xrplClassicAddress.js';
+import { requireSessionUserId } from '../../lib/sessionAuth.js';
 
 let pool: mysql.Pool | null = null;
 
@@ -189,8 +189,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const userId = await requireSessionUserId(req, res);
       if (userId === null) return;
 
-      const { wallet_address, wallet_type, wallet_label } = req.body as Record<string, unknown>;
-      if (!wallet_address || !wallet_type) {
+      const body = req.body as Record<string, unknown>;
+      const wallet_address = body.wallet_address;
+      const wallet_type = body.wallet_type;
+      const wallet_label = body.wallet_label;
+      if (typeof wallet_address !== 'string' || typeof wallet_type !== 'string') {
         res.status(400).json({ error: 'Missing required fields' });
         return;
       }

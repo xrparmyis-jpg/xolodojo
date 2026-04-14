@@ -3,7 +3,7 @@ import {
   buildSessionClearCookie,
   deleteSessionByToken,
   getSessionTokenFromRequest,
-} from '../../server/lib/sessionAuth.js';
+} from '../../lib/sessionAuth.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   if (req.method !== 'POST') {

@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { randomBytes } from 'node:crypto';
-import { getAppMysqlPool } from '../../server/lib/mysqlPool.js';
-import { getUserByEmail, getUserByUsername, hashPassword, getAppPublicOrigin } from '../../server/lib/sessionAuth.js';
-import { sendMail } from '../../server/lib/mail.js';
-import { validateDisplayName, validateUsername } from '../../src/lib/username.js';
+import { getAppMysqlPool } from '../../lib/mysqlPool.js';
+import { getUserByEmail, getUserByUsername, hashPassword, getAppPublicOrigin } from '../../lib/sessionAuth.js';
+import { sendMail } from '../../lib/mail.js';
+import { validateDisplayName, validateUsername } from '../../../src/lib/username.js';
 
 const VERIFY_TTL_MS = 48 * 60 * 60 * 1000;
 

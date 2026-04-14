@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { randomBytes } from 'node:crypto';
-import { getAppMysqlPool } from '../../server/lib/mysqlPool.js';
-import { getUserByUsername, getAppPublicOrigin } from '../../server/lib/sessionAuth.js';
-import { sendMail } from '../../server/lib/mail.js';
-import { validateUsername } from '../../src/lib/username.js';
+import { getAppMysqlPool } from '../../lib/mysqlPool.js';
+import { getUserByUsername, getAppPublicOrigin } from '../../lib/sessionAuth.js';
+import { sendMail } from '../../lib/mail.js';
+import { validateUsername } from '../../../src/lib/username.js';
 
 const FORGOT_PASSWORD_SUCCESS_MESSAGE =
   'If an account exists for that username, check your inbox for a message with a reset password link. The link opens a page where you enter your new password and confirm it.';

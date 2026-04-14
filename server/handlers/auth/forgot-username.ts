@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getUserByEmail } from '../../server/lib/sessionAuth.js';
-import { sendMail } from '../../server/lib/mail.js';
+import { getUserByEmail } from '../../lib/sessionAuth.js';
+import { sendMail } from '../../lib/mail.js';
 
 const GENERIC_MESSAGE =
   'If an account exists for that email, you should receive a message with your username shortly.';

@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getAppMysqlPool } from '../../server/lib/mysqlPool.js';
-import { hashPassword } from '../../server/lib/sessionAuth.js';
+import type { RowDataPacket } from 'mysql2';
+import { getAppMysqlPool } from '../../lib/mysqlPool.js';
+import { hashPassword } from '../../lib/sessionAuth.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   if (req.method !== 'POST') {
@@ -25,7 +26,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     }
 
     const pool = getAppMysqlPool();
-    const [rows] = await pool.query<Record<string, unknown>>(
+    const [rows] = await pool.query<RowDataPacket[]>(
       `SELECT id
        FROM users
        WHERE reset_token = ?
@@ -34,7 +35,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
        LIMIT 1`,
       [token]
     );
-    const list = rows as Record<string, unknown>[];
+    const list = rows;
     if (!Array.isArray(list) || list.length === 0) {
       res.status(400).json({ error: 'Invalid or expired reset token' });
       return;

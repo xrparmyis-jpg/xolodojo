@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { PIN_NOTE_MAX_LENGTH, PIN_NOTE_MIN_LENGTH } from '../../src/constants/pinNote.js';
-import { parsePinWebsiteForStorage } from '../../src/utils/pinWebsiteUrl.js';
-import { getAppMysqlPool } from '../../server/lib/mysqlPool.js';
-import { requireSessionUserId } from '../../server/lib/sessionAuth.js';
+import { PIN_NOTE_MAX_LENGTH, PIN_NOTE_MIN_LENGTH } from '../../../src/constants/pinNote.js';
+import { parsePinWebsiteForStorage } from '../../../src/utils/pinWebsiteUrl.js';
+import { getAppMysqlPool } from '../../lib/mysqlPool.js';
+import { requireSessionUserId } from '../../lib/sessionAuth.js';
 import {
   deleteUserPin,
   listPinsForUser,
@@ -10,7 +10,7 @@ import {
   upsertUserPin,
   type PinnedNftItem,
   type PinnedNftSocials,
-} from '../../server/lib/userPinsRepo.js';
+} from '../../lib/userPinsRepo.js';
 
 const allowedSocialKeys = [
   'twitter',

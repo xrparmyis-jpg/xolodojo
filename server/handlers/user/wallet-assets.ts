@@ -1,13 +1,13 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import mysql from 'mysql2/promise';
 import { readFile } from 'node:fs/promises';
-import { deletePinsForWalletNotHeld } from '../../server/lib/userPinsRepo.js';
+import { deletePinsForWalletNotHeld } from '../../lib/userPinsRepo.js';
 import {
 	isResolvableLedgerAccount,
 	resolveCanonicalClassicAddress,
 	stripInvisible,
-} from '../../server/xrplClassicAddress.js';
-import { requireSessionUserId } from '../../server/lib/sessionAuth.js';
+} from '../../xrplClassicAddress.js';
+import { requireSessionUserId } from '../../lib/sessionAuth.js';
 
 let pool: mysql.Pool | null = null;
 let cachedCollectionAddress: string | null | undefined;

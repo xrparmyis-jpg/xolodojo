@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getSessionUserFromRequest } from '../../server/lib/sessionAuth.js';
+import { getSessionUserFromRequest } from '../../lib/sessionAuth.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   if (req.method !== 'GET') {
