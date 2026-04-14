@@ -236,13 +236,20 @@ export async function getUserByUsername(username: string): Promise<DbRow | null>
   return list[0] ?? null;
 }
 
-/** Public site URL for links in emails (server-side). */
+/** Public site URL for links in emails and post-auth redirects (server-side). */
 export function getAppPublicOrigin(): string {
+  const trimmed = (value: string) => value.replace(/\/$/, '');
   if (process.env.APP_PUBLIC_URL) {
-    return process.env.APP_PUBLIC_URL.replace(/\/$/, '');
+    return trimmed(process.env.APP_PUBLIC_URL);
+  }
+  // Without APP_PUBLIC_URL, VERCEL_URL is the *deployment* host (e.g. xolodojo-abc123.vercel.app),
+  // not the production alias — bad for verify-email redirects and email links.
+  const productionHost = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  if (process.env.VERCEL_ENV === 'production' && productionHost) {
+    return `https://${trimmed(productionHost)}`;
   }
   if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL.replace(/\/$/, '')}`;
+    return `https://${trimmed(process.env.VERCEL_URL)}`;
   }
   return 'http://localhost:5173';
 }

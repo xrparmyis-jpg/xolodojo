@@ -44,8 +44,31 @@ function expressUrlFromVercelRequest(req: VercelRequest): string {
   return rawUrl.startsWith('/api') ? rawUrl : `/api${rawUrl.startsWith('/') ? rawUrl : `/${rawUrl}`}`;
 }
 
+/** After `/api/(.*)` → `/api?p=$1` rewrite, some query keys may exist only on `req.url` helpers — merge for Express. */
+function mergeVercelQueryIntoUrl(url: string, query: VercelRequest['query']): string {
+  if (!query || typeof query !== 'object') {
+    return url;
+  }
+  try {
+    const u = new URL(url, 'http://vc.local');
+    for (const [key, val] of Object.entries(query)) {
+      if (key === 'p' || val === undefined) {
+        continue;
+      }
+      const v = Array.isArray(val) ? val[0] : val;
+      if (typeof v === 'string' && v.length > 0 && !u.searchParams.has(key)) {
+        u.searchParams.set(key, v);
+      }
+    }
+    return u.pathname + (u.search ? u.search : '');
+  } catch {
+    return url;
+  }
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
-  (req as { url: string }).url = expressUrlFromVercelRequest(req);
+  const pathUrl = expressUrlFromVercelRequest(req);
+  (req as { url: string }).url = mergeVercelQueryIntoUrl(pathUrl, req.query);
 
   const app = await getApp();
   await new Promise<void>((resolve, reject) => {
