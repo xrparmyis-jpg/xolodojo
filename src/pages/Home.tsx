@@ -349,22 +349,7 @@ function Home() {
           <img src="/color-bg-shape-2.png" alt="" aria-hidden />
         </div>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-6 text-center lg:mb-8">
-            <GsapPageContent
-              as="h2"
-              className="text-3xl font-bold md:text-4xl lg:text-5xl"
-              delay={0}
-            >
-              The Xolo&apos;s <br />
-              <img
-                src="/has.png"
-                alt="asterisk"
-                className="mx-1 inline-block h-5 w-5 align-middle md:h-6 md:w-6"
-              />{' '}
-              Legacy
-            </GsapPageContent>
-          </div>
-
+          
           <div className="flex flex-col gap-12 lg:gap-16">
             {LEGACY_STORY_ROWS.map((row, index) => {
               const imageLeft = row.imageAtLg === 'left';
