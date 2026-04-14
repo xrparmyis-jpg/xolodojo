@@ -6,7 +6,15 @@
   "devCommand": "vite",
   "rewrites": [
     {
-      "source": "/((?!api(?:/|$)).*)",
+      "source": "/api",
+      "destination": "/api"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/api?p=$1"
+    },
+    {
+      "source": "/((?!api).*)",
       "destination": "/index.html"
     }
   ]
