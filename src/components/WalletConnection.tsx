@@ -54,13 +54,11 @@ import { extractJoeyWalletAddress } from '../wallets/joey/extractJoeyWalletAddre
 import { walletAddressPreview, walletDebugLog, walletTraceLog } from '../utils/walletDebugLog';
 
 interface WalletConnectionProps {
-    auth0Id: string;
-    accessToken?: string;
     onWalletsUpdated?: (wallets: Wallet[]) => void;
     resumeXamanOnMount?: boolean;
 }
 
-function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resumeXamanOnMount }: WalletConnectionProps) {
+function WalletConnectionContent({ onWalletsUpdated, resumeXamanOnMount }: WalletConnectionProps) {
     const { showToast, clearToasts } = useToast();
 
     const { open } = useWeb3Modal();
@@ -111,9 +109,9 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
         if ((wallet.wallet_type !== 'xaman' && wallet.wallet_type !== 'joey') || wallet.wallet_address === resolvedAddress) {
             return wallet;
         }
-        const result = await updateWalletAddress(wallet.id, auth0Id, resolvedAddress, accessToken);
+        const result = await updateWalletAddress(wallet.id, resolvedAddress);
         return result.wallet ?? { ...wallet, wallet_address: resolvedAddress };
-    }, [accessToken, auth0Id]);
+    }, []);
 
     const tryDisconnectCurrentWallet = useCallback(
         async (currentWallet?: Wallet | null) => {
@@ -127,12 +125,12 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                     clearJoeyConnectIntent();
                     await disconnectJoeyFromProvider();
                 }
-                await disconnectWallet(auth0Id, accessToken);
+                await disconnectWallet();
             } catch (error) {
                 console.warn('Best-effort disconnect failed, continuing with new connection:', error);
             }
         },
-        [accessToken, auth0Id, showToast, disconnectJoeyFromProvider]
+        [showToast, disconnectJoeyFromProvider]
     );
 
     const { mutateAsync: wagmiDisconnectAsync } = useWagmiDisconnect();
@@ -143,7 +141,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
             if (!silent) {
                 setWalletBusyMessage(LOADING_WALLETS_MESSAGE);
             }
-            const result = await getUserWallets(auth0Id, accessToken);
+            const result = await getUserWallets();
             if (result.success) {
                 // Filter out wallets with empty address or invalid type
                 const validWallets = (result.wallets || []).filter(
@@ -161,7 +159,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                 setWalletBusyMessage(null);
             }
         }
-    }, [accessToken, auth0Id, onWalletsUpdated, showToast]);
+    }, [onWalletsUpdated, showToast]);
 
     const applyConnectedWalletFromApi = useCallback(
         (connectedRow: Wallet) => {
@@ -274,8 +272,6 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
         joeyAccount,
         joeySession: joeySession,
         wallets,
-        auth0Id,
-        accessToken,
         loadWallets,
         applyConnectedWalletFromApi,
         setWalletBusyMessage,
@@ -288,7 +284,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
     useEffect(() => {
         const resolved = extractJoeyWalletAddress(joeyAccount, joeySession);
         const joeyRow = wallets.find((w) => w.is_connected && w.wallet_type === 'joey');
-        if (!resolved || !joeyRow || !accessToken) {
+        if (!resolved || !joeyRow) {
             return;
         }
         if (resolved === joeyRow.wallet_address) {
@@ -317,7 +313,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                 console.warn('[Donovan:Wallet] Joey address casing repair failed:', e);
             }
         })();
-    }, [joeyAccount, joeySession, wallets, accessToken, repairWalletAddressIfNeeded, loadWallets]);
+    }, [joeyAccount, joeySession, wallets, repairWalletAddressIfNeeded, loadWallets]);
 
     useEffect(() => {
         void loadWallets();
@@ -325,8 +321,6 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
 
     // Memoize handler args after all dependencies are declared
     const xamanHandlerArgs = useMemo(() => ({
-        auth0Id,
-        accessToken,
         wallets,
         setWalletBusyMessage,
         setShowToast: showToast,
@@ -341,7 +335,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
         onWalletsUpdated,
         getUserWallets,
         connectedWallet: wallets.find((w) => w.is_connected && w.wallet_type === 'xaman'),
-    }), [auth0Id, accessToken, wallets, showToast, loadWallets, applyConnectedWalletFromApi, repairWalletAddressIfNeeded, tryDisconnectCurrentWallet, connectWallet, addWallet, setWallets, onWalletsUpdated, getUserWallets]);
+    }), [wallets, showToast, loadWallets, applyConnectedWalletFromApi, repairWalletAddressIfNeeded, tryDisconnectCurrentWallet, connectWallet, addWallet, setWallets, onWalletsUpdated, getUserWallets]);
 
     useEffect(() => {
         const repairConnectedXamanWallet = async () => {
@@ -380,7 +374,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                         await tryDisconnectCurrentWallet(currentConnectedWallet);
                     }
 
-                    const connectResPending = await connectWallet(auth0Id, existingWallet.id, accessToken);
+                    const connectResPending = await connectWallet(existingWallet.id);
                     if (connectResPending.wallet) {
                         applyConnectedWalletFromApi(connectResPending.wallet);
                     }
@@ -397,7 +391,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                     if (currentConnectedWallet && currentConnectedWallet.id !== existingWallet.id) {
                         await tryDisconnectCurrentWallet(currentConnectedWallet);
                     }
-                    const connectResExisting = await connectWallet(auth0Id, existingWallet.id, accessToken);
+                    const connectResExisting = await connectWallet(existingWallet.id);
                     if (connectResExisting.wallet) {
                         applyConnectedWalletFromApi(connectResExisting.wallet);
                     }
@@ -408,17 +402,15 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
 
                 const walletConnectLabel = await getWalletConnectSessionLabel();
                 const result = await addWallet(
-                    auth0Id,
                     normalizedAddress,
                     'walletconnect',
-                    walletConnectLabel,
-                    accessToken
+                    walletConnectLabel
                 );
                 if (result.success && result.wallet) {
                     if (currentConnectedWallet) {
                         await tryDisconnectCurrentWallet(currentConnectedWallet);
                     }
-                    const connectResNew = await connectWallet(auth0Id, result.wallet.id, accessToken);
+                    const connectResNew = await connectWallet(result.wallet.id);
                     if (connectResNew.wallet) {
                         applyConnectedWalletFromApi(connectResNew.wallet);
                     }
@@ -444,8 +436,6 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
 
         void syncWalletConnectSession();
     }, [
-        accessToken,
-        auth0Id,
         isWalletConnectPending,
         isWagmiConnected,
         pendingWalletConnectId,
@@ -515,7 +505,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                 }
 
                 setWalletBusyMessage(CONNECTING_WALLET_GENERIC_MESSAGE);
-                const res = await connectWallet(auth0Id, walletId, accessToken);
+                const res = await connectWallet(walletId);
                 if (res.wallet) {
                     applyConnectedWalletFromApi(res.wallet);
                 }
@@ -533,8 +523,6 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
             }
         },
         [
-            auth0Id,
-            accessToken,
             applyConnectedWalletFromApi,
             clearWalletToasts,
             connectWallet,
@@ -549,13 +537,10 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
 
     useEffect(() => {
         if (!resumeXamanOnMount || hasResumedXamanOnMount) return;
-        if (!accessToken) {
-            return;
-        }
         setHasResumedXamanOnMount(true);
 
         void handleConnectXaman(undefined, { resumeFromRedirect: true });
-    }, [resumeXamanOnMount, hasResumedXamanOnMount, accessToken, handleConnectXaman]);
+    }, [resumeXamanOnMount, hasResumedXamanOnMount, handleConnectXaman]);
 
     const handleDelete = async (walletId: number) => {
         const walletToDelete = wallets.find(w => w.id === walletId);
@@ -576,16 +561,20 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
             }
 
             try {
-                const pinnedNfts = await import('../services/pinnedNftService').then(mod => mod.getPinnedNfts(auth0Id, walletToDelete.wallet_address, accessToken));
+                const pinnedNfts = await import('../services/pinnedNftService').then((mod) =>
+                    mod.getPinnedNfts(walletToDelete.wallet_address)
+                );
                 for (const nft of pinnedNfts) {
-                    await import('../services/pinnedNftService').then(mod => mod.unpinNft(auth0Id, nft.token_id, walletToDelete.wallet_address, accessToken));
+                    await import('../services/pinnedNftService').then((mod) =>
+                        mod.unpinNft(nft.token_id, walletToDelete.wallet_address)
+                    );
                 }
             } catch (err) {
                 // Log and continue if pin removal fails
                 console.error('Failed to remove pinned NFTs for wallet:', err);
             }
 
-            await deleteWallet(walletId, auth0Id, accessToken);
+            await deleteWallet(walletId);
             showToast('success', 'Wallet deleted successfully');
             await loadWallets({ silent: true });
         } catch (error) {
@@ -702,11 +691,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
         try {
             setIsAssetsLoading(true);
             setAssetsError(null);
-            const summary = await getWalletAssetSummary(
-                auth0Id,
-                connectedWallet.wallet_address,
-                accessToken
-            );
+            const summary = await getWalletAssetSummary(connectedWallet.wallet_address);
             setConnectedWalletAssets(summary);
             walletTraceLog('refresh NFT summary finished (UI will show count)', {
                 walletType: connectedWallet.wallet_type,
@@ -742,7 +727,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                 prev === LOADING_WALLET_SUMMARY_MESSAGE ? null : prev
             );
         }
-    }, [accessToken, auth0Id, connectedWallet, wallets.length]);
+    }, [connectedWallet, wallets.length]);
 
     useEffect(() => {
         if (!connectedWallet) {
@@ -1012,8 +997,6 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
                                 nfts={connectedWalletAssets.nfts}
                                 walletAddress={connectedWalletAssets.wallet_address}
                                 isLoading={isInteractionBlocked}
-                                auth0Id={auth0Id}
-                                accessToken={accessToken}
                             />
                         </div>
                     ) : (
@@ -1027,7 +1010,7 @@ function WalletConnectionContent({ auth0Id, accessToken, onWalletsUpdated, resum
     );
 }
 
-export function WalletConnection({ auth0Id, accessToken, onWalletsUpdated, resumeXamanOnMount }: WalletConnectionProps) {
+export function WalletConnection({ onWalletsUpdated, resumeXamanOnMount }: WalletConnectionProps) {
 
     const joeyProjectId = (import.meta.env.VITE_JOEY_PROJECT_ID || walletConnectProjectId || '717dec7dead15d3a101d504ed3933709').trim();
     const appUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173';
@@ -1048,8 +1031,6 @@ export function WalletConnection({ auth0Id, accessToken, onWalletsUpdated, resum
     return (
         <joeyStandalone.provider.Provider config={joeyProviderConfig}>
             <WalletConnectionContent
-                auth0Id={auth0Id}
-                accessToken={accessToken}
                 onWalletsUpdated={onWalletsUpdated}
                 resumeXamanOnMount={resumeXamanOnMount}
             />

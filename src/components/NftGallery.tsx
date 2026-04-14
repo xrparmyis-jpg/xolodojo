@@ -28,8 +28,6 @@ interface NftGalleryProps {
     nfts: WalletAssetSummary['nfts'];
     walletAddress?: string;
     isLoading: boolean;
-    auth0Id: string;
-    accessToken?: string;
 }
 
 const parseSocialsFromPreferences = (preferences: unknown): PinnedNftSocials => {
@@ -163,7 +161,7 @@ function extractTraitsFromMetadata(metadata: unknown): NftTrait[] {
     return out;
 }
 
-export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, auth0Id, accessToken }: NftGalleryProps) {
+export default function NftGallery({ nftCount, nfts, walletAddress, isLoading }: NftGalleryProps) {
     const NFTS_PER_PAGE = 12;
     const navigate = useNavigate();
     const [currentNftPage, setCurrentNftPage] = useState(1);
@@ -633,7 +631,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
                     return;
                 }
 
-                const pinned = await getPinnedNfts(auth0Id, walletAddress, accessToken);
+                const pinned = await getPinnedNfts(walletAddress);
                 if (!cancelled) {
                     setPinnedNftItems(pinned);
                     setPinnedTokenIds(pinned.map((item) => item.token_id));
@@ -654,7 +652,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
         return () => {
             cancelled = true;
         };
-    }, [accessToken, auth0Id, debugNft, walletAddress]);
+    }, [debugNft, walletAddress]);
 
     const socialSelectionFromSavedPin = useCallback((socials: PinnedNftSocials | null | undefined) => {
         if (!socials || typeof socials !== 'object') {
@@ -673,7 +671,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
 
         const loadProfileSocials = async () => {
             try {
-                const result = await getUserProfile(auth0Id, accessToken);
+                const result = await getUserProfile();
                 if (!result.success || !result.user || cancelled) {
                     return;
                 }
@@ -695,7 +693,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
         return () => {
             cancelled = true;
         };
-    }, [accessToken, auth0Id, debugNft]);
+    }, [debugNft]);
 
     useEffect(() => {
         let cancelled = false;
@@ -1014,24 +1012,20 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
         const pinTargetThumbnailUrl = getNftThumbnailUrl(pinTargetNft.token_id, pinTargetNft.uri);
         try {
             setIsPinActionLoading(true);
-            const nextPinned = await pinNft(
-                auth0Id,
-                {
-                    token_id: pinTargetNft.token_id,
-                    wallet_address: walletAddress,
-                    issuer: pinTargetNft.issuer,
-                    uri: pinTargetNft.uri,
-                    latitude: pinLocation.lat,
-                    longitude: pinLocation.lng,
-                    image_url: pinTargetThumbnailUrl,
-                    title: normalizedPinTitle,
-                    collection_name: pinTargetCollectionName,
-                    socials: selectedPinSocials,
-                    pin_note: normalizedPinNote,
-                    website_url: parsePinWebsiteForStorage(pinWebsiteSuffixInput),
-                },
-                accessToken
-            );
+            const nextPinned = await pinNft({
+                token_id: pinTargetNft.token_id,
+                wallet_address: walletAddress,
+                issuer: pinTargetNft.issuer,
+                uri: pinTargetNft.uri,
+                latitude: pinLocation.lat,
+                longitude: pinLocation.lng,
+                image_url: pinTargetThumbnailUrl,
+                title: normalizedPinTitle,
+                collection_name: pinTargetCollectionName,
+                socials: selectedPinSocials,
+                pin_note: normalizedPinNote,
+                website_url: parsePinWebsiteForStorage(pinWebsiteSuffixInput),
+            });
             setPinnedNftItems(nextPinned);
             setPinnedTokenIds(nextPinned.map((item) => item.token_id));
             showToast('success', pinFormMode === 'edit' ? 'Pin updated successfully.' : 'NFT pinned successfully.');
@@ -1058,8 +1052,6 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
             setIsPinActionLoading(false);
         }
     }, [
-        accessToken,
-        auth0Id,
         debugNft,
         getNftThumbnailUrl,
         normalizedPinTitle,
@@ -1089,7 +1081,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading, a
 
         try {
             setIsPinActionLoading(true);
-            const nextPinned = await unpinNft(auth0Id, tokenToUnpin, walletAddress, accessToken);
+            const nextPinned = await unpinNft(tokenToUnpin, walletAddress);
             setPinnedNftItems(nextPinned);
             setPinnedTokenIds(nextPinned.map((item) => item.token_id));
             setPendingUnpinTokenId(null);

@@ -12,8 +12,13 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 const app = express();
 const PORT = process.env.API_PORT ? parseInt(process.env.API_PORT) : 3000;
 
-// Middleware
-app.use(cors());
+// Middleware — credentials for session cookies (Vite proxy + production same-origin)
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 // Error handling middleware (must be before routes)
@@ -65,6 +70,10 @@ function vercelToExpress(vercelHandler: VercelHandler) {
         res.setHeader(name, value);
         return vercelRes;
       },
+      end: (chunk?: any) => {
+        res.end(chunk);
+        return vercelRes;
+      },
     } as VercelResponse;
 
     try {
@@ -87,7 +96,6 @@ async function setupRoutes() {
   try {
     const [
       profileModule,
-      syncModule,
       walletsModule,
       walletAssetsModule,
       pinnedNftsModule,
@@ -95,9 +103,17 @@ async function setupRoutes() {
       nftResourceProxyModule,
       walletsIdModule,
       walletsDisconnectModule,
+      authLoginModule,
+      authLogoutModule,
+      authMeModule,
+      authRegisterModule,
+      authVerifyEmailModule,
+      authForgotPasswordModule,
+      authForgotUsernameModule,
+      authResetPasswordModule,
+      authResendVerificationModule,
     ] = await Promise.all([
       import('./api/user/profile'),
-      import('./api/user/sync'),
       import('./api/user/wallets'),
       import('./api/user/wallet-assets'),
       import('./api/user/pinned-nfts'),
@@ -105,11 +121,29 @@ async function setupRoutes() {
       import('./api/user/nft-resource-proxy'),
       import('./api/user/wallets/[walletId]'),
       import('./api/user/wallets/disconnect'),
+      import('./api/auth/login'),
+      import('./api/auth/logout'),
+      import('./api/auth/me'),
+      import('./api/auth/register'),
+      import('./api/auth/verify-email'),
+      import('./api/auth/forgot-password'),
+      import('./api/auth/forgot-username'),
+      import('./api/auth/reset-password'),
+      import('./api/auth/resend-verification'),
     ]);
 
     // API Routes (specific routes BEFORE parameterized patterns)
+    app.all('/api/auth/login', vercelToExpress(authLoginModule.default));
+    app.all('/api/auth/logout', vercelToExpress(authLogoutModule.default));
+    app.all('/api/auth/me', vercelToExpress(authMeModule.default));
+    app.all('/api/auth/register', vercelToExpress(authRegisterModule.default));
+    app.all('/api/auth/verify-email', vercelToExpress(authVerifyEmailModule.default));
+    app.all('/api/auth/forgot-password', vercelToExpress(authForgotPasswordModule.default));
+    app.all('/api/auth/forgot-username', vercelToExpress(authForgotUsernameModule.default));
+    app.all('/api/auth/reset-password', vercelToExpress(authResetPasswordModule.default));
+    app.all('/api/auth/resend-verification', vercelToExpress(authResendVerificationModule.default));
+
     app.all('/api/user/profile', vercelToExpress(profileModule.default));
-    app.all('/api/user/sync', vercelToExpress(syncModule.default));
     app.all('/api/user/wallets', vercelToExpress(walletsModule.default));
     app.all('/api/user/wallet-assets', vercelToExpress(walletAssetsModule.default));
     app.all('/api/user/pinned-nfts', vercelToExpress(pinnedNftsModule.default));

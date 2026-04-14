@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import mysql from 'mysql2/promise';
+import { requireSessionUserId } from '../../../../server/lib/sessionAuth.js';
 
 let pool: mysql.Pool | null = null;
 
@@ -34,26 +35,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ? req.query.walletId[0]
       : req.query.walletId;
     const walletId = Number(walletIdParam);
-    const { auth0_id } = req.body;
-
-    if (!auth0_id) {
-      return res.status(400).json({ error: 'Missing auth0_id' });
-    }
 
     if (!Number.isFinite(walletId) || walletId <= 0) {
       return res.status(400).json({ error: 'Invalid walletId' });
     }
 
-    const [userResult] = (await pool.execute(
-      'SELECT id FROM users WHERE auth0_id = ?',
-      [auth0_id]
-    )) as [any[], any];
-
-    if (!Array.isArray(userResult) || userResult.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    const userId = userResult[0].id;
+    const userId = await requireSessionUserId(req, res);
+    if (userId === null) return;
 
     const [walletLookup] = (await pool.execute(
       'SELECT id FROM user_wallets WHERE id = ? AND user_id = ?',

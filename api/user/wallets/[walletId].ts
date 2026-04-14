@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getAppMysqlPool } from '../../../server/lib/mysqlPool.js';
 import { deletePinsForUserWallet } from '../../../server/lib/userPinsRepo.js';
 import { resolveCanonicalClassicAddress } from '../../../server/xrplClassicAddress.js';
+import { requireSessionUserId } from '../../../server/lib/sessionAuth.js';
 
 function getDbDebugInfo() {
   return {
@@ -54,32 +55,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Connect a wallet (set as active)
   if (req.url?.includes('/connect') && req.method === 'PUT') {
     try {
-      const { auth0_id } = req.body;
-      console.log(
-        'CONNECT HANDLER: walletId param:',
-        walletId,
-        'body auth0_id:',
-        auth0_id
-      );
-      if (!auth0_id) {
-        return res.status(400).json({ error: 'Missing auth0_id' });
-      }
+      const userId = await requireSessionUserId(req, res);
+      if (userId === null) return;
 
-      // Get user ID
-      const [userResult] = (await pool.execute(
-        'SELECT id FROM users WHERE auth0_id = ?',
-        [auth0_id]
-      )) as [any[], any];
-
-      console.log('CONNECT HANDLER: userResult:', userResult);
-
-      if (!Array.isArray(userResult) || userResult.length === 0) {
-        return res.status(404).json({ error: 'User not found' });
-      }
-
-      const userId = userResult[0].id;
-
-      console.log('CONNECT HANDLER: resolved userId:', userId);
+      console.log('CONNECT HANDLER: walletId param:', walletId, 'userId:', userId);
 
       // Verify wallet belongs to user
       const [wallet] = (await pool.execute(
@@ -139,21 +118,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Delete a wallet
   if (req.method === 'PATCH') {
     try {
-      const { auth0_id, wallet_address } = req.body;
-      if (!auth0_id || !wallet_address) {
-        return res.status(400).json({ error: 'Missing auth0_id or wallet_address' });
+      const userId = await requireSessionUserId(req, res);
+      if (userId === null) return;
+
+      const { wallet_address } = req.body as { wallet_address?: string };
+      if (!wallet_address) {
+        return res.status(400).json({ error: 'Missing wallet_address' });
       }
-
-      const [userResult] = (await pool.execute(
-        'SELECT id FROM users WHERE auth0_id = ?',
-        [auth0_id]
-      )) as [any[], any];
-
-      if (!Array.isArray(userResult) || userResult.length === 0) {
-        return res.status(404).json({ error: 'User not found' });
-      }
-
-      const userId = userResult[0].id;
 
       const [walletLookup] = (await pool.execute(
         'SELECT id, wallet_type FROM user_wallets WHERE id = ? AND user_id = ?',
@@ -235,22 +206,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Delete a wallet
   if (req.method === 'DELETE') {
     try {
-      const { auth0_id } = req.body;
-      if (!auth0_id) {
-        return res.status(400).json({ error: 'Missing auth0_id' });
-      }
-
-      // Get user ID
-      const [userResult] = (await pool.execute(
-        'SELECT id FROM users WHERE auth0_id = ?',
-        [auth0_id]
-      )) as [any[], any];
-
-      if (!Array.isArray(userResult) || userResult.length === 0) {
-        return res.status(404).json({ error: 'User not found' });
-      }
-
-      const userId = userResult[0].id;
+      const userId = await requireSessionUserId(req, res);
+      if (userId === null) return;
 
       const [walletLookup] = (await pool.execute(
         'SELECT wallet_address FROM user_wallets WHERE id = ? AND user_id = ?',

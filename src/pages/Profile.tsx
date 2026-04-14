@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
 
 import { useUserContext } from '../providers/UserContext';
+import { useAuth } from '../providers/AuthContext';
 import {
     getUserProfile,
     type ProfileSocials,
@@ -23,7 +23,7 @@ import { WalletConnection } from '../components/WalletConnection';
 type SocialPlatformKey = keyof ProfileSocials;
 
 function Profile() {
-    const { user, isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
+    const { user, loading: authLoading } = useAuth();
     const { profile, setProfile, setWallets } = useUserContext();
     const [dbUser, setDbUser] = useState<UserProfile | null>(null);
     const [socials, setSocials] = useState<ProfileSocials>({});
@@ -36,7 +36,7 @@ function Profile() {
     const { showToast } = useToast();
 
     const socialsHook = useSocials({
-        user,
+        canPersist: Boolean(user?.id),
         dbUser,
         socials,
         visibleSocialInputs,
@@ -44,47 +44,52 @@ function Profile() {
         setVisibleSocialInputs,
         setDbUser,
         showToast: ((type: string, msg: string) => showToast(type as 'success' | 'error', msg)) as (type: string, msg: string) => void,
-        getAccessTokenSilently,
         setIsSavingSocials,
     });
 
     useEffect(() => {
+        if (authLoading || !user?.id) {
+            return;
+        }
+        let cancelled = false;
         const loadProfile = async () => {
-            if (!isAuthenticated || !user || !user.sub) {
-                return;
-            }
             try {
                 setIsLoadingProfile(true);
-                const accessToken = await getAccessTokenSilently().catch(() => undefined);
-                const result = await getUserProfile(user.sub, accessToken);
+                const result = await getUserProfile();
+                if (cancelled) return;
                 if (result.success && result.user) {
                     setDbUser(result.user);
                     const loadedSocials = parseSocialsFromPreferences(result.user.preferences);
-                    setProfile({ auth0Id: user.sub, accessToken, socialHandles: { ...loadedSocials } });
+                    setProfile({ userId: user.id, socialHandles: { ...loadedSocials } });
                     setSocials(parseSocialsFromPreferences(result.user.preferences));
                     setVisibleSocialInputs(createEmptyVisibleInputs());
                 } else {
                     setDbUser(null);
-                    setProfile({ auth0Id: user.sub, accessToken });
+                    setProfile({ userId: user.id });
                     setSocials({});
                     setVisibleSocialInputs(createEmptyVisibleInputs());
                 }
             } finally {
-                setIsLoadingProfile(false);
+                if (!cancelled) {
+                    setIsLoadingProfile(false);
+                }
             }
         };
-        loadProfile();
-    }, [isAuthenticated, user, getAccessTokenSilently, setProfile]);
+        void loadProfile();
+        return () => {
+            cancelled = true;
+        };
+    }, [authLoading, user, setProfile]);
 
     useEffect(() => {
         if (typeof window === 'undefined') return;
-        if (!isAuthenticated || !user) return;
+        if (!user) return;
 
         const { pathname, search } = window.location;
         if (!shouldResumeXamanPkceConnect(pathname, search)) return;
 
         setResumeXamanOnMount(true);
-    }, [isAuthenticated, user]);
+    }, [user]);
 
     const handleActivateSocial = (key: SocialPlatformKey) => {
         setVisibleSocialInputs((current) => ({
@@ -125,7 +130,7 @@ function Profile() {
     );
     const shouldShowSaveSocialsButton = hasOpenSocialInput || hasEnteredSocialHandle;
 
-    if (isLoading) {
+    if (authLoading) {
         return (
             <div className="flex justify-center items-center min-h-[50vh] text-white">
                 Loading...
@@ -133,7 +138,7 @@ function Profile() {
         );
     }
 
-    if (!isAuthenticated || !user) {
+    if (!user) {
         return null;
     }
 
@@ -152,17 +157,17 @@ function Profile() {
                     <div className="w-full px-4 lg:w-5/6 xl:w-4/5">
                         <GsapPageContent className="mt-8 rounded-xl bg-white/5 p-8" delay={0.06}>
                             <div className="flex flex-col items-center gap-6">
-                                {user.picture && (
+                                {(user.pictureUrl || dbUser?.picture_url) && (
                                     <img
-                                        src={user.picture}
-                                        alt={user.name || 'User'}
+                                        src={user.pictureUrl || dbUser?.picture_url || ''}
+                                        alt={user.name || dbUser?.name || 'User'}
                                         className="w-30 h-30 rounded-full border-4 border-white/20"
                                     />
                                 )}
 
                                 <div className="text-center text-white">
                                     <h3 className="mb-2 text-white">
-                                        {user.name || 'User'}
+                                        {user.name || dbUser?.name || user.username || 'User'}
                                     </h3>
                                     {/* {user.email && (
                                             <p className="text-white/70 mb-4">
@@ -279,10 +284,8 @@ function Profile() {
                                 </div>
 
                                 {/* Wallet Connection Section */}
-                                {profile && profile.auth0Id && (
+                                {profile?.userId && (
                                     <WalletConnection
-                                        auth0Id={profile.auth0Id}
-                                        accessToken={profile.accessToken}
                                         onWalletsUpdated={setWallets}
                                         resumeXamanOnMount={resumeXamanOnMount}
                                     />

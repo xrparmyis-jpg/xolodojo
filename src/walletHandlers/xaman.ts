@@ -200,8 +200,6 @@ function toReadableErrorMessage(error: unknown): string {
 
 export const xamanHandler: IWalletHandler = {
 	async connect({
-		auth0Id,
-		accessToken,
 		wallets,
 		setWalletBusyMessage,
 		setShowToast,
@@ -267,9 +265,9 @@ export const xamanHandler: IWalletHandler = {
 
 			let walletsForMatch: Wallet[] = Array.isArray(wallets) ? filterValidWallets(wallets as Wallet[]) : [];
 
-			if (oauthReturnRecover && auth0Id && accessToken) {
+			if (oauthReturnRecover) {
 				try {
-					const fresh = await getUserWallets(auth0Id, accessToken);
+					const fresh = await getUserWallets();
 					if (fresh.success && Array.isArray(fresh.wallets)) {
 						walletsForMatch = filterValidWallets(fresh.wallets);
 					}
@@ -378,7 +376,7 @@ export const xamanHandler: IWalletHandler = {
 				if (currentConnectedWallet && currentConnectedWallet.id !== repairedWallet.id) {
 					await tryDisconnectCurrentWallet(currentConnectedWallet);
 				}
-				const connectResPick = await connectWallet(auth0Id, repairedWallet.id, accessToken);
+				const connectResPick = await connectWallet(repairedWallet.id);
 				if (connectResPick.wallet) {
 					applyConnectedWalletFromApi?.(connectResPick.wallet);
 				}
@@ -394,7 +392,7 @@ export const xamanHandler: IWalletHandler = {
 				if (currentConnectedWallet && currentConnectedWallet.id !== repairedWallet.id) {
 					await tryDisconnectCurrentWallet(currentConnectedWallet);
 				}
-				const connectResExisting = await connectWallet(auth0Id, repairedWallet.id, accessToken);
+				const connectResExisting = await connectWallet(repairedWallet.id);
 				if (connectResExisting.wallet) {
 					applyConnectedWalletFromApi?.(connectResExisting.wallet);
 				}
@@ -405,7 +403,7 @@ export const xamanHandler: IWalletHandler = {
 			}
 			// eslint-disable-next-line no-console
 			console.log('[Xaman][connect] branch: addWallet new xaman', resolvedXrplAddress);
-			const result = await addWallet(auth0Id, resolvedXrplAddress, 'xaman', undefined, accessToken);
+			const result = await addWallet(resolvedXrplAddress, 'xaman', undefined);
 			if (!result.success || !result.wallet) {
 				const msg = result.message || 'Could not save Xaman wallet to your profile.';
 				// eslint-disable-next-line no-console
@@ -416,7 +414,7 @@ export const xamanHandler: IWalletHandler = {
 			if (currentConnectedWallet) {
 				await tryDisconnectCurrentWallet(currentConnectedWallet);
 			}
-			const connectResNew = await connectWallet(auth0Id, result.wallet.id, accessToken);
+			const connectResNew = await connectWallet(result.wallet.id);
 			if (connectResNew.wallet) {
 				applyConnectedWalletFromApi?.(connectResNew.wallet);
 			}

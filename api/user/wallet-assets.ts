@@ -7,6 +7,7 @@ import {
 	resolveCanonicalClassicAddress,
 	stripInvisible,
 } from '../../server/xrplClassicAddress.js';
+import { requireSessionUserId } from '../../server/lib/sessionAuth.js';
 
 let pool: mysql.Pool | null = null;
 let cachedCollectionAddress: string | null | undefined;
@@ -170,17 +171,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const auth0Id = Array.isArray(req.query.auth0_id)
-      ? req.query.auth0_id[0]
-      : req.query.auth0_id;
+    const userId = await requireSessionUserId(req, res);
+    if (userId === null) return;
+
     const walletAddress = Array.isArray(req.query.wallet_address)
       ? req.query.wallet_address[0]
       : req.query.wallet_address;
 
-    if (!auth0Id || !walletAddress) {
-      return res
-        .status(400)
-        .json({ error: 'Missing auth0_id or wallet_address' });
+    if (!walletAddress) {
+      return res.status(400).json({ error: 'Missing wallet_address' });
     }
 
     const queryTrim = stripInvisible(String(walletAddress));
@@ -197,17 +196,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const dbPool = getPool();
-
-    const [userResult] = (await dbPool.execute(
-      'SELECT id FROM users WHERE auth0_id = ?',
-      [auth0Id]
-    )) as [any[], any];
-
-    if (!Array.isArray(userResult) || userResult.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    const userId = userResult[0].id;
 
     const [walletResult] = (await dbPool.execute(
       'SELECT id, wallet_address FROM user_wallets WHERE user_id = ? AND LOWER(wallet_address) = LOWER(?)',

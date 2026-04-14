@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import mysql from 'mysql2/promise';
 import { resolveCanonicalClassicAddress } from '../../server/xrplClassicAddress.js';
+import { requireSessionUserId } from '../../server/lib/sessionAuth.js';
 
 let pool: mysql.Pool | null = null;
 
@@ -137,30 +138,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Get all wallets for a user
   if (req.method === 'GET') {
     try {
-      const auth0Id = Array.isArray(req.query.auth0_id)
-        ? req.query.auth0_id[0]
-        : req.query.auth0_id;
-      if (!auth0Id) {
-        return res.status(400).json({ error: 'Missing auth0_id' });
-      }
-
-      const [userResult] = (await pool.execute(
-        'SELECT id FROM users WHERE auth0_id = ?',
-        [auth0Id]
-      )) as [any[], any];
-
-      if (!Array.isArray(userResult) || userResult.length === 0) {
-        return res.status(404).json({ error: 'User not found' });
-      }
-
-      const userId = userResult[0].id;
+      const userId = await requireSessionUserId(req, res);
+      if (userId === null) return;
 
       const [result] = (await pool.execute(
         `SELECT uw.* FROM user_wallets uw
-         JOIN users u ON uw.user_id = u.id
-         WHERE u.auth0_id = ?
+         WHERE uw.user_id = ?
          ORDER BY uw.updated_at DESC`,
-        [auth0Id]
+        [userId]
       )) as [any[], any];
 
       const preferences = await getUserPreferences(pool, userId);
@@ -201,23 +186,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Add a new wallet
   if (req.method === 'POST') {
     try {
-      const { auth0_id, wallet_address, wallet_type, wallet_label } = req.body;
-      if (!auth0_id || !wallet_address || !wallet_type) {
+      const userId = await requireSessionUserId(req, res);
+      if (userId === null) return;
+
+      const { wallet_address, wallet_type, wallet_label } = req.body as Record<string, unknown>;
+      if (!wallet_address || !wallet_type) {
         res.status(400).json({ error: 'Missing required fields' });
         return;
       }
-
-      // Get user ID
-      const [userResult] = (await pool.execute(
-        'SELECT id FROM users WHERE auth0_id = ?',
-        [auth0_id]
-      )) as [any[], any];
-
-      if (!Array.isArray(userResult) || userResult.length === 0) {
-        return res.status(404).json({ error: 'User not found' });
-      }
-
-      const userId = userResult[0].id;
       let normalizedWalletAddress: string;
       try {
         normalizedWalletAddress = normalizeWalletAddressForStorage(

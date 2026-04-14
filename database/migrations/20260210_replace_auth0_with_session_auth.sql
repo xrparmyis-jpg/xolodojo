@@ -1,7 +1,15 @@
--- Donovan Database Schema (MySQL) — local session auth (no Auth0)
--- Run migrations in database/migrations/ for upgrades; this file reflects the full current shape.
+-- Replace Auth0-linked users with local email/password auth.
+-- WARNING: Deletes all users, wallets, profiles, and globe pins. Run only after backup.
 
-CREATE TABLE IF NOT EXISTS users (
+SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS user_pins;
+DROP TABLE IF EXISTS user_wallets;
+DROP TABLE IF EXISTS user_profiles;
+DROP TABLE IF EXISTS user_sessions;
+DROP TABLE IF EXISTS users;
+SET FOREIGN_KEY_CHECKS = 1;
+
+CREATE TABLE users (
   id INT AUTO_INCREMENT PRIMARY KEY,
   email VARCHAR(255) NOT NULL,
   username VARCHAR(32) NOT NULL,
@@ -21,7 +29,7 @@ CREATE TABLE IF NOT EXISTS users (
   INDEX idx_users_role (role)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS user_sessions (
+CREATE TABLE user_sessions (
   id CHAR(36) PRIMARY KEY,
   user_id INT NOT NULL,
   token_hash CHAR(64) NOT NULL UNIQUE,
@@ -32,7 +40,7 @@ CREATE TABLE IF NOT EXISTS user_sessions (
   CONSTRAINT fk_user_sessions_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS user_profiles (
+CREATE TABLE user_profiles (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
   bio TEXT,
@@ -48,7 +56,7 @@ CREATE TABLE IF NOT EXISTS user_profiles (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS user_wallets (
+CREATE TABLE user_wallets (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
   wallet_address VARCHAR(255) NOT NULL,
@@ -63,7 +71,7 @@ CREATE TABLE IF NOT EXISTS user_wallets (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS user_pins (
+CREATE TABLE user_pins (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
   token_id VARCHAR(512) NOT NULL,
