@@ -67,38 +67,24 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageSrc: '/home/TeamFireXolo.jpg',
     imageAlt: 'Team Fire Xolo',
     borderColor: 'border-emerald-400',
-    eyebrow: 'Introducing Team Fire',
+    eyebrow: 'Cryptonite Labs is Team Fire',
     title: <>Cryptonite, Code &amp; RedShadow</>,
     body: (
       <>
         <p className="mb-4">
-          Meet the XoloDojo Team — a driven global crew of three grinding hard,
-          dreaming big, and shooting for the moon together.
+          Meet the XoloDojo Team — A team of three building the Xoloitzquintli NFT Collection & Xglobe inside the XoloDojo, who are determined and dedicated to building and sharing a global dream of uniting people together in todays fragmented world.
         </p>
         <p className="mb-4">
-          Cryptonite, the degen founder and networking visionary currently
-          residing in Anchorage, Alaska, is the spark who turned raw ideas into
-          a living vision of trust and real-world connection.
+          Cryptonite, the project visionary, is the Alaskan spark that ignited the flame. Turning bold, raw ideas and a vision into fruition, driven by the relentless pursuit of building a community established on a network of trusted, real world connections. 
         </p>
         <p className="mb-4">
-          Code, the battle-hardened coding wizard based in the Silicon Valley of
-          California, has been building since the Commodore 64 days and now
-          serves as the github guru and technical architect powering the
-          XoloDojo & Xglobe community ecosystem.
+          Code, the battle-hardened California coding wizard based in the Silicon Valley, has been writing code since the Commodore 64 days, the floppy disk, and the turtle. The github guru is the technical architect powering the XoloDojo & Xglobe community ecosystem.
         </p>
         <p className="mb-4">
-          RedShadow, the passionate artist and loyal hired gun from Pakistan,
-          pours his soul the passionate artist and loyal hired gun from
-          Pakistan, pours his soul into every hand-drawn trait on the iPad,
-          crafting the visual heartbeat of the collection.
+          RedShadow is the loyal, cultural artist hailing from Pakistan. The Pakistani Alchemist is rich in tradition, and the talent behind each hand drawn trait that is the Xoloitzquintle NFT Collection, crafting the visual heartbeat of each and every Xolo.
         </p>
         <p className="mb-4">
-          This unstoppable trio — united by grit, loyalty, and relentless drive
-          — is forging the XoloDojo and Xglobe from the ground up. Men of few
-          words, dive a bit more into their stories, passions, and journeys on
-          the Team page and see how their combined fire is building a community
-          where every holder truly belongs. If you ain't bullish, you're
-          foolish!!! Own a Xolo. Own the Adventure. Own your Journey.
+          This unstoppable trio — united in friendship, loyalty, and mutual respect, are forever bonded by an eternal flame, with the creation of XoloDojo, the stuff of legends, forever on-chain.
         </p>
       </>
     ),
@@ -109,16 +95,22 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageSrc: '/home/AbstractXoloBlue.jpg',
     imageAlt: 'Abstract Xolo Blue',
     borderColor: 'border-sky-400',
-    eyebrow: 'A Vision of Unity &amp; Connection',
-    title: <>Fostering Global Travel &amp; Connection</>,
+    eyebrow: 'Pin your presence',
+    title: <>Seen on Xglobe. Shared with the world.</>,
     body: (
       <>
-        The collection&apos;s long-term vision is to build a decentralized
-        platform for Xolo NFT holders to network and share travel experiences,
-        fostering global connection through wallet-to-wallet networking and
-        person to person experiences on the XRPL.
+        Your Xolo gets you seen on Xglobe. The Pinbox is where that presence becomes real. Add your name, a brief bio, links and socials,along with what you offer or are seeking--drop your pin on the map and let the world know where you stand.
+
+        
+        Pin your location, where you're headed, what you're building, in need of, or perhaps you have a service/skill to exchange. A meetup over coffee for an oppurtunity you want to spark. It can be your intro, your signal, your invition, or your shot at finding like-minded people who move with purpose, curiosity, positive vibes and good energy.
+
+
+        Each Xolo minted gets you a pin and pinbox, with built-in local date and time, making every connection immediate, human, and real.  Inside the XoloDojo, community is just a pin away. 
+
+
+        One Pin. One Bond. One Heartbeat.
       </>
-    ),
+    )
   },
   {
     id: 'utility-mint',
@@ -126,14 +118,15 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageSrc: '/home/StaindGlassXoloSkiGoggles.jpg',
     imageAlt: 'Staind Glass Xolo',
     borderColor: 'border-fuchsia-400',
-    eyebrow: 'Mint',
-    title: <>Fostering Global Travel &amp; Connection</>,
+    eyebrow: 'The Collection',
+    title: <>The Xoloitzquintle NFT Collection</>,
     body: (
       <>
-        The collection&apos;s long-term vision is to build a decentralized
-        platform for Xolo NFT holders to network and share travel experiences,
-        fostering global connection through wallet-to-wallet networking and
-        person to person experiences on the XRPL.
+        10,001 Xolos. Clean traits. Straight fire. Built different. Built on the XRPL for its eco-friendly design, fast payments, and low fees, the collection draws from 11 distinct traits and 311 sub-traits, all hand-drawn by the teams talented artist, RedShadow. Every Xolo carries its own energy--from sacred, sharp, chaotic, and calm, to dripped out or quietly legendary.  Some have attitude like they know they're gonna get minted first! This is not filler. This is the hunt for your Xolo.
+        
+        Inside XoloDojo, your Xolo unlocks Xglobe, so when you arrive, your loyal guide and companion will be right there by your side. 
+        
+        Looks like alpha, feels like legacy, sprinkled with a lil degen and prepared with a whole lot of heart.
       </>
     ),
   },
@@ -143,14 +136,19 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageSrc: '/home/SpacesuitXoloRed.jpg',
     imageAlt: 'Spacesuit Xolo',
     borderColor: 'border-amber-400',
-    eyebrow: 'Xglobe',
-    title: <>Fostering Global Travel &amp; Connection</>,
+    eyebrow: 'Unlock Xglobe',
+    title: <>Connect on Xglobe</>,
     body: (
       <>
-        The collection&apos;s long-term vision is to build a decentralized
-        platform for Xolo NFT holders to network and share travel experiences,
-        fostering global connection through wallet-to-wallet networking and
-        person to person experiences on the XRPL.
+        Xgolobe is where the XoloDojo comes alive at full scale--a live token-gated world built for movement, connection, exchange, and adventure. Holders can meet up, share culture, trade skills, promote what they offer, and create real experiences across multiple cities, countries, and time zones.
+        
+        This is where the collection stops standing still and becomes not just a collectible held in a crypto wallet, but rather a key for a living network with energy, reach, and real human upside.
+
+        
+        Your Xolo gives you a place to land your plane, dock your boat, and park your car, with an agenda to turn travelers into locals, strangers into allies, and foster global connection through person to person networking, utilizing wallet to wallet transactions with XRP on the XRPL.
+
+
+        One Pin. One Pinbox. One Xglobe.
       </>
     ),
   },
