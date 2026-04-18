@@ -67,7 +67,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageAtLg: 'right',
     imageSrc: '/home/TeamFireXolo.jpg',
     imageAlt: 'Team Fire Xolo',
-    borderColor: 'border-emerald-400',
+    borderColor: 'border-orange-400',
     eyebrow: 'Cryptonite Labs is Team Fire',
     title: <>Cryptonite, Code &amp; RedShadow</>,
     body: (
@@ -430,7 +430,9 @@ function Home() {
                     }`}
                   >
                     <div className="flex min-w-0 flex-col text-left mt-4 lg:mt-0">
-                      <span className="mb-5 inline-block w-fit max-w-full self-center rounded-2xl border border-[rgba(207,208,212,0.2)] px-5 py-2 text-center text-[15px] font-bold leading-none">
+                      <span
+                        className={`mb-5 inline-block w-fit max-w-full self-center rounded-2xl border ${row.borderColor} px-5 py-2 text-center text-[15px] font-bold leading-none`}
+                      >
                         {row.eyebrow}
                       </span>
                       <h3 className="text-center my-2 lg:mb-6 text-2xl font-bold md:text-3xl lg:text-4xl">
