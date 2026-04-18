@@ -99,16 +99,10 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     title: <>Seen on Xglobe. Shared with the world.</>,
     body: (
       <>
-        Your Xolo gets you seen on Xglobe. The Pinbox is where that presence becomes real. Add your name, a brief bio, links and socials,along with what you offer or are seeking--drop your pin on the map and let the world know where you stand.
-
-        
-        Pin your location, where you're headed, what you're building, in need of, or perhaps you have a service/skill to exchange. A meetup over coffee for an oppurtunity you want to spark. It can be your intro, your signal, your invition, or your shot at finding like-minded people who move with purpose, curiosity, positive vibes and good energy.
-
-
-        Each Xolo minted gets you a pin and pinbox, with built-in local date and time, making every connection immediate, human, and real.  Inside the XoloDojo, community is just a pin away. 
-
-
-        One Pin. One Bond. One Heartbeat.
+        <p className="mb-4">Your Xolo gets you seen on Xglobe. The Pinbox is where that presence becomes real. Add your name, a brief bio, links and socials,along with what you offer or are seeking--drop your pin on the map and let the world know where you stand.</p>        
+        <p className="mb-4">Pin your location, where you're headed, what you're building, in need of, or perhaps you have a service/skill to exchange. A meetup over coffee for an oppurtunity you want to spark. It can be your intro, your signal, your invition, or your shot at finding like-minded people who move with purpose, curiosity, positive vibes and good energy.</p>
+        <p className="mb-4">Each Xolo minted gets you a pin and pinbox, with built-in local date and time, making every connection immediate, human, and real.  Inside the XoloDojo, community is just a pin away.</p>
+        <p>One Pin. One Bond. One Heartbeat.</p>
       </>
     )
   },
@@ -122,11 +116,11 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     title: <>The Xoloitzquintle NFT Collection</>,
     body: (
       <>
-        10,001 Xolos. Clean traits. Straight fire. Built different. Built on the XRPL for its eco-friendly design, fast payments, and low fees, the collection draws from 11 distinct traits and 311 sub-traits, all hand-drawn by the teams talented artist, RedShadow. Every Xolo carries its own energy--from sacred, sharp, chaotic, and calm, to dripped out or quietly legendary.  Some have attitude like they know they're gonna get minted first! This is not filler. This is the hunt for your Xolo.
-        
-        Inside XoloDojo, your Xolo unlocks Xglobe, so when you arrive, your loyal guide and companion will be right there by your side. 
-        
-        Looks like alpha, feels like legacy, sprinkled with a lil degen and prepared with a whole lot of heart.
+        <p className="mb-4">10,001 Xolos. Clean traits. Straight fire. Built different. Built on the XRPL for its eco-friendly design, fast payments, and low fees, the collection draws from 11 distinct traits and 311 sub-traits, all hand-drawn by the teams talented artist, RedShadow. </p>
+        <p className="mb-4">
+          Every Xolo carries its own energy--from sacred, sharp, chaotic, and calm, to dripped out or quietly legendary.  Some have attitude like they know they're gonna get minted first! This is not filler. This is the hunt for your Xolo.</p>        
+        <p className="mb-4">Inside XoloDojo, your Xolo unlocks Xglobe, so when you arrive, your loyal guide and companion will be right there by your side. </p>        
+        <p>Looks like alpha, feels like legacy, sprinkled with a lil degen and prepared with a whole lot of heart.</p>
       </>
     ),
   },
@@ -140,15 +134,60 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     title: <>Connect on Xglobe</>,
     body: (
       <>
-        Xgolobe is where the XoloDojo comes alive at full scale--a live token-gated world built for movement, connection, exchange, and adventure. Holders can meet up, share culture, trade skills, promote what they offer, and create real experiences across multiple cities, countries, and time zones.
+        <p className="mb-4">Xgolobe is where the XoloDojo comes alive at full scale--a live token-gated world built for movement, connection, exchange, and adventure. Holders can meet up, share culture, trade skills, promote what they offer, and create real experiences across multiple cities, countries, and time zones.</p>
         
-        This is where the collection stops standing still and becomes not just a collectible held in a crypto wallet, but rather a key for a living network with energy, reach, and real human upside.
+        <p className="mb-4">This is where the collection stops standing still and becomes not just a collectible held in a crypto wallet, but rather a key for a living network with energy, reach, and real human upside.</p>
 
         
-        Your Xolo gives you a place to land your plane, dock your boat, and park your car, with an agenda to turn travelers into locals, strangers into allies, and foster global connection through person to person networking, utilizing wallet to wallet transactions with XRP on the XRPL.
+        <p className="mb-4">Your Xolo gives you a place to land your plane, dock your boat, and park your car, with an agenda to turn travelers into locals, strangers into allies, and foster global connection through person to person networking, utilizing wallet to wallet transactions with XRP on the XRPL.</p>
 
 
-        One Pin. One Pinbox. One Xglobe.
+        <p>One Pin. One Pinbox. One Xglobe.</p>
+      </>
+    ),
+  },
+  {
+    id: 'utility-xglobe',
+    imageAtLg: 'right',
+    imageSrc: '/home/SpacesuitXoloRed.jpg',
+    imageAlt: 'Spacesuit Xolo',
+    borderColor: 'border-amber-400',
+    eyebrow: 'A Vision of Global Connection',
+    title: <>Built for the long game</>,
+    body: (
+      <>
+        <p className="mb-4">The mint is the beginning, not the just the finish line.  XoloDojo is being built as a living ecosystem fostering collection, collaboration, travel, culture, and community, expanding across time zones and time itself.</p>
+        
+        <p className="mb-4">The Xolos open the door. Xglobe gives the world a stage. The PinBox provides the presence. What brings it all to life is the networking collaborations that grow from there; the movement, the people, the stories, and the journey back home.</p>
+
+        
+        <p className="mb-4">The Xoloitzquintle collection is for the community to bond with, build with, grow with, and thrive.</p>
+
+
+        <p>One Xglobe. One Pin. One Pinbox.</p> 
+      </>
+    ),
+  },
+  
+  {
+    id: 'utility-xglobe',
+    imageAtLg: 'left',
+    imageSrc: '/home/SpacesuitXoloRed.jpg',
+    imageAlt: 'Spacesuit Xolo',
+    borderColor: 'border-amber-400',
+    eyebrow: 'A Vision of Global Connection',
+    title: <>Built for the long game</>,
+    body: (
+      <>
+        <p className="mb-4">The mint is the beginning, not the just the finish line.  XoloDojo is being built as a living ecosystem fostering collection, collaboration, travel, culture, and community, expanding across time zones and time itself.</p>
+        
+        <p className="mb-4">The Xolos open the door. Xglobe gives the world a stage. The PinBox provides the presence. What brings it all to life is the networking collaborations that grow from there; the movement, the people, the stories, and the journey back home.</p>
+
+        
+        <p className="mb-4">The Xoloitzquintle collection is for the community to bond with, build with, grow with, and thrive.</p>
+
+
+        <p>One Xglobe. One Pin. One Pinbox.</p> 
       </>
     ),
   },
@@ -242,12 +281,10 @@ function Home() {
                 </div>
                 <div className="flex min-w-0 flex-1 flex-col rounded-[25px] border border-[rgba(207,208,212,0.2)] bg-[#1d1d21] p-[50px] text-center max-w-full w-full md:text-left [&_p]:mb-5 [&_p:last-child]:mb-0">
                   <h3 className="text-xl font-bold md:text-2xl mb-[15px]">
-                    10,001 Unique NFT Masterpieces
+                    Launch Alert: The Final Countdown
                   </h3>
                   <p>
-                    A meaningful collection featuring 10,001 unique Xolo NFTs
-                    with a combination of 11 distinct traits and 311 sub traits,
-                    hand-drawn by RedShadow.
+                    The website is live. The mint comes next. The Xglobe awaits. This starts with a mint, but the alpha lives in your Pinbox, lock in and be ready when we flip the switch.  When the countdown hits zero, the timer morphs into the mint button and sends you straight to the mint in the xrp.cafe. Your Xolo awaits!! After mint, return to the Dojo, connect your wallet, fill out your Pinbox, and get scene on Xglobe. Built on the XRP Ledger (XRPL) for its high speed payments, low-cost transactions, decentralized and eco-friendly design, this collection is straight fire and bringing the heat, and a whole lot of heart. One Xolo. One Pin. One Love. 
                   </p>
                 </div>
               </div>
