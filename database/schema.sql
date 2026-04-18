@@ -23,11 +23,14 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS user_sessions (
   id CHAR(36) PRIMARY KEY,
-  user_id INT NOT NULL,
+  user_id INT NULL,
+  wallet_address VARCHAR(255) NULL,
+  wallet_type VARCHAR(50) NULL,
   token_hash CHAR(64) NOT NULL UNIQUE,
   expires_at DATETIME NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_user_sessions_user (user_id),
+  INDEX idx_user_sessions_wallet (wallet_address),
   INDEX idx_user_sessions_expires (expires_at),
   CONSTRAINT fk_user_sessions_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -65,7 +68,7 @@ CREATE TABLE IF NOT EXISTS user_wallets (
 
 CREATE TABLE IF NOT EXISTS user_pins (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL,
+  user_id INT NULL,
   token_id VARCHAR(512) NOT NULL,
   wallet_address VARCHAR(255) NOT NULL,
   issuer VARCHAR(255) NULL,
@@ -81,7 +84,7 @@ CREATE TABLE IF NOT EXISTS user_pins (
   pinned_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
-  UNIQUE KEY uq_user_pins_owner_token_wallet (user_id, token_id(180), wallet_address(180)),
+  UNIQUE KEY uq_user_pins_wallet_token (wallet_address(180), token_id(180)),
   INDEX idx_user_pins_user_id (user_id),
   INDEX idx_user_pins_pinned_at (pinned_at),
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE

@@ -2,10 +2,11 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { PIN_NOTE_MAX_LENGTH, PIN_NOTE_MIN_LENGTH } from '../../../src/constants/pinNote.js';
 import { parsePinWebsiteForStorage } from '../../../src/utils/pinWebsiteUrl.js';
 import { getAppMysqlPool } from '../../lib/mysqlPool.js';
-import { requireSessionUserId } from '../../lib/sessionAuth.js';
+import { getRequestAuth } from '../../lib/sessionAuth.js';
 import {
   deleteUserPin,
   listPinsForUser,
+  listPinsForWalletOwner,
   normalizeWalletAddress,
   upsertUserPin,
   type PinnedNftItem,
@@ -108,8 +109,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const userId = await requireSessionUserId(req, res);
-    if (userId === null) return;
+    const auth = await getRequestAuth(req);
+    if (!auth) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
 
     const walletAddressInput: string | undefined =
       req.method === 'GET'
@@ -121,7 +125,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ? normalizeWalletAddress(walletAddressInput)
       : undefined;
     const pool = getAppMysqlPool();
-    const pinnedNfts = await listPinsForUser(pool, userId);
+
+    const accountUserId = auth.kind === 'user' ? auth.userId : null;
+    const sessionWallet =
+      auth.kind === 'wallet' ? normalizeWalletAddress(auth.walletAddress) : null;
+
+    const pinnedNfts =
+      accountUserId != null
+        ? await listPinsForUser(pool, accountUserId)
+        : sessionWallet
+          ? await listPinsForWalletOwner(pool, sessionWallet)
+          : [];
     const scopedPinnedNfts = filterPinnedByWallet(pinnedNfts, walletAddress);
 
     if (req.method === 'GET') {
@@ -161,6 +175,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!pinWalletAddress) {
         res.status(400).json({ error: 'Missing wallet_address for pin operation' });
         return;
+      }
+
+      if (auth.kind === 'wallet') {
+        if (pinWalletAddress !== sessionWallet) {
+          res.status(403).json({ error: 'Cannot pin for a different wallet' });
+          return;
+        }
       }
 
       const existing = pinnedNfts.find(
@@ -209,7 +230,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       await upsertUserPin(pool, {
-        userId,
+        userId: accountUserId,
         tokenId,
         walletAddress: pinWalletAddress,
         issuer: nft?.issuer ?? existing?.issuer ?? null,
@@ -225,7 +246,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         pinnedAtIsoForInsert: existing?.pinned_at ?? nowIso,
       });
 
-      const nextPins = await listPinsForUser(pool, userId);
+      const nextPins =
+        accountUserId != null
+          ? await listPinsForUser(pool, accountUserId)
+          : sessionWallet
+            ? await listPinsForWalletOwner(pool, sessionWallet)
+            : [];
       return res.status(200).json({
         success: true,
         pinned_nfts: filterPinnedByWallet(nextPins, pinWalletAddress),
@@ -243,9 +269,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .json({ error: 'Missing wallet_address for unpin operation' });
     }
 
-    await deleteUserPin(pool, userId, tokenId, walletAddress);
+    if (auth.kind === 'wallet' && walletAddress !== sessionWallet) {
+      res.status(403).json({ error: 'Cannot unpin for a different wallet' });
+      return;
+    }
 
-    const nextPins = await listPinsForUser(pool, userId);
+    await deleteUserPin(pool, accountUserId, tokenId, walletAddress);
+
+    const nextPins =
+      accountUserId != null
+        ? await listPinsForUser(pool, accountUserId)
+        : sessionWallet
+          ? await listPinsForWalletOwner(pool, sessionWallet)
+          : [];
     return res.status(200).json({
       success: true,
       pinned_nfts: filterPinnedByWallet(nextPins, walletAddress),

@@ -343,7 +343,7 @@ export default function LoginModal({
     view === 'login'
       ? 'Sign in'
       : view === 'register'
-        ? 'Create an account'
+        ? 'Create XoloDojo Account'
         : view === 'forgot-password'
           ? 'Forgot password'
           : view === 'forgot-username'
@@ -453,7 +453,7 @@ export default function LoginModal({
                   setSuccessMessage('');
                 }}
               >
-                Create account
+                Create XoloDojo Account
               </button>
             </p>
           </form>
@@ -534,7 +534,7 @@ export default function LoginModal({
               disabled={isLoading}
               className="btn-cta-primary btn-cta-primary--block"
             >
-              {isLoading ? 'Creating account…' : 'Create account'}
+              {isLoading ? 'Creating XoloDojo account…' : 'Create XoloDojo Account'}
             </button>
             <p className="text-center text-sm text-foreground-muted">
               Already have an account?{' '}

@@ -4,7 +4,6 @@ import "./App.css";
 import AppLoadingOverlay from "./components/AppLoadingOverlay";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import { ToastProvider } from "./components/ToastProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home";
 import FAQ from "./pages/FAQ";
@@ -70,11 +69,7 @@ function AppContent() {
 }
 
 function App() {
-  return (
-    <ToastProvider>
-      <AppContent />
-    </ToastProvider>
-  );
+  return <AppContent />;
 }
 
 export default App;

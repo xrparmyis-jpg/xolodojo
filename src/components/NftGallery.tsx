@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ResilientImage from './ResilientImage';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useNavigate } from 'react-router-dom';
-import { faCheck, faCopy, faSpinner, faThumbtack } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faCopy, faPlus, faSpinner, faThumbtack, faXmark } from '@fortawesome/free-solid-svg-icons';
 import Button from './Button';
 import Modal from './Modal';
 import ModalConfirm from './ModalConfirm';
@@ -21,13 +21,23 @@ import {
 
 type PinFormMode = 'create' | 'edit';
 import { getUserProfile, type ProfileSocials } from '../services/profileService';
-import { socialPlatformOrder } from '../hooks/useSocials';
+import {
+    socialPlatformOrder,
+    createEmptyVisibleInputs,
+    normalizeSocials,
+    getSocialProfileUrl,
+    type SocialPlatformKey,
+} from '../hooks/useSocials';
 
 interface NftGalleryProps {
     nftCount: number;
     nfts: WalletAssetSummary['nfts'];
     walletAddress?: string;
     isLoading: boolean;
+    /** When set, pin flow uses these socials instead of fetching /user/profile. */
+    profileSocialsForPins?: ProfileSocials;
+    /** Wallet-only: persist pin-form socials to profile/session so the next pin pre-fills. */
+    syncPinSocialsToProfile?: (socials: ProfileSocials) => void;
 }
 
 const parseSocialsFromPreferences = (preferences: unknown): PinnedNftSocials => {
@@ -161,7 +171,14 @@ function extractTraitsFromMetadata(metadata: unknown): NftTrait[] {
     return out;
 }
 
-export default function NftGallery({ nftCount, nfts, walletAddress, isLoading }: NftGalleryProps) {
+export default function NftGallery({
+    nftCount,
+    nfts,
+    walletAddress,
+    isLoading,
+    profileSocialsForPins,
+    syncPinSocialsToProfile,
+}: NftGalleryProps) {
     const NFTS_PER_PAGE = 12;
     const navigate = useNavigate();
     const [currentNftPage, setCurrentNftPage] = useState(1);
@@ -199,7 +216,9 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading }:
         kind: 'created' | 'updated';
     } | null>(null);
     const [availableProfileSocials, setAvailableProfileSocials] = useState<PinnedNftSocials>({});
-    const [selectedPinSocialPlatforms, setSelectedPinSocialPlatforms] = useState<Partial<Record<keyof PinnedNftSocials, boolean>>>({});
+    const [pinDraftSocials, setPinDraftSocials] = useState<ProfileSocials>({});
+    const [pinVisibleSocialInputs, setPinVisibleSocialInputs] = useState(() => createEmptyVisibleInputs());
+    const [pendingRemovePinSocial, setPendingRemovePinSocial] = useState<SocialPlatformKey | null>(null);
     const { showToast } = useToast();
     const metadataResultCacheRef = useRef<Partial<Record<string, NftMetadataResolution | null>>>({});
     const metadataRequestCacheRef = useRef<Partial<Record<string, Promise<NftMetadataResolution | null>>>>({});
@@ -654,19 +673,48 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading }:
         };
     }, [debugNft, walletAddress]);
 
-    const socialSelectionFromSavedPin = useCallback((socials: PinnedNftSocials | null | undefined) => {
-        if (!socials || typeof socials !== 'object') {
-            return {};
-        }
-        return socialPlatformOrder.reduce<Partial<Record<keyof PinnedNftSocials, boolean>>>((acc, platform) => {
-            if (typeof socials[platform.key] === 'string' && socials[platform.key]!.trim()) {
-                acc[platform.key] = true;
+    const getPinSocialsSeed = useCallback((): ProfileSocials => {
+        const source =
+            profileSocialsForPins !== undefined
+                ? profileSocialsForPins
+                : (availableProfileSocials as ProfileSocials);
+        return normalizeSocials(source);
+    }, [profileSocialsForPins, availableProfileSocials]);
+
+    const applyPinSocialsSeedWithOptionalPin = useCallback(
+        (pinSocials: PinnedNftSocials | null | undefined) => {
+            const base = getPinSocialsSeed();
+            const fromPin = normalizeSocials((pinSocials ?? {}) as ProfileSocials);
+            return normalizeSocials({ ...base, ...fromPin });
+        },
+        [getPinSocialsSeed]
+    );
+
+    const setPinSocialsUiFromDraft = useCallback((draft: ProfileSocials) => {
+        setPinDraftSocials(draft);
+        const vis = createEmptyVisibleInputs();
+        socialPlatformOrder.forEach((p) => {
+            if (draft[p.key]) {
+                vis[p.key] = true;
             }
-            return acc;
-        }, {});
+        });
+        setPinVisibleSocialInputs(vis);
     }, []);
 
     useEffect(() => {
+        if (profileSocialsForPins !== undefined) {
+            setAvailableProfileSocials(
+                socialPlatformOrder.reduce<PinnedNftSocials>((acc, platform) => {
+                    const v = profileSocialsForPins[platform.key];
+                    if (typeof v === 'string' && v.trim()) {
+                        acc[platform.key] = v.trim().replace(/^@+/, '');
+                    }
+                    return acc;
+                }, {})
+            );
+            return;
+        }
+
         let cancelled = false;
 
         const loadProfileSocials = async () => {
@@ -693,7 +741,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading }:
         return () => {
             cancelled = true;
         };
-    }, [debugNft]);
+    }, [debugNft, profileSocialsForPins]);
 
     useEffect(() => {
         let cancelled = false;
@@ -873,26 +921,20 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading }:
         .trim()
         .slice(0, PIN_NOTE_MAX_LENGTH);
 
-    const selectedPinSocials = useMemo(() => {
-        return socialPlatformOrder.reduce<PinnedNftSocials>((acc, platform) => {
-            if (!selectedPinSocialPlatforms[platform.key]) {
-                return acc;
-            }
-
-            const value = availableProfileSocials[platform.key];
-            if (!value) {
-                return acc;
-            }
-
-            acc[platform.key] = value;
-            return acc;
-        }, {});
-    }, [availableProfileSocials, selectedPinSocialPlatforms]);
-
-    const availableSocialPlatforms = useMemo(
-        () => socialPlatformOrder.filter((platform) => Boolean(availableProfileSocials[platform.key])),
-        [availableProfileSocials]
+    const selectedPinSocials = useMemo(
+        () => normalizeSocials(pinDraftSocials) as PinnedNftSocials,
+        [pinDraftSocials]
     );
+
+    useEffect(() => {
+        if (!syncPinSocialsToProfile || !pinTargetTokenId) {
+            return;
+        }
+        const id = window.setTimeout(() => {
+            syncPinSocialsToProfile(normalizeSocials(pinDraftSocials));
+        }, 450);
+        return () => window.clearTimeout(id);
+    }, [pinDraftSocials, pinTargetTokenId, syncPinSocialsToProfile]);
 
     const pinMapPopupPreview = useMemo(() => {
         if (!pinTargetNft) {
@@ -920,6 +962,45 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading }:
         && pinLocation
     );
 
+    const pinActiveSocialPlatforms = useMemo(
+        () =>
+            socialPlatformOrder.filter(
+                (platform) =>
+                    Boolean((pinDraftSocials[platform.key] || '').trim()) ||
+                    pinVisibleSocialInputs[platform.key]
+            ),
+        [pinDraftSocials, pinVisibleSocialInputs]
+    );
+
+    const pinOpenSocialPlatforms = useMemo(
+        () => socialPlatformOrder.filter((platform) => pinVisibleSocialInputs[platform.key]),
+        [pinVisibleSocialInputs]
+    );
+
+    const handlePinActivateSocial = (key: SocialPlatformKey) => {
+        setPinVisibleSocialInputs((current) => ({
+            ...current,
+            [key]: !current[key],
+        }));
+    };
+
+    const handlePinSocialInputChange = (key: SocialPlatformKey, value: string) => {
+        setPinDraftSocials((current) => ({
+            ...current,
+            [key]: value.replace(/^@+/, ''),
+        }));
+    };
+
+    const handlePinConfirmRemoveSocial = () => {
+        if (!pendingRemovePinSocial) {
+            return;
+        }
+        const key = pendingRemovePinSocial;
+        setPinDraftSocials((current) => ({ ...current, [key]: '' }));
+        setPinVisibleSocialInputs((current) => ({ ...current, [key]: false }));
+        setPendingRemovePinSocial(null);
+    };
+
     const openPinModalForCreate = (tokenId: string) => {
         setPinFormMode('create');
         setPinFormStep(1);
@@ -930,7 +1011,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading }:
         setPinTitleInput(defaultTitle);
         setPinNoteInput('');
         setPinWebsiteSuffixInput('');
-        setSelectedPinSocialPlatforms({});
+        setPinSocialsUiFromDraft(getPinSocialsSeed());
     };
 
     const openPinModalForEdit = (tokenId: string) => {
@@ -958,7 +1039,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading }:
                 ? existing.website_url.trim()
                 : ''
         );
-        setSelectedPinSocialPlatforms(socialSelectionFromSavedPin(existing.socials ?? null));
+        setPinSocialsUiFromDraft(applyPinSocialsSeedWithOptionalPin(existing.socials ?? null));
     };
 
     const closePinModal = () => {
@@ -970,7 +1051,9 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading }:
         setPinTitleInput('');
         setPinNoteInput('');
         setPinWebsiteSuffixInput('');
-        setSelectedPinSocialPlatforms({});
+        setPinDraftSocials({});
+        setPinVisibleSocialInputs(createEmptyVisibleInputs());
+        setPendingRemovePinSocial(null);
         setPendingUnpinTokenId(null);
     };
 
@@ -1012,6 +1095,8 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading }:
         const pinTargetThumbnailUrl = getNftThumbnailUrl(pinTargetNft.token_id, pinTargetNft.uri);
         try {
             setIsPinActionLoading(true);
+            const socialsPayload = normalizeSocials(pinDraftSocials) as PinnedNftSocials;
+            syncPinSocialsToProfile?.(normalizeSocials(pinDraftSocials));
             const nextPinned = await pinNft({
                 token_id: pinTargetNft.token_id,
                 wallet_address: walletAddress,
@@ -1022,7 +1107,7 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading }:
                 image_url: pinTargetThumbnailUrl,
                 title: normalizedPinTitle,
                 collection_name: pinTargetCollectionName,
-                socials: selectedPinSocials,
+                socials: socialsPayload,
                 pin_note: normalizedPinNote,
                 website_url: parsePinWebsiteForStorage(pinWebsiteSuffixInput),
             });
@@ -1041,7 +1126,8 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading }:
             setPinTitleInput('');
             setPinNoteInput('');
             setPinWebsiteSuffixInput('');
-            setSelectedPinSocialPlatforms({});
+            setPinDraftSocials({});
+            setPinVisibleSocialInputs(createEmptyVisibleInputs());
         } catch (error) {
             debugNft('Failed to pin NFT', {
                 tokenId: pinTargetNft.token_id,
@@ -1059,7 +1145,8 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading }:
         pinLocation,
         pinTargetCollectionName,
         pinTargetNft,
-        selectedPinSocials,
+        pinDraftSocials,
+        syncPinSocialsToProfile,
         showToast,
         walletAddress,
         pinFormMode,
@@ -1490,38 +1577,103 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading }:
 
                                 <div className="w-full min-w-0 flex flex-col">
                                     <label className="block text-xs font-semibold uppercase tracking-wide text-white/80 mb-1">
-                                        SELECT SOCIALS{' '}
+                                        SOCIAL HANDLES{' '}
                                         <span className="font-normal normal-case text-white/50">(optional)</span>
                                     </label>
-                                    {availableSocialPlatforms.length > 0 ? (
-                                        <div className="flex flex-row flex-wrap gap-2">
-                                            {availableSocialPlatforms.map((platform) => {
-                                                const isSelected = Boolean(selectedPinSocialPlatforms[platform.key]);
+                                    <p className="text-xs text-white/55 mb-3">
+                                        Add handles to show on this pin&apos;s globe popup. They are saved on the pin, not your password profile.
+                                        {syncPinSocialsToProfile
+                                            ? ' For wallet sign-in, we also remember them on this device for your next pin.'
+                                            : null}
+                                    </p>
 
+                                    <div className="flex flex-wrap gap-2 mb-3">
+                                        {socialPlatformOrder.map((platform) => {
+                                            const isActive = pinActiveSocialPlatforms.some(
+                                                (p) => p.key === platform.key
+                                            );
+                                            return (
+                                                <button
+                                                    key={platform.key}
+                                                    type="button"
+                                                    title={isActive ? `Edit ${platform.label}` : `Add ${platform.label}`}
+                                                    onClick={() => handlePinActivateSocial(platform.key)}
+                                                    className={`cursor-pointer relative inline-flex h-9 w-9 items-center justify-center rounded-full border transition-all duration-200 ${isActive
+                                                        ? 'border-emerald-400/60 bg-emerald-700/20 text-emerald-200'
+                                                        : 'border-white/25 bg-white/5 text-white/70 hover:text-white hover:border-white/40'
+                                                        }`}
+                                                >
+                                                    <FontAwesomeIcon icon={platform.icon} className="text-[15px]" />
+                                                    {!isActive && (
+                                                        <span className="absolute -right-0.5 -top-0.5 inline-flex h-3.5 w-3.5 items-center justify-center rounded-full bg-blue-600 text-[8px] text-white">
+                                                            <FontAwesomeIcon icon={faPlus} />
+                                                        </span>
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {pinOpenSocialPlatforms.length > 0 ? (
+                                        <div className="space-y-2">
+                                            {pinOpenSocialPlatforms.map((platform) => {
+                                                const profileUrl = getSocialProfileUrl(
+                                                    platform.key,
+                                                    pinDraftSocials[platform.key]
+                                                );
                                                 return (
-                                                    <button
-                                                        key={platform.key}
-                                                        type="button"
-                                                        title={`Toggle ${platform.label}`}
-                                                        onClick={() => {
-                                                            setSelectedPinSocialPlatforms((current) => ({
-                                                                ...current,
-                                                                [platform.key]: !current[platform.key],
-                                                            }));
-                                                        }}
-                                                        className={`cursor-pointer inline-flex h-8 w-8 items-center justify-center rounded-full border transition-all duration-200 ${isSelected
-                                                            ? 'border-emerald-400/70 bg-emerald-700/30 text-emerald-200'
-                                                            : 'border-white/25 bg-white/5 text-white/70 hover:text-white hover:border-white/40'
-                                                            }`}
-                                                    >
-                                                        <FontAwesomeIcon icon={platform.icon} className="text-[15px]" />
-                                                    </button>
+                                                    <div key={platform.key} className="flex items-center gap-2">
+                                                        {profileUrl ? (
+                                                            <a
+                                                                href={profileUrl}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                title={`Open ${platform.label}`}
+                                                                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white/80 hover:border-white/40 hover:bg-white/10 hover:text-white transition-all duration-200"
+                                                            >
+                                                                <FontAwesomeIcon icon={platform.icon} />
+                                                            </a>
+                                                        ) : (
+                                                            <div className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white/80">
+                                                                <FontAwesomeIcon icon={platform.icon} />
+                                                            </div>
+                                                        )}
+                                                        <div className="w-full min-w-0 md:w-1/2 md:min-w-[240px]">
+                                                            <div className="relative">
+                                                                <span className="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-white/45 text-sm">
+                                                                    @
+                                                                </span>
+                                                                <input
+                                                                    value={pinDraftSocials[platform.key] || ''}
+                                                                    onChange={(e) =>
+                                                                        handlePinSocialInputChange(
+                                                                            platform.key,
+                                                                            e.target.value
+                                                                        )
+                                                                    }
+                                                                    placeholder={`${platform.label} username`}
+                                                                    className="w-full rounded-lg border border-white/20 bg-black/40 pl-7 pr-3 py-2 text-sm text-white/90 placeholder:text-white/45 focus:outline-none focus:border-blue-500"
+                                                                    autoComplete="off"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            title={`Remove ${platform.label}`}
+                                                            onClick={() => setPendingRemovePinSocial(platform.key)}
+                                                            className="cursor-pointer inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-red-500/40 bg-red-600/15 text-red-300 hover:bg-red-600/30"
+                                                        >
+                                                            <FontAwesomeIcon icon={faXmark} />
+                                                        </button>
+                                                    </div>
                                                 );
                                             })}
                                         </div>
-                                    ) : (
-                                        <p className="text-xs text-white/55">No social handles found in your profile yet.</p>
-                                    )}
+                                    ) : pinActiveSocialPlatforms.length === 0 ? (
+                                        <p className="text-xs text-white/50">
+                                            Tap a network above to add a handle for this pin.
+                                        </p>
+                                    ) : null}
                                 </div>
 
                                 <div className="flex w-full flex-wrap items-center justify-end gap-3 pt-1">
@@ -1605,6 +1757,16 @@ export default function NftGallery({ nftCount, nfts, walletAddress, isLoading }:
                 loading={isPinActionLoading}
                 onCancel={() => setPendingUnpinTokenId(null)}
                 onConfirm={() => void handleConfirmUnpin()}
+            />
+
+            <ModalConfirm
+                isOpen={pendingRemovePinSocial != null}
+                title="Remove social from this pin?"
+                message="Clears this handle from the pin form. It does not change your saved profile (password accounts)."
+                confirmLabel="Remove"
+                loading={false}
+                onCancel={() => setPendingRemovePinSocial(null)}
+                onConfirm={handlePinConfirmRemoveSocial}
             />
         </div>
     );

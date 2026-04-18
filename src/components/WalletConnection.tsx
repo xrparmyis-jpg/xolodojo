@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import { useAccount } from 'wagmi';
 import { useWeb3Modal } from '@web3modal/wagmi/react';
 import { useDisconnect as useWagmiDisconnect } from 'wagmi';
-import { standalone as joeyStandalone } from '@joey-wallet/wc-client/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faArrowsRotate,
@@ -13,11 +12,11 @@ import {
     faThumbtack,
     faXmark,
 } from '@fortawesome/free-solid-svg-icons';
+import { walletConnectProjectId } from '../web3modal';
 import Button from './Button';
 import ModalConfirm from './ModalConfirm';
 import NftGallery from './NftGallery';
 import { useToast } from './ToastProvider';
-import { walletConnectProjectId } from '../web3modal';
 import { xamanHandler } from '../walletHandlers/xaman';
 import type { Wallet } from '../services/walletService';
 import {
@@ -52,14 +51,37 @@ import {
 import { clearJoeyConnectIntent } from '../wallets/joey/joeyConnectIntent';
 import { extractJoeyWalletAddress } from '../wallets/joey/extractJoeyWalletAddress';
 import { walletAddressPreview, walletDebugLog, walletTraceLog } from '../utils/walletDebugLog';
+import { useAuth } from '../providers/AuthContext';
+import { loginWithWallet } from '../lib/authApi';
+import type { ProfileSocials } from '../services/profileService';
+
+export type WalletConnectionVariant = 'profile' | 'wallet_auth' | 'wallet_session';
 
 interface WalletConnectionProps {
     onWalletsUpdated?: (wallets: Wallet[]) => void;
     resumeXamanOnMount?: boolean;
+    variant?: WalletConnectionVariant;
+    onWalletAuthSuccess?: () => void;
+    onWalletSessionDisconnect?: () => Promise<void>;
+    sessionWalletAddress?: string;
+    sessionWalletType?: string;
+    profileSocialsForPins?: ProfileSocials;
+    syncPinSocialsToProfile?: (socials: ProfileSocials) => void;
 }
 
-function WalletConnectionContent({ onWalletsUpdated, resumeXamanOnMount }: WalletConnectionProps) {
+function WalletConnectionContent({
+    onWalletsUpdated,
+    resumeXamanOnMount,
+    variant = 'profile',
+    onWalletAuthSuccess,
+    onWalletSessionDisconnect,
+    sessionWalletAddress,
+    sessionWalletType,
+    profileSocialsForPins,
+    syncPinSocialsToProfile,
+}: WalletConnectionProps) {
     const { showToast, clearToasts } = useToast();
+    const { refreshUser } = useAuth();
 
     const { open } = useWeb3Modal();
     const { address: wagmiAddress, isConnected: isWagmiConnected, connector: wagmiConnector } = useAccount();
@@ -109,6 +131,9 @@ function WalletConnectionContent({ onWalletsUpdated, resumeXamanOnMount }: Walle
         if ((wallet.wallet_type !== 'xaman' && wallet.wallet_type !== 'joey') || wallet.wallet_address === resolvedAddress) {
             return wallet;
         }
+        if (!Number.isFinite(Number(wallet.id)) || Number(wallet.id) <= 0) {
+            return { ...wallet, wallet_address: resolvedAddress };
+        }
         const result = await updateWalletAddress(wallet.id, resolvedAddress);
         return result.wallet ?? { ...wallet, wallet_address: resolvedAddress };
     }, []);
@@ -135,7 +160,24 @@ function WalletConnectionContent({ onWalletsUpdated, resumeXamanOnMount }: Walle
 
     const { mutateAsync: wagmiDisconnectAsync } = useWagmiDisconnect();
 
+    const runWalletAuthLogin = useCallback(
+        async (address: string, walletType: string, opts?: { xamanJwt?: string }) => {
+            await loginWithWallet(address, walletType, opts);
+            await refreshUser();
+            showToast('success', 'Signed in with wallet');
+            onWalletAuthSuccess?.();
+        },
+        [refreshUser, onWalletAuthSuccess, showToast]
+    );
+
     const loadWallets = useCallback(async (opts?: { silent?: boolean }) => {
+        if (variant === 'wallet_auth') {
+            setWallets([]);
+            return;
+        }
+        if (variant === 'wallet_session') {
+            return;
+        }
         const silent = opts?.silent === true;
         try {
             if (!silent) {
@@ -159,7 +201,7 @@ function WalletConnectionContent({ onWalletsUpdated, resumeXamanOnMount }: Walle
                 setWalletBusyMessage(null);
             }
         }
-    }, [onWalletsUpdated, showToast]);
+    }, [variant, onWalletsUpdated, showToast]);
 
     const applyConnectedWalletFromApi = useCallback(
         (connectedRow: Wallet) => {
@@ -173,6 +215,17 @@ function WalletConnectionContent({ onWalletsUpdated, resumeXamanOnMount }: Walle
     );
 
     const handleDisconnectExisting = useCallback(async (walletId: number) => {
+        if (variant === 'wallet_session' && onWalletSessionDisconnect) {
+            try {
+                clearWalletToasts();
+                setWalletBusyMessage(DISCONNECTING_WALLET_MESSAGE);
+                await onWalletSessionDisconnect();
+            } finally {
+                setWalletBusyMessage(null);
+            }
+            return;
+        }
+
         const wallet = wallets.find((currentWallet) => currentWallet.id === walletId);
         if (!wallet) {
             showToast('error', 'Wallet not found');
@@ -201,7 +254,16 @@ function WalletConnectionContent({ onWalletsUpdated, resumeXamanOnMount }: Walle
             }
             setWalletBusyMessage(null);
         }
-    }, [wallets, showToast, clearWalletToasts, wagmiDisconnectAsync, tryDisconnectCurrentWallet, loadWallets]);
+    }, [
+        variant,
+        onWalletSessionDisconnect,
+        wallets,
+        showToast,
+        clearWalletToasts,
+        wagmiDisconnectAsync,
+        tryDisconnectCurrentWallet,
+        loadWallets,
+    ]);
 
     const getWalletConnectSessionLabel = useCallback(async (): Promise<string | undefined> => {
         if (!wagmiConnector || wagmiConnector.id !== 'walletConnect') {
@@ -277,6 +339,10 @@ function WalletConnectionContent({ onWalletsUpdated, resumeXamanOnMount }: Walle
         setWalletBusyMessage,
         showToast,
         persistenceSuppressedRef: joeyPersistenceSuppressedRef,
+        walletAuthLogin:
+            variant === 'wallet_auth'
+                ? (address) => runWalletAuthLogin(address, 'joey')
+                : undefined,
     });
 
     /** Fix DB rows saved with lowercased XRPL address (invalid checksum) using SDK-reported casing. */
@@ -316,8 +382,22 @@ function WalletConnectionContent({ onWalletsUpdated, resumeXamanOnMount }: Walle
     }, [joeyAccount, joeySession, wallets, repairWalletAddressIfNeeded, loadWallets]);
 
     useEffect(() => {
+        if (variant === 'wallet_session' && sessionWalletAddress) {
+            setWallets([
+                {
+                    id: 0,
+                    user_id: 0,
+                    wallet_address: sessionWalletAddress,
+                    wallet_type: sessionWalletType || 'wallet',
+                    is_connected: true,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString(),
+                },
+            ]);
+            return;
+        }
         void loadWallets();
-    }, [loadWallets]);
+    }, [variant, sessionWalletAddress, sessionWalletType, loadWallets]);
 
     // Memoize handler args after all dependencies are declared
     const xamanHandlerArgs = useMemo(() => ({
@@ -339,12 +419,15 @@ function WalletConnectionContent({ onWalletsUpdated, resumeXamanOnMount }: Walle
 
     useEffect(() => {
         const repairConnectedXamanWallet = async () => {
+            if (variant === 'wallet_session' || variant === 'wallet_auth') {
+                return;
+            }
             if (hasAttemptedXamanSessionRepair) return;
             await xamanHandler.repair?.({ ...xamanHandlerArgs, setShowToast: showToast });
             setHasAttemptedXamanSessionRepair(true);
         };
         void repairConnectedXamanWallet();
-    }, [hasAttemptedXamanSessionRepair, xamanHandlerArgs, showToast]);
+    }, [variant, hasAttemptedXamanSessionRepair, xamanHandlerArgs, showToast]);
 
     useEffect(() => {
         const syncWalletConnectSession = async () => {
@@ -357,6 +440,21 @@ function WalletConnectionContent({ onWalletsUpdated, resumeXamanOnMount }: Walle
 
                 const normalizedAddress = wagmiAddress.toLowerCase();
                 const currentConnectedWallet = wallets.find((wallet) => wallet.is_connected);
+
+                if (variant === 'wallet_auth' && pendingWalletConnectId == null) {
+                    try {
+                        await runWalletAuthLogin(normalizedAddress, 'walletconnect');
+                    } catch (error) {
+                        const err = error instanceof Error ? error : new Error(String(error));
+                        console.error('Wallet auth (WalletConnect) failed:', err);
+                        showToast('error', `Failed to sign in: ${err.message}`);
+                    } finally {
+                        setPendingWalletConnectId(null);
+                        setIsWalletConnectPending(false);
+                        setWalletBusyMessage(null);
+                    }
+                    return;
+                }
 
                 if (pendingWalletConnectId != null) {
                     const existingWallet = wallets.find((wallet) => wallet.id === pendingWalletConnectId);
@@ -436,6 +534,8 @@ function WalletConnectionContent({ onWalletsUpdated, resumeXamanOnMount }: Walle
 
         void syncWalletConnectSession();
     }, [
+        variant,
+        runWalletAuthLogin,
         isWalletConnectPending,
         isWagmiConnected,
         pendingWalletConnectId,
@@ -461,9 +561,15 @@ function WalletConnectionContent({ onWalletsUpdated, resumeXamanOnMount }: Walle
                 ...xamanHandlerArgs,
                 walletIdToConnect,
                 resumeFromRedirect,
+                completeWalletAuth:
+                    variant === 'wallet_auth'
+                        ? async (addr: string, meta?: { jwt?: string }) => {
+                              await runWalletAuthLogin(addr, 'xaman', { xamanJwt: meta?.jwt });
+                          }
+                        : undefined,
             });
         },
-        [xamanHandlerArgs, clearToasts]
+        [xamanHandlerArgs, clearToasts, variant, runWalletAuthLogin]
     );
 
     const handleConnectExisting = useCallback(
@@ -536,11 +642,12 @@ function WalletConnectionContent({ onWalletsUpdated, resumeXamanOnMount }: Walle
     );
 
     useEffect(() => {
+        if (variant === 'wallet_auth') return;
         if (!resumeXamanOnMount || hasResumedXamanOnMount) return;
         setHasResumedXamanOnMount(true);
 
         void handleConnectXaman(undefined, { resumeFromRedirect: true });
-    }, [resumeXamanOnMount, hasResumedXamanOnMount, handleConnectXaman]);
+    }, [variant, resumeXamanOnMount, hasResumedXamanOnMount, handleConnectXaman]);
 
     const handleDelete = async (walletId: number) => {
         const walletToDelete = wallets.find(w => w.id === walletId);
@@ -785,7 +892,7 @@ function WalletConnectionContent({ onWalletsUpdated, resumeXamanOnMount }: Walle
             {wallets.length > 0 && (
                 <div className="flex justify-between items-center mb-4">
                     <h4 className="text-white text-lg">
-                        My Wallets
+                        {variant === 'wallet_session' ? 'My Wallet' : 'My Wallets'}
                     </h4>
                 </div>
             )}
@@ -863,17 +970,19 @@ function WalletConnectionContent({ onWalletsUpdated, resumeXamanOnMount }: Walle
                                             <FontAwesomeIcon icon={faLinkSlash} />
                                         </button>
                                     )}
-                                    <button
-                                        type="button"
-                                        title="Remove wallet"
-                                        className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full bg-red-600 hover:bg-red-700 text-white text-lg"
-                                        onClick={() => {
-                                            setPendingDeleteId(wallet.id);
-                                            setShowDeleteModal(true);
-                                        }}
-                                    >
-                                        <FontAwesomeIcon icon={faXmark} />
-                                    </button>
+                                    {variant !== 'wallet_session' && (
+                                        <button
+                                            type="button"
+                                            title="Remove wallet"
+                                            className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full bg-red-600 hover:bg-red-700 text-white text-lg"
+                                            onClick={() => {
+                                                setPendingDeleteId(wallet.id);
+                                                setShowDeleteModal(true);
+                                            }}
+                                        >
+                                            <FontAwesomeIcon icon={faXmark} />
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         );
@@ -943,22 +1052,36 @@ function WalletConnectionContent({ onWalletsUpdated, resumeXamanOnMount }: Walle
                 onCancel={handleCancelJoeyQr}
             />
 
-            <Button
-                onClick={() => {
-                    clearToasts();
-                    setShowAddWalletModal(true);
-                }}
-                disabled={walletBusyMessage !== null || isWalletConnectPending}
-                className="w-full text-center bg-blue-600 hover:bg-blue-700 active:bg-blue-800"
-            >
-                {isWalletConnectPending ? (
-                    OPENING_WALLETCONNECT_MESSAGE
-                ) : wallets.length > 0 ? (
-                    'Add Another Wallet'
-                ) : (
-                    'Connect Wallet'
-                )}
-            </Button>
+            {variant === 'wallet_auth' && (
+                <Button
+                    onClick={() => {
+                        clearToasts();
+                        setShowAddWalletModal(true);
+                    }}
+                    disabled={walletBusyMessage !== null || isWalletConnectPending}
+                    className="w-full text-center bg-blue-600 hover:bg-blue-700 active:bg-blue-800"
+                >
+                    {isWalletConnectPending ? OPENING_WALLETCONNECT_MESSAGE : 'Choose wallet type'}
+                </Button>
+            )}
+            {variant !== 'wallet_session' && variant !== 'wallet_auth' && (
+                <Button
+                    onClick={() => {
+                        clearToasts();
+                        setShowAddWalletModal(true);
+                    }}
+                    disabled={walletBusyMessage !== null || isWalletConnectPending}
+                    className="w-full text-center bg-blue-600 hover:bg-blue-700 active:bg-blue-800"
+                >
+                    {isWalletConnectPending ? (
+                        OPENING_WALLETCONNECT_MESSAGE
+                    ) : wallets.length > 0 ? (
+                        'Add Another Wallet'
+                    ) : (
+                        'Connect Wallet'
+                    )}
+                </Button>
+            )}
 
             {wallets.length > 0 && connectedWallet && (
                 <div className={`mt-4 rounded-lg border border-white/10 bg-black/20 p-4 ${shouldUseSummaryMinHeight ? 'min-h-[300px]' : ''}`}>
@@ -997,6 +1120,8 @@ function WalletConnectionContent({ onWalletsUpdated, resumeXamanOnMount }: Walle
                                 nfts={connectedWalletAssets.nfts}
                                 walletAddress={connectedWalletAssets.wallet_address}
                                 isLoading={isInteractionBlocked}
+                                profileSocialsForPins={profileSocialsForPins}
+                                syncPinSocialsToProfile={syncPinSocialsToProfile}
                             />
                         </div>
                     ) : (
@@ -1010,32 +1135,8 @@ function WalletConnectionContent({ onWalletsUpdated, resumeXamanOnMount }: Walle
     );
 }
 
-export function WalletConnection({ onWalletsUpdated, resumeXamanOnMount }: WalletConnectionProps) {
-
-    const joeyProjectId = (import.meta.env.VITE_JOEY_PROJECT_ID || walletConnectProjectId || '717dec7dead15d3a101d504ed3933709').trim();
-    const appUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173';
-    const joeyProviderConfig = useMemo(() => ({
-        projectId: joeyProjectId,
-        defaultChain: 'xrpl:0',
-        metadata: {
-            name: 'Donovan',
-            description: 'Donovan Joey wallet connection',
-            url: appUrl,
-            icons: [`${appUrl}/favicon.ico`],
-            redirect: {
-                universal: appUrl,
-            },
-        },
-    }), [appUrl, joeyProjectId]);
-
-    return (
-        <joeyStandalone.provider.Provider config={joeyProviderConfig}>
-            <WalletConnectionContent
-                onWalletsUpdated={onWalletsUpdated}
-                resumeXamanOnMount={resumeXamanOnMount}
-            />
-        </joeyStandalone.provider.Provider>
-    );
+export function WalletConnection(props: WalletConnectionProps) {
+    return <WalletConnectionContent {...props} />;
 }
 
 export default WalletConnection;

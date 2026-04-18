@@ -46,7 +46,7 @@ export default function Modal({
                     }}
                 >
                     <motion.div
-                        className={`relative mx-4 w-full max-h-[90vh] overflow-y-auto rounded-xl border border-white/10 bg-neutral-900 p-4 shadow-xl ${maxWidthClassName}`}
+                        className={`relative mx-4 w-full max-h-[90vh] overflow-x-hidden overflow-y-auto rounded-xl border border-white/10 bg-neutral-900 p-4 shadow-xl ${maxWidthClassName}`}
                         role="dialog"
                         aria-modal="true"
                         aria-label={title || 'Modal'}

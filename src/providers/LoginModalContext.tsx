@@ -7,11 +7,15 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { useNavigate } from 'react-router-dom';
 import LoginModal from '../components/LoginModal';
+import ConnectChoiceModal from '../components/ConnectChoiceModal';
+import ConnectWalletAuthModal from '../components/ConnectWalletAuthModal';
 
 type AuthModalView = 'login' | 'register' | 'forgot-password' | 'forgot-username' | 'reset-password';
 
 type LoginModalContextValue = {
+  openConnect: () => void;
   openLogin: () => void;
   openRegister: () => void;
   close: () => void;
@@ -20,6 +24,9 @@ type LoginModalContextValue = {
 const LoginModalContext = createContext<LoginModalContextValue | undefined>(undefined);
 
 export function LoginModalProvider({ children }: { children: ReactNode }) {
+  const navigate = useNavigate();
+  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
+  const [isConnectWalletAuthOpen, setIsConnectWalletAuthOpen] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [initialView, setInitialView] = useState<AuthModalView>('login');
   const [resetToken, setResetToken] = useState<string | null>(null);
@@ -99,8 +106,28 @@ export function LoginModalProvider({ children }: { children: ReactNode }) {
     setIsOpen(true);
   }, []);
 
+  const openConnect = useCallback(() => {
+    setIsConnectModalOpen(true);
+  }, []);
+
+  const closeConnectModal = useCallback(() => {
+    setIsConnectModalOpen(false);
+  }, []);
+
+  const chooseLoginFromConnect = useCallback(() => {
+    setIsConnectModalOpen(false);
+    openLogin();
+  }, [openLogin]);
+
+  const chooseConnectWalletFromPicker = useCallback(() => {
+    setIsConnectModalOpen(false);
+    setIsConnectWalletAuthOpen(true);
+  }, []);
+
   const close = useCallback(() => {
     setIsOpen(false);
+    setIsConnectModalOpen(false);
+    setIsConnectWalletAuthOpen(false);
     setResetToken(null);
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -112,16 +139,31 @@ export function LoginModalProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo(
     () => ({
+      openConnect,
       openLogin,
       openRegister,
       close,
     }),
-    [openLogin, openRegister, close]
+    [openConnect, openLogin, openRegister, close]
   );
 
   return (
     <LoginModalContext.Provider value={value}>
       {children}
+      <ConnectChoiceModal
+        isOpen={isConnectModalOpen}
+        onClose={closeConnectModal}
+        onChooseLogin={chooseLoginFromConnect}
+        onChooseConnectWallet={chooseConnectWalletFromPicker}
+      />
+      <ConnectWalletAuthModal
+        isOpen={isConnectWalletAuthOpen}
+        onClose={() => setIsConnectWalletAuthOpen(false)}
+        onSuccess={() => {
+          setIsConnectWalletAuthOpen(false);
+          navigate('/profile');
+        }}
+      />
       <LoginModal
         isOpen={isOpen}
         onClose={close}

@@ -129,7 +129,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     ),
   },
   {
-    id: 'Spacesuit-Xolo',
+    id: 'Spacesuit-Xolo-Legacy',
     imageAtLg: 'left',
     imageSrc: '/home/SpacesuitXoloRed.jpg',
     imageAlt: 'Spacesuit Xolo',

@@ -7,7 +7,7 @@ import {
 	resolveCanonicalClassicAddress,
 	stripInvisible,
 } from '../../xrplClassicAddress.js';
-import { requireSessionUserId } from '../../lib/sessionAuth.js';
+import { getRequestAuth } from '../../lib/sessionAuth.js';
 
 let pool: mysql.Pool | null = null;
 let cachedCollectionAddress: string | null | undefined;
@@ -165,14 +165,48 @@ async function callXrpl<T>(method: string, params: Record<string, unknown>) {
   throw new Error(`XRPL RPC failed on all endpoints: ${errors.join(' | ')}`);
 }
 
+function isAccountMissingRippledError(message: string): boolean {
+  const m = message.toLowerCase();
+  return (
+    m.includes('actnotfound') ||
+    m.includes('account not found') ||
+    m.includes('invalid account') ||
+    (m.includes('could not find ledger') && m.includes('account'))
+  );
+}
+
+async function fetchAllAccountNfts(
+  accountForRpc: string
+): Promise<Array<{ NFTokenID: string; Issuer?: string; URI?: string; NFTokenTaxon?: number }>> {
+  let allNfts: Array<{ NFTokenID: string; Issuer?: string; URI?: string; NFTokenTaxon?: number }> = [];
+  let marker: string | undefined;
+  do {
+    const params: Record<string, unknown> = {
+      account: accountForRpc,
+      ledger_index: 'validated',
+    };
+    if (marker) params.marker = marker;
+    const resp = await callXrpl<{
+      account_nfts?: Array<{ NFTokenID: string; Issuer?: string; URI?: string; NFTokenTaxon?: number }>;
+      marker?: string;
+    }>('account_nfts', params);
+    if (resp.account_nfts) allNfts = allNfts.concat(resp.account_nfts);
+    marker = resp.marker;
+  } while (marker);
+  return allNfts;
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const userId = await requireSessionUserId(req, res);
-    if (userId === null) return;
+    const auth = await getRequestAuth(req);
+    if (!auth) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
 
     const walletAddress = Array.isArray(req.query.wallet_address)
       ? req.query.wallet_address[0]
@@ -192,22 +226,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         xrp_balance: null,
         nft_count: 0,
         nfts: [],
+        xrpl_fetch_failed: false,
       });
     }
 
     const dbPool = getPool();
 
-    const [walletResult] = (await dbPool.execute(
-      'SELECT id, wallet_address FROM user_wallets WHERE user_id = ? AND LOWER(wallet_address) = LOWER(?)',
-      [userId, walletAddress]
-    )) as [any[], any];
+    let userId: number | null = null;
+    let storedWalletAddress: string;
+    let accountWalletRowId: number | null = null;
 
-    if (!Array.isArray(walletResult) || walletResult.length === 0) {
-      return res.status(404).json({ error: 'Wallet not found for user' });
+    if (auth.kind === 'wallet') {
+      if (queryTrim.toLowerCase() !== auth.walletAddress.toLowerCase()) {
+        return res.status(403).json({ error: 'Wallet address does not match session' });
+      }
+      storedWalletAddress = auth.walletAddress;
+    } else {
+      userId = auth.userId;
+      const [walletResult] = (await dbPool.execute(
+        'SELECT id, wallet_address FROM user_wallets WHERE user_id = ? AND LOWER(wallet_address) = LOWER(?)',
+        [userId, walletAddress]
+      )) as [any[], any];
+
+      if (!Array.isArray(walletResult) || walletResult.length === 0) {
+        return res.status(404).json({ error: 'Wallet not found for user' });
+      }
+
+      const walletRow = walletResult[0] as { id: number; wallet_address: string };
+      accountWalletRowId = walletRow.id;
+      storedWalletAddress = String(walletRow.wallet_address ?? '');
     }
 
-    const walletRow = walletResult[0] as { id: number; wallet_address: string };
-    const storedWalletAddress = String(walletRow.wallet_address ?? '');
     /** Never call rippled with an invalid-checksum string; decode+encode only via resolve (or null). */
     const accountForRpc =
       resolveCanonicalClassicAddress(storedWalletAddress) ??
@@ -225,13 +274,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (
+      auth.kind === 'user' &&
+      accountWalletRowId != null &&
+      userId != null &&
       accountForRpc !== storedWalletAddress &&
       isLikelyClassicShape(accountForRpc)
     ) {
       void dbPool
         .execute(
           'UPDATE user_wallets SET wallet_address = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?',
-          [accountForRpc, walletRow.id, userId]
+          [accountForRpc, accountWalletRowId, userId]
         )
         .catch((e: unknown) => {
           console.warn('[wallet-assets] Could not upgrade wallet_address checksum casing:', e);
@@ -247,7 +299,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ledger_index: 'validated',
       strict: true,
     }).catch((error: Error) => {
-      console.warn('XRPL account_info failed, returning empty wallet summary:', {
+      console.warn('XRPL account_info failed (will try account_nfts if not missing-account):', {
         accountForRpc,
         queryWalletAddress: walletAddress,
         message: error.message,
@@ -256,35 +308,50 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return { error };
     });
 
+    let accountInfoUnavailable = false;
+    let xrpBalance = '0.000000';
+
     if ('error' in accountInfo) {
+      const errMsg = accountInfo.error.message || '';
+      if (isAccountMissingRippledError(errMsg)) {
+        return res.status(200).json(
+          getSafeXrplFallback(accountForRpc, {
+            error: errMsg,
+            rpc_urls_attempted: rpcUrlsAttempted,
+          })
+        );
+      }
+      accountInfoUnavailable = true;
+    } else {
+      const balanceDrops = accountInfo.account_data?.Balance || '0';
+      xrpBalance = (Number(balanceDrops) / 1_000_000).toFixed(6);
+    }
+
+    let nfts: Array<{ NFTokenID: string; Issuer?: string; URI?: string; NFTokenTaxon?: number }> = [];
+    try {
+      nfts = await fetchAllAccountNfts(accountForRpc);
+    } catch (nftErr: unknown) {
+      const msg = nftErr instanceof Error ? nftErr.message : String(nftErr);
+      console.warn('XRPL account_nfts failed after account_info issue or alone:', {
+        accountForRpc,
+        accountInfoUnavailable,
+        message: msg,
+      });
+      if (accountInfoUnavailable) {
+        return res.status(200).json(
+          getSafeXrplFallback(accountForRpc, {
+            error: `account_info and account_nfts failed: ${msg}`,
+            rpc_urls_attempted: rpcUrlsAttempted,
+          })
+        );
+      }
       return res.status(200).json(
         getSafeXrplFallback(accountForRpc, {
-          error: accountInfo.error.message,
+          error: msg,
           rpc_urls_attempted: rpcUrlsAttempted,
         })
       );
     }
-
-
-    let allNfts: Array<{ NFTokenID: string; Issuer?: string; URI?: string; NFTokenTaxon?: number }> = [];
-    let marker: string | undefined = undefined;
-    do {
-      const params: Record<string, any> = {
-        account: accountForRpc,
-        ledger_index: 'validated',
-      };
-      if (marker) params.marker = marker;
-      const resp = await callXrpl<{
-        account_nfts?: Array<{ NFTokenID: string; Issuer?: string; URI?: string; NFTokenTaxon?: number }>;
-        marker?: string;
-      }>('account_nfts', params).catch(() => ({ account_nfts: [], marker: undefined }));
-      if (resp.account_nfts) allNfts = allNfts.concat(resp.account_nfts);
-      marker = resp.marker;
-    } while (marker);
-
-    const balanceDrops = accountInfo.account_data?.Balance || '0';
-    const xrpBalance = (Number(balanceDrops) / 1_000_000).toFixed(6);
-    const nfts = allNfts;
     const configuredCollectionAddress = await getConfiguredCollectionAddress();
 
     // Restore filtering by collection address
@@ -346,6 +413,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       wallet_address: accountForRpc,
       is_xrpl: true,
       xrp_balance: xrpBalance,
+      xrpl_fetch_failed: false,
+      ...(accountInfoUnavailable ? { account_info_unavailable: true } : {}),
       collection_filter_applied: Boolean(configuredCollectionAddress),
       configured_collection_address: configuredCollectionAddress,
       nft_count: filteredNfts.length,

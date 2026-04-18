@@ -1,6 +1,8 @@
 import type { VercelRequest } from '@vercel/node';
 import { randomBytes, randomUUID, createHash, scryptSync, timingSafeEqual } from 'node:crypto';
 import { getAppMysqlPool } from './mysqlPool.js';
+import { normalizeWalletAddress } from './userPinsRepo.js';
+import { resolveCanonicalClassicAddress } from '../xrplClassicAddress.js';
 
 export const SESSION_COOKIE_NAME = 'xolodojo_session';
 const SESSION_TTL_DAYS = 30;
@@ -155,10 +157,91 @@ export async function createSession(userId: number): Promise<{ token: string; ex
   const token = `${randomUUID()}-${randomBytes(24).toString('hex')}`;
   const expiresAt = getSessionExpiryDate();
   await pool.query(
-    'INSERT INTO user_sessions (id, user_id, token_hash, expires_at) VALUES (?, ?, ?, ?)',
+    'INSERT INTO user_sessions (id, user_id, wallet_address, wallet_type, token_hash, expires_at) VALUES (?, ?, NULL, NULL, ?, ?)',
     [randomUUID(), userId, hashToken(token), toMysqlDateTime(expiresAt)]
   );
   return { token, expiresAt };
+}
+
+/** Cookie session for users without an account row (wallet-only). */
+export async function createWalletSession(
+  walletAddress: string,
+  walletType: string
+): Promise<{ token: string; expiresAt: Date }> {
+  await deleteExpiredSessions();
+  const pool = getAppMysqlPool();
+  const token = `${randomUUID()}-${randomBytes(24).toString('hex')}`;
+  const expiresAt = getSessionExpiryDate();
+  const trimmed = walletAddress.trim();
+  const wa =
+    resolveCanonicalClassicAddress(trimmed) ??
+    resolveCanonicalClassicAddress(trimmed.toLowerCase()) ??
+    normalizeWalletAddress(trimmed);
+  const wt = walletType.trim().slice(0, 50) || 'unknown';
+  await pool.query(
+    'INSERT INTO user_sessions (id, user_id, wallet_address, wallet_type, token_hash, expires_at) VALUES (?, NULL, ?, ?, ?, ?)',
+    [randomUUID(), wa, wt, hashToken(token), toMysqlDateTime(expiresAt)]
+  );
+  return { token, expiresAt };
+}
+
+export type RequestAuthState =
+  | { kind: 'user'; userId: number; sessionUser: SessionAuthUser }
+  | { kind: 'wallet'; walletAddress: string; walletType: string };
+
+async function getUserRowById(userId: number): Promise<DbRow | null> {
+  const pool = getAppMysqlPool();
+  const [rows] = await pool.query<DbRow>('SELECT * FROM users WHERE id = ? LIMIT 1', [userId]);
+  const list = rows as unknown as DbRow[];
+  return list[0] ?? null;
+}
+
+export async function getRequestAuth(req: VercelRequest): Promise<RequestAuthState | null> {
+  const sessionToken = getSessionTokenFromRequest(req);
+  if (!sessionToken) {
+    return null;
+  }
+
+  await deleteExpiredSessions();
+
+  const pool = getAppMysqlPool();
+  const [sessRows] = await pool.query<DbRow>(
+    `SELECT user_id, wallet_address, wallet_type FROM user_sessions
+     WHERE token_hash = ? AND expires_at > UTC_TIMESTAMP()
+     LIMIT 1`,
+    [hashToken(sessionToken)]
+  );
+  const sessList = sessRows as unknown as DbRow[];
+  const sess = sessList[0];
+  if (!sess) {
+    return null;
+  }
+
+  const uidRaw = sess.user_id;
+  if (uidRaw != null && uidRaw !== '') {
+    const userId = Number(uidRaw);
+    if (Number.isFinite(userId)) {
+      const userRow = await getUserRowById(userId);
+      if (!userRow) {
+        return null;
+      }
+      return { kind: 'user', userId, sessionUser: mapSessionUser(userRow) };
+    }
+  }
+
+  const waRaw = sess.wallet_address;
+  if (typeof waRaw === 'string' && waRaw.trim()) {
+    const raw = waRaw.trim();
+    const walletAddress =
+      resolveCanonicalClassicAddress(raw) ??
+      resolveCanonicalClassicAddress(raw.toLowerCase()) ??
+      normalizeWalletAddress(raw);
+    const wtRaw = sess.wallet_type;
+    const walletType = typeof wtRaw === 'string' && wtRaw.trim() ? wtRaw.trim() : 'unknown';
+    return { kind: 'wallet', walletAddress, walletType };
+  }
+
+  return null;
 }
 
 export async function deleteSessionByToken(token: string): Promise<void> {
@@ -192,10 +275,11 @@ export async function getUserRowBySessionToken(
 export async function getSessionUserFromRequest(
   req: VercelRequest
 ): Promise<SessionAuthUser | null> {
-  const token = getSessionTokenFromRequest(req);
-  const row = await getUserRowBySessionToken(token);
-  if (!row) return null;
-  return mapSessionUser(row);
+  const auth = await getRequestAuth(req);
+  if (auth?.kind === 'user') {
+    return auth.sessionUser;
+  }
+  return null;
 }
 
 export async function requireSessionUserId(
