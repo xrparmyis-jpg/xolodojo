@@ -373,7 +373,7 @@ function Home() {
             <XoloitzquintleSlideshow />
           </GsapPageContent>
           <GsapPageContent className="mx-auto w-full max-w-4xl">
-            <h3 className="text-center text-xl font-bold md:text-2xl mt-8">
+            <h3 className="text-center text-xl font-bold md:text-2xl mt-12">
               Launch Alert: The Final Countdown
             </h3>
           </GsapPageContent>
