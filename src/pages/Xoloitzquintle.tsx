@@ -3,7 +3,6 @@ import GsapPageHeading from '../components/GsapPageHeading';
 import GsapPageContent from '../components/GsapPageContent';
 import GsapPageSubHeading from '../components/GsapPageSubHeading';
 import SectionParallaxBlobs from '../components/SectionParallaxBlobs';
-import XoloitzquintleSlideshow from '../components/XoloitzquintleSlideshow';
 
 import { useSectionParallaxOffsets } from '../hooks/useSectionParallaxOffsets';
 
@@ -34,6 +33,19 @@ function Xoloitzquintle() {
               iconCount={1}
               centered
             />
+
+            <GsapPageContent as="p" className="mb-4">
+              Why the quirky spelling "Xoloitzquintle" (with that "qu" instead
+              of "cu")? It's a loving nod to old-school Nahuatl orthography and
+              how Spanish chroniclers/translators rendered the original
+              xōlōitzcuintli (pronounced roughly "show-low-eats-QUEENT-lee").
+              The "qu" captures the guttural, ancient Aztec sound more
+              faithfully in some traditional texts and codex styles—think of it
+              as the mythic equivalent of using "ye olde" English for flair. We
+              chose it to honor the deep cultural roots, keep the lore
+              authentic, and give our guardians that extra layer of timeless
+              mystery.
+            </GsapPageContent>
             <div className="container mx-auto max-w-7xl px-4">
               <div className="flex flex-col items-center text-center">
                 <GsapHeroParallax
@@ -45,7 +57,7 @@ function Xoloitzquintle() {
             </div>
             <div className="space-y-6">
               <GsapPageSubHeading heading="Journey of the Xolo" />
-              <GsapPageContent as="p" className="mb-4">
+              <GsapPageContent as="p" className="mb-4" delay={0.04}>
                 Picture this: the Aztec cosmos is basically a chaotic family
                 reunion that never ends. At the center? The ultimate twin
                 duo—Quetzalcoatl, the chill, feathered-serpent genius of wind,
@@ -117,26 +129,10 @@ function Xoloitzquintle() {
                 gods' twin pact: no middleman, no limits, eternal vibes.
               </GsapPageContent>
 
-              <GsapPageContent as="p" className="mb-4" delay={0.56}>
-                Why the quirky spelling "Xoloitzquintle" (with that "qu" instead
-                of "cu")? It's a loving nod to old-school Nahuatl orthography
-                and how Spanish chroniclers/translators rendered the original
-                xōlōitzcuintli (pronounced roughly "show-low-eats-QUEENT-lee").
-                The "qu" captures the guttural, ancient Aztec sound more
-                faithfully in some traditional texts and codex styles—think of
-                it as the mythic equivalent of using "ye olde" English for
-                flair. We chose it to honor the deep cultural roots, keep the
-                lore authentic, and give our guardians that extra layer of
-                timeless mystery.
-              </GsapPageContent>
-
               <GsapPageContent as="p" className="mb-4" delay={0.64}>
                 Own your Xolo. Own your journey. Own your destination.
               </GsapPageContent>
             </div>
-            <GsapPageContent className="mt-10 flex justify-center" delay={0.72}>
-              <XoloitzquintleSlideshow />
-            </GsapPageContent>
           </div>
         </div>
       </section>

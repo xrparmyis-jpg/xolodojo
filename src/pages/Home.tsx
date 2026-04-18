@@ -4,6 +4,7 @@ import GsapPageContent from '../components/GsapPageContent';
 import GsapPageHeading from '../components/GsapPageHeading';
 import SectionParallaxBlobs from '../components/SectionParallaxBlobs';
 import CounterSection from '../components/CounterSection';
+import XoloitzquintleSlideshow from '../components/XoloitzquintleSlideshow';
 
 import { useSectionParallaxOffsets } from '../hooks/useSectionParallaxOffsets';
 import MintCountdownSection from '../components/MintCountdownSection';
@@ -72,19 +73,33 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     body: (
       <>
         <p className="mb-4">
-          Meet the XoloDojo Team — A team of three building the Xoloitzquintli NFT Collection & Xglobe inside the XoloDojo, who are determined and dedicated to building and sharing a global dream of uniting people together in todays fragmented world.
+          Meet the XoloDojo Team — A team of three building the Xoloitzquintli
+          NFT Collection & Xglobe inside the XoloDojo, who are determined and
+          dedicated to building and sharing a global dream of uniting people
+          together in todays fragmented world.
         </p>
         <p className="mb-4">
-          Cryptonite, the project visionary, is the Alaskan spark that ignited the flame. Turning bold, raw ideas and a vision into fruition, driven by the relentless pursuit of building a community established on a network of trusted, real world connections. 
+          Cryptonite, the project visionary, is the Alaskan spark that ignited
+          the flame. Turning bold, raw ideas and a vision into fruition, driven
+          by the relentless pursuit of building a community established on a
+          network of trusted, real world connections.
         </p>
         <p className="mb-4">
-          Code, the battle-hardened California coding wizard based in the Silicon Valley, has been writing code since the Commodore 64 days, the floppy disk, and the turtle. The github guru is the technical architect powering the XoloDojo & Xglobe community ecosystem.
+          Code, the battle-hardened California coding wizard based in the
+          Silicon Valley, has been writing code since the Commodore 64 days, the
+          floppy disk, and the turtle. The github guru is the technical
+          architect powering the XoloDojo & Xglobe community ecosystem.
         </p>
         <p className="mb-4">
-          RedShadow is the loyal, cultural artist hailing from Pakistan. The Pakistani Alchemist is rich in tradition, and the talent behind each hand drawn trait that is the Xoloitzquintle NFT Collection, crafting the visual heartbeat of each and every Xolo.
+          RedShadow is the loyal, cultural artist hailing from Pakistan. The
+          Pakistani Alchemist is rich in tradition, and the talent behind each
+          hand drawn trait that is the Xoloitzquintle NFT Collection, crafting
+          the visual heartbeat of each and every Xolo.
         </p>
         <p className="mb-4">
-          This unstoppable trio — united in friendship, loyalty, and mutual respect, are forever bonded by an eternal flame, with the creation of XoloDojo, the stuff of legends, forever on-chain.
+          This unstoppable trio — united in friendship, loyalty, and mutual
+          respect, are forever bonded by an eternal flame, with the creation of
+          XoloDojo, the stuff of legends, forever on-chain.
         </p>
       </>
     ),
@@ -99,12 +114,27 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     title: <>Seen on Xglobe. Shared with the world.</>,
     body: (
       <>
-        <p className="mb-4">Your Xolo gets you seen on Xglobe. The Pinbox is where that presence becomes real. Add your name, a brief bio, links and socials,along with what you offer or are seeking--drop your pin on the map and let the world know where you stand.</p>        
-        <p className="mb-4">Pin your location, where you're headed, what you're building, in need of, or perhaps you have a service/skill to exchange. A meetup over coffee for an oppurtunity you want to spark. It can be your intro, your signal, your invition, or your shot at finding like-minded people who move with purpose, curiosity, positive vibes and good energy.</p>
-        <p className="mb-4">Each Xolo minted gets you a pin and pinbox, with built-in local date and time, making every connection immediate, human, and real.  Inside the XoloDojo, community is just a pin away.</p>
+        <p className="mb-4">
+          Your Xolo gets you seen on Xglobe. The Pinbox is where that presence
+          becomes real. Add your name, a brief bio, links and socials,along with
+          what you offer or are seeking--drop your pin on the map and let the
+          world know where you stand.
+        </p>
+        <p className="mb-4">
+          Pin your location, where you're headed, what you're building, in need
+          of, or perhaps you have a service/skill to exchange. A meetup over
+          coffee for an oppurtunity you want to spark. It can be your intro,
+          your signal, your invition, or your shot at finding like-minded people
+          who move with purpose, curiosity, positive vibes and good energy.
+        </p>
+        <p className="mb-4">
+          Each Xolo minted gets you a pin and pinbox, with built-in local date
+          and time, making every connection immediate, human, and real. Inside
+          the XoloDojo, community is just a pin away.
+        </p>
         <p>One Pin. One Bond. One Heartbeat.</p>
       </>
-    )
+    ),
   },
   {
     id: 'utility-mint',
@@ -116,11 +146,26 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     title: <>The Xoloitzquintle NFT Collection</>,
     body: (
       <>
-        <p className="mb-4">10,001 Xolos. Clean traits. Straight fire. Built different. Built on the XRPL for its eco-friendly design, fast payments, and low fees, the collection draws from 11 distinct traits and 311 sub-traits, all hand-drawn by the teams talented artist, RedShadow. </p>
         <p className="mb-4">
-          Every Xolo carries its own energy--from sacred, sharp, chaotic, and calm, to dripped out or quietly legendary.  Some have attitude like they know they're gonna get minted first! This is not filler. This is the hunt for your Xolo.</p>        
-        <p className="mb-4">Inside XoloDojo, your Xolo unlocks Xglobe, so when you arrive, your loyal guide and companion will be right there by your side. </p>        
-        <p>Looks like alpha, feels like legacy, sprinkled with a lil degen and prepared with a whole lot of heart.</p>
+          10,001 Xolos. Clean traits. Straight fire. Built different. Built on
+          the XRPL for its eco-friendly design, fast payments, and low fees, the
+          collection draws from 11 distinct traits and 311 sub-traits, all
+          hand-drawn by the teams talented artist, RedShadow.{' '}
+        </p>
+        <p className="mb-4">
+          Every Xolo carries its own energy--from sacred, sharp, chaotic, and
+          calm, to dripped out or quietly legendary. Some have attitude like
+          they know they're gonna get minted first! This is not filler. This is
+          the hunt for your Xolo.
+        </p>
+        <p className="mb-4">
+          Inside XoloDojo, your Xolo unlocks Xglobe, so when you arrive, your
+          loyal guide and companion will be right there by your side.{' '}
+        </p>
+        <p>
+          Looks like alpha, feels like legacy, sprinkled with a lil degen and
+          prepared with a whole lot of heart.
+        </p>
       </>
     ),
   },
@@ -134,13 +179,27 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     title: <>Connect on Xglobe</>,
     body: (
       <>
-        <p className="mb-4">Xgolobe is where the XoloDojo comes alive at full scale--a live token-gated world built for movement, connection, exchange, and adventure. Holders can meet up, share culture, trade skills, promote what they offer, and create real experiences across multiple cities, countries, and time zones.</p>
-        
-        <p className="mb-4">This is where the collection stops standing still and becomes not just a collectible held in a crypto wallet, but rather a key for a living network with energy, reach, and real human upside.</p>
+        <p className="mb-4">
+          Xgolobe is where the XoloDojo comes alive at full scale--a live
+          token-gated world built for movement, connection, exchange, and
+          adventure. Holders can meet up, share culture, trade skills, promote
+          what they offer, and create real experiences across multiple cities,
+          countries, and time zones.
+        </p>
 
-        
-        <p className="mb-4">Your Xolo gives you a place to land your plane, dock your boat, and park your car, with an agenda to turn travelers into locals, strangers into allies, and foster global connection through person to person networking, utilizing wallet to wallet transactions with XRP on the XRPL.</p>
+        <p className="mb-4">
+          This is where the collection stops standing still and becomes not just
+          a collectible held in a crypto wallet, but rather a key for a living
+          network with energy, reach, and real human upside.
+        </p>
 
+        <p className="mb-4">
+          Your Xolo gives you a place to land your plane, dock your boat, and
+          park your car, with an agenda to turn travelers into locals, strangers
+          into allies, and foster global connection through person to person
+          networking, utilizing wallet to wallet transactions with XRP on the
+          XRPL.
+        </p>
 
         <p>One Pin. One Pinbox. One Xglobe.</p>
       </>
@@ -156,19 +215,30 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     title: <>Built for the long game</>,
     body: (
       <>
-        <p className="mb-4">The mint is the beginning, not the just the finish line.  XoloDojo is being built as a living ecosystem fostering collection, collaboration, travel, culture, and community, expanding across time zones and time itself.</p>
-        
-        <p className="mb-4">The Xolos open the door. Xglobe gives the world a stage. The PinBox provides the presence. What brings it all to life is the networking collaborations that grow from there; the movement, the people, the stories, and the journey back home.</p>
+        <p className="mb-4">
+          The mint is the beginning, not the just the finish line. XoloDojo is
+          being built as a living ecosystem fostering collection, collaboration,
+          travel, culture, and community, expanding across time zones and time
+          itself.
+        </p>
 
-        
-        <p className="mb-4">The Xoloitzquintle collection is for the community to bond with, build with, grow with, and thrive.</p>
+        <p className="mb-4">
+          The Xolos open the door. Xglobe gives the world a stage. The PinBox
+          provides the presence. What brings it all to life is the networking
+          collaborations that grow from there; the movement, the people, the
+          stories, and the journey back home.
+        </p>
 
+        <p className="mb-4">
+          The Xoloitzquintle collection is for the community to bond with, build
+          with, grow with, and thrive.
+        </p>
 
-        <p>One Xglobe. One Pin. One Pinbox.</p> 
+        <p>One Xglobe. One Pin. One Pinbox.</p>
       </>
     ),
   },
-  
+
   {
     id: 'utility-xglobe',
     imageAtLg: 'left',
@@ -179,15 +249,26 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     title: <>Built for the long game</>,
     body: (
       <>
-        <p className="mb-4">The mint is the beginning, not the just the finish line.  XoloDojo is being built as a living ecosystem fostering collection, collaboration, travel, culture, and community, expanding across time zones and time itself.</p>
-        
-        <p className="mb-4">The Xolos open the door. Xglobe gives the world a stage. The PinBox provides the presence. What brings it all to life is the networking collaborations that grow from there; the movement, the people, the stories, and the journey back home.</p>
+        <p className="mb-4">
+          The mint is the beginning, not the just the finish line. XoloDojo is
+          being built as a living ecosystem fostering collection, collaboration,
+          travel, culture, and community, expanding across time zones and time
+          itself.
+        </p>
 
-        
-        <p className="mb-4">The Xoloitzquintle collection is for the community to bond with, build with, grow with, and thrive.</p>
+        <p className="mb-4">
+          The Xolos open the door. Xglobe gives the world a stage. The PinBox
+          provides the presence. What brings it all to life is the networking
+          collaborations that grow from there; the movement, the people, the
+          stories, and the journey back home.
+        </p>
 
+        <p className="mb-4">
+          The Xoloitzquintle collection is for the community to bond with, build
+          with, grow with, and thrive.
+        </p>
 
-        <p>One Xglobe. One Pin. One Pinbox.</p> 
+        <p>One Xglobe. One Pin. One Pinbox.</p>
       </>
     ),
   },
@@ -265,102 +346,33 @@ function Home() {
             iconCount={1}
             centered
           />
+          <GsapPageContent
+            className="mx-auto w-full max-w-4xl"
+            delay={SERVICE_ROW_DELAY[0]}
+          >
+            <>
+              <p>
+                The website is live. The mint comes next. The Xglobe awaits.
+                This starts with a mint, but the alpha lives in your Pinbox,
+                lock in and be ready when we flip the switch. When the countdown
+                hits zero, the timer morphs into the mint button and sends you
+                straight to the mint in the xrp.cafe. Your Xolo awaits!! After
+                mint, return to the Dojo, connect your wallet, fill out your
+                Pinbox, and get scene on Xglobe. Built on the XRP Ledger (XRPL)
+                for its high speed payments, low-cost transactions,
+                decentralized and eco-friendly design, this collection is
+                straight fire and bringing the heat, and a whole lot of heart.
+                One Xolo. One Pin. One Love.
+              </p>
+              <h3 className="text-center text-xl font-bold md:text-2xl mt-8">
+                Launch Alert: The Final Countdown
+              </h3>
+            </>
+          </GsapPageContent>
           <MintCountdownSection />
-          <div className="mt-8 flex flex-col items-center gap-6">
-            <GsapPageContent
-              className="mx-auto w-full max-w-4xl"
-              delay={SERVICE_ROW_DELAY[0]}
-            >
-              <div className="mt-[30px] flex flex-col items-center justify-center gap-4 md:flex-row md:items-start md:gap-6">
-                <div className="max-w-75 shrink-0">
-                  <img
-                    src="/xolo-art.png"
-                    alt="Xolo NFT Art"
-                    className="min-w-25 w-65 rounded-[20px] object-cover md:w-[320px] lg:w-95"
-                  />
-                </div>
-                <div className="flex min-w-0 flex-1 flex-col rounded-[25px] border border-[rgba(207,208,212,0.2)] bg-[#1d1d21] p-[50px] text-center max-w-full w-full md:text-left [&_p]:mb-5 [&_p:last-child]:mb-0">
-                  <h3 className="text-xl font-bold md:text-2xl mb-[15px]">
-                    Launch Alert: The Final Countdown
-                  </h3>
-                  <p>
-                    The website is live. The mint comes next. The Xglobe awaits. This starts with a mint, but the alpha lives in your Pinbox, lock in and be ready when we flip the switch.  When the countdown hits zero, the timer morphs into the mint button and sends you straight to the mint in the xrp.cafe. Your Xolo awaits!! After mint, return to the Dojo, connect your wallet, fill out your Pinbox, and get scene on Xglobe. Built on the XRP Ledger (XRPL) for its high speed payments, low-cost transactions, decentralized and eco-friendly design, this collection is straight fire and bringing the heat, and a whole lot of heart. One Xolo. One Pin. One Love. 
-                  </p>
-                </div>
-              </div>
-            </GsapPageContent>
-            <GsapPageContent
-              className="mx-auto w-full max-w-4xl"
-              delay={SERVICE_ROW_DELAY[1]}
-            >
-              <div className="mt-[30px] flex flex-col items-center justify-center gap-4 md:flex-row md:items-start md:gap-6">
-                <div className="max-w-75 shrink-0">
-                  <img
-                    src="/xrpl-blockchain.png"
-                    alt="XRPL Blockchain"
-                    className="min-w-25 w-65 rounded-[20px] object-cover md:w-[320px] lg:w-95"
-                  />
-                </div>
-                <div className="flex min-w-0 flex-1 flex-col rounded-[25px] border border-[rgba(207,208,212,0.2)] bg-[#1d1d21] p-[50px] text-center max-w-full w-full md:text-left [&_p]:mb-5 [&_p:last-child]:mb-0">
-                  <h3 className="text-xl font-bold md:text-2xl mb-[15px]">
-                    Built on the XRP Ledger (XRPL)
-                  </h3>
-                  <p>
-                    Hosted on the XRPL for its high speed payments, low-cost
-                    transactions, and eco-friendly design.
-                  </p>
-                </div>
-              </div>
-            </GsapPageContent>
-            <GsapPageContent
-              className="mx-auto w-full max-w-4xl"
-              delay={SERVICE_ROW_DELAY[2]}
-            >
-              <div className="mt-[30px] flex flex-col items-center justify-center gap-4 md:flex-row md:items-start md:gap-6">
-                <div className="max-w-75 shrink-0">
-                  <img
-                    src="/xolo-travel.png"
-                    alt="Xolo Travel Vision"
-                    className="min-w-25 w-65 rounded-[20px] object-cover md:w-[320px] lg:w-95"
-                  />
-                </div>
-                <div className="flex min-w-0 flex-1 flex-col rounded-[25px] border border-[rgba(207,208,212,0.2)] bg-[#1d1d21] p-[50px] text-center max-w-full w-full md:text-left [&_p]:mb-5 [&_p:last-child]:mb-0">
-                  <h3 className="text-xl font-bold md:text-2xl mb-[15px]">
-                    Decentralized Travel Vision
-                  </h3>
-                  <p>
-                    Our long-term goal: a platform for holders to network, share
-                    skills, and explore the world person to person, interacting
-                    wallet-to-wallet to foster global connection through travel
-                    experiences on the XRPL.
-                  </p>
-                </div>
-              </div>
-            </GsapPageContent>
-            <GsapPageContent
-              className="mx-auto w-full max-w-4xl"
-              delay={SERVICE_ROW_DELAY[3]}
-            >
-              <div className="mt-[30px] flex flex-col items-center justify-center gap-4 md:flex-row md:items-start md:gap-6">
-                <div className="max-w-75 shrink-0">
-                  <img
-                    src="/xrp-cafe-mint.png"
-                    alt="XRP Cafe Mint"
-                    className="min-w-25 w-65 rounded-[20px] object-cover md:w-[320px] lg:w-95"
-                  />
-                </div>
-                <div className="flex min-w-0 flex-1 flex-col rounded-[25px] border border-[rgba(207,208,212,0.2)] bg-[#1d1d21] p-[50px] text-center max-w-full w-full md:text-left [&_p]:mb-5 [&_p:last-child]:mb-0">
-                  <h3 className="text-xl font-bold md:text-2xl mb-[15px]">
-                    Upcoming Mint in the xrp.cafe
-                  </h3>
-                  <p>
-                    Prepare your Xaman or Joey wallet with recommended 20 XRP
-                    minimum reserve for the Xoloitzquintle mint on the XRPL.
-                  </p>
-                </div>
-              </div>
-            </GsapPageContent>
-          </div>
+          <GsapPageContent className="mt-12 flex justify-center" delay={0.72}>
+            <XoloitzquintleSlideshow />
+          </GsapPageContent>
         </div>
       </section>
 
@@ -384,7 +396,6 @@ function Home() {
           <img src="/color-bg-shape-2.png" alt="" aria-hidden />
         </div>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          
           <div className="flex flex-col gap-12 lg:gap-16">
             {LEGACY_STORY_ROWS.map((row, index) => {
               const imageLeft = row.imageAtLg === 'left';
@@ -419,10 +430,10 @@ function Home() {
                     }`}
                   >
                     <div className="flex min-w-0 flex-col text-left mt-4 lg:mt-0">
-                      <span className="mb-5 inline-block rounded-2xl border border-[rgba(207,208,212,0.2)] px-5 py-2 text-[15px] font-bold leading-none">
+                      <span className="mb-5 inline-block w-fit max-w-full self-center rounded-2xl border border-[rgba(207,208,212,0.2)] px-5 py-2 text-center text-[15px] font-bold leading-none">
                         {row.eyebrow}
                       </span>
-                      <h3 className="my-2 lg:mb-6 text-2xl font-bold md:text-3xl lg:text-4xl">
+                      <h3 className="text-center my-2 lg:mb-6 text-2xl font-bold md:text-3xl lg:text-4xl">
                         {row.title}
                       </h3>
                       <div className="w-full max-w-none leading-relaxed">
