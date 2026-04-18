@@ -16,6 +16,8 @@ type LegacyStoryRow = {
   imageAlt: string;
   /** Tailwind border-color utility (include the `border-` prefix), e.g. `border-cyan-400` or `border-[#b7e9f7]`. */
   borderColor: string;
+  /** Tailwind text-color utility for the section title (e.g. `text-cyan-400`) — pair with `borderColor`. */
+  titleColor: string;
   eyebrow: string;
   title: ReactNode;
   body: ReactNode;
@@ -28,6 +30,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageSrc: '/home/GhostXoloGecko.jpg',
     imageAlt: 'Ghost Xolo Gecko',
     borderColor: 'border-cyan-400',
+    titleColor: 'text-cyan-400',
     eyebrow: 'The XoloDojo',
     title: (
       <>
@@ -68,6 +71,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageSrc: '/home/TeamFireXolo.jpg',
     imageAlt: 'Team Fire Xolo',
     borderColor: 'border-orange-400',
+    titleColor: 'text-orange-400',
     eyebrow: 'Cryptonite Labs is Team Fire',
     title: <>Cryptonite, Code &amp; RedShadow</>,
     body: (
@@ -110,6 +114,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageSrc: '/home/AbstractXoloBlue.jpg',
     imageAlt: 'Abstract Xolo Blue',
     borderColor: 'border-sky-400',
+    titleColor: 'text-sky-400',
     eyebrow: 'Pin your presence',
     title: <>Seen on Xglobe. Shared with the world.</>,
     body: (
@@ -142,6 +147,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageSrc: '/home/StaindGlassXoloSkiGoggles.jpg',
     imageAlt: 'Staind Glass Xolo',
     borderColor: 'border-fuchsia-400',
+    titleColor: 'text-fuchsia-400',
     eyebrow: 'The Collection',
     title: <>The Xoloitzquintle NFT Collection</>,
     body: (
@@ -175,6 +181,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageSrc: '/home/SpacesuitXoloRed.jpg',
     imageAlt: 'Spacesuit Xolo',
     borderColor: 'border-amber-400',
+    titleColor: 'text-amber-400',
     eyebrow: 'Unlock Xglobe',
     title: <>Connect on Xglobe</>,
     body: (
@@ -211,6 +218,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageSrc: '/home/SpacesuitXoloRed.jpg',
     imageAlt: 'Spacesuit Xolo',
     borderColor: 'border-amber-400',
+    titleColor: 'text-amber-400',
     eyebrow: 'A Vision of Global Connection',
     title: <>Built for the long game</>,
     body: (
@@ -245,6 +253,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageSrc: '/home/SpacesuitXoloRed.jpg',
     imageAlt: 'Spacesuit Xolo',
     borderColor: 'border-amber-400',
+    titleColor: 'text-amber-400',
     eyebrow: 'A Vision of Global Connection',
     title: <>Built for the long game</>,
     body: (
@@ -346,10 +355,7 @@ function Home() {
             iconCount={1}
             centered
           />
-          <GsapPageContent
-            className="mx-auto w-full max-w-4xl"
-            delay={SERVICE_ROW_DELAY[0]}
-          >
+          <GsapPageContent className="mx-auto w-full max-w-4xl">
             <>
               <p>
                 The website is live. The mint comes next. The Xglobe awaits.
@@ -364,15 +370,17 @@ function Home() {
                 straight fire and bringing the heat, and a whole lot of heart.
                 One Xolo. One Pin. One Love.
               </p>
-              <h3 className="text-center text-xl font-bold md:text-2xl mt-8">
-                Launch Alert: The Final Countdown
-              </h3>
             </>
           </GsapPageContent>
-          <MintCountdownSection />
           <GsapPageContent className="mt-12 flex justify-center" delay={0.72}>
             <XoloitzquintleSlideshow />
           </GsapPageContent>
+          <GsapPageContent className="mx-auto w-full max-w-4xl">
+            <h3 className="text-center text-xl font-bold md:text-2xl mt-8">
+              Launch Alert: The Final Countdown
+            </h3>
+          </GsapPageContent>
+          <MintCountdownSection />
         </div>
       </section>
 
@@ -435,7 +443,9 @@ function Home() {
                       >
                         {row.eyebrow}
                       </span>
-                      <h3 className="text-center my-2 lg:mb-6 text-2xl font-bold md:text-3xl lg:text-4xl">
+                      <h3
+                        className={`text-center my-2 lg:mb-6 text-2xl font-bold md:text-3xl lg:text-4xl ${row.titleColor}`}
+                      >
                         {row.title}
                       </h3>
                       <div className="w-full max-w-none leading-relaxed">
