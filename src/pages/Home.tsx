@@ -283,9 +283,6 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
   },
 ];
 
-/** Stagger for welcome section service rows (GsapPageContent `delay`). */
-const SERVICE_ROW_DELAY = [0, 0.06, 0.12, 0.18] as const;
-
 function Home() {
   const projectSectionRef = useRef<HTMLElement>(null);
   const projectColorBgRef = useRef<HTMLDivElement>(null);
