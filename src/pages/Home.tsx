@@ -29,8 +29,8 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageAtLg: 'left',
     imageSrc: '/home/GhostXoloGecko.jpg',
     imageAlt: 'Ghost Xolo Gecko',
-    borderColor: 'border-neutral-400',
-    titleColor: 'text-neutral-400',
+    borderColor: 'border-green-500',
+    titleColor: 'text-green-500',
     eyebrow: 'The XoloDojo',
     title: (
       <>
