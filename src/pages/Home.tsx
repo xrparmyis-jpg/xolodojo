@@ -439,7 +439,7 @@ function Home() {
                   >
                     <div className="flex min-w-0 flex-col text-left mt-4 lg:mt-0">
                       <span
-                        className={`mb-5 inline-block w-fit max-w-full self-center rounded-2xl border ${row.borderColor} px-5 py-2 text-center text-[15px] font-bold leading-none`}
+                        className={`mb-5 inline-block w-fit max-w-full self-center rounded-2xl border ${row.borderColor} px-8 py-2 text-center text-[15px] font-bold leading-none`}
                       >
                         {row.eyebrow}
                       </span>
