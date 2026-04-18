@@ -67,7 +67,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageAtLg: 'right',
     imageSrc: '/home/TeamFireXolo.jpg',
     imageAlt: 'Team Fire Xolo',
-    borderColor: 'border-emerald-400',
+    borderColor: 'border-orange-400',
     eyebrow: 'Cryptonite Labs is Team Fire',
     title: <>Cryptonite, Code &amp; RedShadow</>,
     body: (
