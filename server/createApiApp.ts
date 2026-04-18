@@ -90,6 +90,7 @@ export async function createApiApp(): Promise<express.Express> {
     authForgotUsernameModule,
     authResetPasswordModule,
     authResendVerificationModule,
+    authWalletLoginModule,
   ] = await Promise.all([
     import('./handlers/user/profile.js'),
     import('./handlers/user/wallets.js'),
@@ -108,11 +109,13 @@ export async function createApiApp(): Promise<express.Express> {
     import('./handlers/auth/forgot-username.js'),
     import('./handlers/auth/reset-password.js'),
     import('./handlers/auth/resend-verification.js'),
+    import('./handlers/auth/wallet-login.js'),
   ]);
 
   app.all('/api/auth/login', vercelToExpress(authLoginModule.default));
   app.all('/api/auth/logout', vercelToExpress(authLogoutModule.default));
   app.all('/api/auth/me', vercelToExpress(authMeModule.default));
+  app.all('/api/auth/wallet-login', vercelToExpress(authWalletLoginModule.default));
   app.all('/api/auth/register', vercelToExpress(authRegisterModule.default));
   app.all('/api/auth/verify-email', vercelToExpress(authVerifyEmailModule.default));
   app.all('/api/auth/forgot-password', vercelToExpress(authForgotPasswordModule.default));

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { NavLink, useLocation, Link } from 'react-router-dom';
+import { NavLink, useLocation, Link, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars, faTimes, faUser, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
 import { useAuth } from '../providers/AuthContext';
 import { useLoginModal } from '../providers/LoginModalContext';
+import { disconnectExternalWallets } from '../utils/disconnectExternalWallets';
 
 interface MenuProps {
     onLinkClick?: () => void;
@@ -22,8 +23,9 @@ function Menu({
 }: MenuProps) {
     const [internalIsOpen, setInternalIsOpen] = useState(false);
     const location = useLocation();
+    const navigate = useNavigate();
     const { user, loading: authLoading, logout } = useAuth();
-    const { openLogin, openRegister } = useLoginModal();
+    const { openConnect } = useLoginModal();
 
     const isMobileMenuOpen =
         externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
@@ -164,47 +166,43 @@ function Menu({
                                                             <span>Profile</span>
                                                         </Link>
                                                     </li>
-                                                    <li className="mb-2">
+                                                                                                       <li className="mb-2">
                                                         <button
                                                             type="button"
                                                             onClick={() => {
-                                                                void logout();
-                                                                closeMobileMenu();
+                                                                void (async () => {
+                                                                    if (user.authMode === 'wallet') {
+                                                                        await disconnectExternalWallets();
+                                                                        await logout();
+                                                                        navigate('/');
+                                                                    } else {
+                                                                        await logout();
+                                                                    }
+                                                                    closeMobileMenu();
+                                                                })();
                                                             }}
                                                             className="mt-2 flex w-full cursor-pointer items-center gap-3 border-0 border-b border-white/10 bg-transparent py-3 text-left text-base font-medium text-white transition-colors hover:text-[#b7e9f7]"
                                                         >
                                                             <FontAwesomeIcon icon={faSignOutAlt} className="h-[18px] w-[18px] shrink-0" />
-                                                            <span>Logout</span>
+                                                            <span>
+                                                                {user.authMode === 'wallet' ? 'Disconnect' : 'Logout'}
+                                                            </span>
                                                         </button>
                                                     </li>
                                                 </>
                                             ) : (
-                                                <>
-                                                    <li className="mb-2">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                openRegister();
-                                                                closeMobileMenu();
-                                                            }}
-                                                            className="mt-2 flex w-full cursor-pointer items-center gap-3 border-0 border-b border-white/10 bg-transparent py-3 text-left text-base font-medium text-white transition-colors hover:text-[#b7e9f7]"
-                                                        >
-                                                            <span>Register</span>
-                                                        </button>
-                                                    </li>
-                                                    <li className="mb-2">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                openLogin();
-                                                                closeMobileMenu();
-                                                            }}
-                                                            className="mt-2 flex w-full cursor-pointer items-center gap-3 border-0 border-b border-white/10 bg-transparent py-3 text-left text-base font-medium text-white transition-colors hover:text-[#b7e9f7]"
-                                                        >
-                                                            <span>Login</span>
-                                                        </button>
-                                                    </li>
-                                                </>
+                                                <li className="mb-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            openConnect();
+                                                            closeMobileMenu();
+                                                        }}
+                                                        className="mt-2 flex w-full cursor-pointer items-center gap-3 border-0 border-b border-white/10 bg-transparent py-3 text-left text-base font-medium text-white transition-colors hover:text-[#b7e9f7]"
+                                                    >
+                                                        <span>Connect</span>
+                                                    </button>
+                                                </li>
                                             )}
                                         </>
                                     )}

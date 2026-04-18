@@ -210,6 +210,8 @@ export const xamanHandler: IWalletHandler = {
 		tryDisconnectCurrentWallet,
 		connectWallet,
 		addWallet,
+		/** Wallet-only app sign-in: skip DB wallet rows */
+		completeWalletAuth,
 		/** Set true when Profile resumed connect after stripping ?xaman_return=1 from URL */
 		resumeFromRedirect,
 		// showToast,
@@ -345,6 +347,33 @@ export const xamanHandler: IWalletHandler = {
 
 			// eslint-disable-next-line no-console
 			console.log('[Xaman][connect] resolved XRPL address', resolvedXrplAddress);
+
+			if (typeof completeWalletAuth === 'function' && walletIdToConnect == null) {
+				setWalletBusyMessage?.(LOADING_WALLET_SUMMARY_MESSAGE);
+				try {
+					const jwt = typeof flow?.jwt === 'string' ? flow.jwt.trim() : '';
+					if (!jwt) {
+						setShowToast?.('error', 'Could not verify Xaman session. Please try connecting again.');
+						return;
+					}
+					await completeWalletAuth(resolvedXrplAddress, { jwt });
+					connectSucceeded = true;
+				} catch (e) {
+					setShowToast?.(
+						'error',
+						e instanceof Error ? e.message : 'Wallet sign-in failed'
+					);
+				} finally {
+					stripXamanReturnQueryParam();
+					if (connectSucceeded) {
+						setWalletBusyMessage?.(LOADING_WALLET_SUMMARY_MESSAGE);
+					} else {
+						setWalletBusyMessage?.(null);
+					}
+				}
+				return;
+			}
+
 			let currentConnectedWallet = walletsForMatch.find((wallet: Wallet) => wallet.is_connected);
 
 			// Phased copy: signing is done; now we persist / connect on the server (can take several seconds).

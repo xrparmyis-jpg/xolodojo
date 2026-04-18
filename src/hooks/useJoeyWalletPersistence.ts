@@ -19,6 +19,8 @@ export interface UseJoeyWalletPersistenceParams {
   showToast: ShowToast;
   /** Set true while disconnecting/removing Joey so in-flight persist cannot reconnect. */
   persistenceSuppressedRef: MutableRefObject<boolean>;
+  /** When set, skip DB add/connect and create wallet-only app session instead. */
+  walletAuthLogin?: (address: string, walletType: 'joey') => Promise<void>;
 }
 
 /**
@@ -35,6 +37,7 @@ export function useJoeyWalletPersistence({
   setWalletBusyMessage,
   showToast,
   persistenceSuppressedRef,
+  walletAuthLogin,
 }: UseJoeyWalletPersistenceParams): void {
   const runningRef = useRef(false);
 
@@ -102,6 +105,16 @@ export function useJoeyWalletPersistence({
       }
       setWalletBusyMessage(SAVING_WALLET_MESSAGE);
       try {
+        if (walletAuthLogin) {
+          if (persistenceSuppressedRef.current) {
+            clearJoeyConnectIntent();
+            return;
+          }
+          await walletAuthLogin(canonicalAddress, 'joey');
+          clearJoeyConnectIntent();
+          return;
+        }
+
         let walletId: number | undefined;
         let successToastMessage = 'Joey Wallet added and connected!';
         if (!existingWallet) {
@@ -164,5 +177,6 @@ export function useJoeyWalletPersistence({
     applyConnectedWalletFromApi,
     setWalletBusyMessage,
     persistenceSuppressedRef,
+    walletAuthLogin,
   ]);
 }

@@ -1,14 +1,19 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
+export type AuthMode = 'password' | 'wallet';
+
 export interface AuthUser {
   id: string;
-  email: string;
-  username: string;
+  authMode?: AuthMode;
+  email?: string;
+  username?: string;
   name?: string;
   pictureUrl?: string;
   role?: string;
   createdAt: string;
   emailVerified?: boolean;
+  walletAddress?: string;
+  walletType?: string;
 }
 
 export class LoginError extends Error {
@@ -38,6 +43,42 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
 
   const data = (await response.json()) as { user: AuthUser };
   return data.user ?? null;
+}
+
+export async function loginWithWallet(
+  walletAddress: string,
+  walletType: string,
+  opts?: { xamanJwt?: string }
+): Promise<AuthUser> {
+  const body: Record<string, string> = {
+    wallet_address: walletAddress,
+    wallet_type: walletType,
+  };
+  if (opts?.xamanJwt) {
+    body.xaman_jwt = opts.xamanJwt;
+  }
+
+  const response = await fetch(`${API_BASE_URL}/auth/wallet-login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(body),
+  });
+
+  const data = (await response.json().catch(() => ({}))) as {
+    error?: string;
+    user?: AuthUser;
+  };
+
+  if (!response.ok) {
+    throw new Error(typeof data.error === 'string' ? data.error : 'Wallet sign-in failed');
+  }
+
+  if (!data.user) {
+    throw new Error('Wallet sign-in failed: missing user');
+  }
+
+  return data.user;
 }
 
 export async function login(email: string, password: string): Promise<AuthUser> {

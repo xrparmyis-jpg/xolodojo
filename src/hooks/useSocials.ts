@@ -112,6 +112,7 @@ export const getSocialProfileUrl = (platform: SocialPlatformKey, rawHandle?: str
 
 export function useSocials({
     canPersist,
+    persistToProfileApi,
     dbUser,
     socials,
     visibleSocialInputs,
@@ -120,8 +121,13 @@ export function useSocials({
     setDbUser,
     showToast,
     setIsSavingSocials,
+    walletSocialsStorageKey,
 }: {
     canPersist: boolean;
+    /** When false, saves only update local state (e.g. wallet-only users — values apply when pinning). */
+    persistToProfileApi?: boolean;
+    /** When set, local saves also persist to sessionStorage for wallet-only flows. */
+    walletSocialsStorageKey?: string | null;
     dbUser: UserProfile | null;
     socials: ProfileSocials;
     visibleSocialInputs: Record<SocialPlatformKey, boolean>;
@@ -131,6 +137,8 @@ export function useSocials({
     showToast: (type: string, msg: string) => void;
     setIsSavingSocials: (b: boolean) => void;
 }) {
+    const saveToApi = persistToProfileApi !== false && canPersist;
+
     const handleConfirmRemoveSocial = async (pendingRemoveSocial: SocialPlatformKey | null) => {
         if (!pendingRemoveSocial) return;
         const socialToRemove = pendingRemoveSocial;
@@ -142,7 +150,17 @@ export function useSocials({
         };
         setSocials(nextSocials);
         setVisibleSocialInputs(nextVisibleSocialInputs);
-        if (!canPersist) return;
+        if (!saveToApi) {
+            if (walletSocialsStorageKey) {
+                try {
+                    sessionStorage.setItem(walletSocialsStorageKey, JSON.stringify(normalizeSocials(nextSocials)));
+                } catch {
+                    /* ignore quota */
+                }
+            }
+            showToast('success', 'Handle updated for pinning.');
+            return;
+        }
         try {
             setIsSavingSocials(true);
             const normalizedSocials = normalizeSocials(nextSocials);
@@ -170,6 +188,19 @@ export function useSocials({
         try {
             setIsSavingSocials(true);
             const normalizedSocials = normalizeSocials(socials);
+            if (!saveToApi) {
+                setSocials(normalizedSocials);
+                setVisibleSocialInputs(createEmptyVisibleInputs());
+                if (walletSocialsStorageKey) {
+                    try {
+                        sessionStorage.setItem(walletSocialsStorageKey, JSON.stringify(normalizedSocials));
+                    } catch {
+                        /* ignore */
+                    }
+                }
+                showToast('success', 'Social handles saved for pinning.');
+                return;
+            }
             const result = await updateUserProfile({
                 bio: dbUser?.bio || '',
                 socials: normalizedSocials,

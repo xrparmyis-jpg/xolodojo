@@ -47,10 +47,15 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       walletsLoadedForUserId.current = null;
       return;
     }
+    if (user.authMode === 'wallet') {
+      setWallets([]);
+      walletsLoadedForUserId.current = user.walletAddress ?? user.id;
+      return;
+    }
     if (walletsLoadedForUserId.current === user.id) return;
     walletsLoadedForUserId.current = user.id;
     void reloadWallets();
-  }, [authLoading, user?.id, reloadWallets]);
+  }, [authLoading, user?.id, user?.authMode, user?.walletAddress, reloadWallets]);
 
   return (
     <UserContext.Provider value={{ profile, wallets, setProfile, setWallets, reloadWallets }}>
