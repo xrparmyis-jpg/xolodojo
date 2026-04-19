@@ -1102,7 +1102,7 @@ function WalletConnectionContent({
                                         <FontAwesomeIcon icon={faThumbtack} aria-hidden />
                                     </span>
                                     <span className="sr-only">thumbtack icon</span>
-                                    {' '}to pin an NFT to the Xglobe. Click an NFT for more details.
+                                    {' '}to pin each Xolo to the Xglobe. Click on each Xolo for more details.
                                 </p>
                                 <button
                                     type="button"
