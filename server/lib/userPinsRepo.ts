@@ -158,6 +158,27 @@ export async function listPinsForWalletOwner(
   return rows.map(mapRow);
 }
 
+/**
+ * All pins for a classic wallet address (any `user_id`). Used for wallet-session GET /pinned-nfts.
+ * The unique key is (wallet_address, token_id) only; ON DUPLICATE KEY UPDATE can leave `user_id`
+ * non-NULL while updating lat/title/etc., so listing with `user_id IS NULL` would hide the row.
+ */
+export async function listPinsForWalletAddress(
+  pool: mysql.Pool,
+  walletAddress: string
+): Promise<PinnedNftItem[]> {
+  const wa = normalizeWalletAddress(walletAddress);
+  const [rows] = (await pool.execute(
+    `SELECT token_id, wallet_address, issuer, uri, latitude, longitude,
+      image_url, title, collection_name, socials, pin_note, website_url, pinned_at
+     FROM user_pins
+     WHERE wallet_address = ?
+     ORDER BY pinned_at DESC`,
+    [wa]
+  )) as [Record<string, unknown>[], unknown];
+  return rows.map(mapRow);
+}
+
 export async function upsertUserPin(
   pool: mysql.Pool,
   params: {
@@ -195,6 +216,7 @@ export async function upsertUserPin(
       socials, pin_note, website_url, pinned_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON DUPLICATE KEY UPDATE
+      user_id = VALUES(user_id),
       issuer = VALUES(issuer),
       uri = VALUES(uri),
       latitude = VALUES(latitude),
@@ -234,7 +256,7 @@ export async function deleteUserPin(
   const tid = normalizeNfTokenId(tokenId);
   if (userId == null) {
     await pool.execute(
-      `DELETE FROM user_pins WHERE user_id IS NULL AND token_id = ? AND wallet_address = ?`,
+      `DELETE FROM user_pins WHERE token_id = ? AND wallet_address = ?`,
       [tid, wa]
     );
     return;
@@ -259,13 +281,16 @@ export async function deletePinsForUserWallet(
 /**
  * Deletes pins for this user+wallet when the NFTokenID is not present in the
  * wallet on-chain (uses full ledger list, not UI collection filter).
- * If the wallet holds no NFTs, all pins for that wallet row are removed.
+ * If the ledger reports zero NFTs for the account, all pins for that wallet row are removed.
+ * If `heldNfTokenIds` is empty but `ledgerNftCount > 0`, does nothing (avoids wiping pins when
+ * token IDs could not be collected from the RPC response).
  */
 export async function deletePinsForWalletNotHeld(
   pool: mysql.Pool,
   userId: number | null,
   walletAddress: string,
-  heldNfTokenIds: Set<string>
+  heldNfTokenIds: Set<string>,
+  ledgerNftCount: number
 ): Promise<number> {
   const wa = normalizeWalletAddress(walletAddress);
   const userClause =
@@ -273,6 +298,9 @@ export async function deletePinsForWalletNotHeld(
   const userParams = userId == null ? [] : [userId];
 
   if (heldNfTokenIds.size === 0) {
+    if (ledgerNftCount !== 0) {
+      return 0;
+    }
     const [result] = await pool.execute(
       `DELETE FROM user_pins WHERE ${userClause} AND wallet_address = ?`,
       [...userParams, wa]
