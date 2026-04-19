@@ -7,7 +7,7 @@ import { faSpinner } from '@fortawesome/free-solid-svg-icons';
  * remove, save, etc.) always appear in the same place — centered on screen — instead
  * of tracking the tall wallet card (which felt “low” / bottom-heavy when scrolled).
  *
- * z-[55]: above normal modals (z-50), below Joey QR (z-60) and toasts (z-[10000]).
+ * z-[55]: below app modals (z-[1100]) / wallet QR & Web3Modal (z-1200); toasts z-[10000].
  */
 export function WalletBusyOverlay({ message }: { message: string | null }) {
 	if (message == null || typeof document === 'undefined') {

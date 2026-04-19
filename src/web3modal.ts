@@ -79,6 +79,10 @@ createWeb3Modal({
   projectId: walletConnectProjectId || 'missing_project_id',
   enableAnalytics: false,
   allWallets: showAllWallets ? 'SHOW' : 'HIDE',
+  // Default w3m z-index is 999; app modals use z-[1100] — raise WC modal above them.
+  themeVariables: {
+    '--w3m-z-index': 1200,
+  },
   ...(includeWalletIds.length > 0 ? { includeWalletIds } : {}),
   ...(featuredWalletIds.length > 0 ? { featuredWalletIds } : {}),
   ...(excludeWalletIds.length > 0 ? { excludeWalletIds } : {}),
