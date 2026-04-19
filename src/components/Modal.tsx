@@ -12,6 +12,11 @@ interface ModalProps {
     closeOnOverlayClick?: boolean;
     showCloseButton?: boolean;
     maxWidthClassName?: string;
+    /**
+     * When true, the dialog panel does not clip vertically (map geocoder dropdown can extend below).
+     * Use `overflow-x-hidden` only; scroll long content inside children (e.g. a max-height + overflow-y-auto wrapper).
+     */
+    allowVerticalOverflow?: boolean;
 }
 
 export default function Modal({
@@ -22,6 +27,7 @@ export default function Modal({
     closeOnOverlayClick = true,
     showCloseButton = true,
     maxWidthClassName = 'max-w-lg',
+    allowVerticalOverflow = false,
 }: ModalProps) {
     const reduceMotion = useReducedMotion();
     const duration = reduceMotion ? 0.08 : 0.22;
@@ -46,7 +52,7 @@ export default function Modal({
                     }}
                 >
                     <motion.div
-                        className={`relative mx-4 w-full max-h-[90vh] overflow-x-hidden overflow-y-auto rounded-xl border border-white/10 bg-neutral-900 p-4 shadow-xl ${maxWidthClassName}`}
+                        className={`relative mx-4 w-full max-h-[90vh] overflow-x-hidden rounded-xl border border-white/10 bg-neutral-900 p-4 shadow-xl ${allowVerticalOverflow ? 'overflow-y-visible' : 'overflow-y-auto'} ${maxWidthClassName}`}
                         role="dialog"
                         aria-modal="true"
                         aria-label={title || 'Modal'}

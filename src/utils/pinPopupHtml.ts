@@ -7,7 +7,7 @@ import {
   faTiktok,
   faXTwitter,
 } from '@fortawesome/free-brands-svg-icons';
-import { faClock } from '@fortawesome/free-solid-svg-icons';
+import { faClock, faThumbtack } from '@fortawesome/free-solid-svg-icons';
 import { pinWebsiteStorageToHref } from './pinWebsiteUrl';
 
 export interface PinPopupContent {
@@ -18,6 +18,8 @@ export interface PinPopupContent {
   socials?: Partial<Record<SocialPlatformKey, string>> | null;
   latitude?: number;
   longitude?: number;
+  /** When set, shows a blue thumbtack linking back to profile (e.g. owner-only). */
+  ownerProfileHref?: string | null;
 }
 
 const socialPlatformMeta = {
@@ -93,6 +95,7 @@ const tailwindSocialIcon =
 const localTimeClockSvg = icon(faClock).html.join('');
 const tailwindLocalTimeClock =
   'inline-block align-middle w-[14px] h-[14px] text-[13px] leading-[14px] text-[#C9E8E9]';
+const thumbtackSvg = icon(faThumbtack).html.join('');
 
 export function buildPinPopupHtml(pin: PinPopupContent): string {
   const fallbackTitle = `NFT ${pin.token_id.slice(0, 8)}...`;
@@ -145,9 +148,34 @@ export function buildPinPopupHtml(pin: PinPopupContent): string {
     typeof pin.longitude === 'number' &&
     Number.isFinite(pin.latitude) &&
     Number.isFinite(pin.longitude);
-  const localTimeHtml = hasCoords
-    ? `<p class="xolo-popup-local-time mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-[#9ec9d4]/95" role="group" aria-label="Local time at pin location"><span class="${tailwindLocalTimeClock} shrink-0" aria-hidden="true">${localTimeClockSvg}</span><span class="xolo-popup-local-time-value tabular-nums min-w-0">—</span><span class="xolo-popup-local-time-zone shrink-0 text-[#9ec9d4]/90"></span></p>`
+
+  const ownerHref =
+    typeof pin.ownerProfileHref === 'string' && pin.ownerProfileHref.trim()
+      ? pin.ownerProfileHref.trim()
+      : '';
+
+  const localTimeInner = hasCoords
+    ? `<p class="xolo-popup-local-time mb-0 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-[#9ec9d4]/95" role="group" aria-label="Local time at pin location"><span class="${tailwindLocalTimeClock} shrink-0" aria-hidden="true">${localTimeClockSvg}</span><span class="xolo-popup-local-time-value tabular-nums min-w-0">—</span><span class="xolo-popup-local-time-zone shrink-0 text-[#9ec9d4]/90"></span></p>`
     : '';
+
+  const ownerThumbtackHtml = ownerHref
+    ? `<a class="xologlobe-pin-thumbtack-btn xologlobe-pin-thumbtack-btn--pinned shrink-0" href="${escapeHtml(ownerHref)}" title="Edit pin on profile" aria-label="Edit pin on profile">${thumbtackSvg}</a>`
+    : '';
+
+  let footerHtml = '';
+  if (hasCoords && ownerHref) {
+    footerHtml =
+      `<div class="xolo-popup-footer mt-2 flex flex-row flex-wrap items-end justify-between gap-x-3 gap-y-2">` +
+      `<div class="min-w-0 flex-1">${localTimeInner}</div>` +
+      `<div class="ml-auto flex shrink-0 items-center">${ownerThumbtackHtml}</div>` +
+      `</div>`;
+  } else if (hasCoords) {
+    footerHtml =
+      `<p class="xolo-popup-local-time mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-[#9ec9d4]/95" role="group" aria-label="Local time at pin location"><span class="${tailwindLocalTimeClock} shrink-0" aria-hidden="true">${localTimeClockSvg}</span><span class="xolo-popup-local-time-value tabular-nums min-w-0">—</span><span class="xolo-popup-local-time-zone shrink-0 text-[#9ec9d4]/90"></span></p>`;
+  } else if (ownerHref) {
+    footerHtml =
+      `<div class="xolo-popup-footer mt-2 flex flex-row justify-end">${ownerThumbtackHtml}</div>`;
+  }
 
   return (
     `<div class="xolo-popup">` +
@@ -155,7 +183,7 @@ export function buildPinPopupHtml(pin: PinPopupContent): string {
     `${noteHtml}` +
     `${websiteHtml}` +
     `${socialsHtml}` +
-    `${localTimeHtml}` +
+    `${footerHtml}` +
     '</div>'
   );
 }

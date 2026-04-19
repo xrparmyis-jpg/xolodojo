@@ -5,11 +5,22 @@ import { useLoginModal } from '../providers/LoginModalContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
 import { disconnectExternalWallets } from '../utils/disconnectExternalWallets';
+import type { AuthUser } from '../lib/authApi';
 
 function truncateWalletAddress(address: string): string {
     const a = address.trim();
     if (a.length <= 14) return a;
     return `${a.slice(0, 6)}...${a.slice(-4)}`;
+}
+
+function accountDisplayLabel(user: AuthUser): string {
+    const name = user.name?.trim();
+    if (name) return name;
+    const un = user.username?.trim();
+    if (un) return un;
+    const em = user.email?.trim();
+    if (em) return em.split('@')[0] || em;
+    return 'Account';
 }
 
 interface UserMenuProps {
@@ -21,8 +32,7 @@ function UserMenu({ isSticky = false }: UserMenuProps) {
     const navigate = useNavigate();
     const { openConnect } = useLoginModal();
 
-    const desktopAuthLinkClass =
-        `cursor-pointer border-0 bg-transparent text-left inline-block text-lg font-medium capitalize no-underline transition-all duration-300 ease-in-out ${isSticky ? 'py-1.5' : 'py-5'} text-white hover:text-[#b7e9f7]`;
+    const pillClass = `xologlobe-nav-pill ${isSticky ? 'xologlobe-nav-pill--sticky' : ''}`;
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -55,16 +65,6 @@ function UserMenu({ isSticky = false }: UserMenuProps) {
         })();
     };
 
-    const getUserInitial = () => {
-        if (user?.name) {
-            return user.name.charAt(0).toUpperCase();
-        }
-        if (user?.email) {
-            return user.email.charAt(0).toUpperCase();
-        }
-        return 'U';
-    };
-
     if (loading) {
         return null;
     }
@@ -72,8 +72,8 @@ function UserMenu({ isSticky = false }: UserMenuProps) {
     if (!user) {
         return (
             <nav className="flex items-center gap-6" aria-label="Account">
-                <button type="button" className={desktopAuthLinkClass} onClick={openConnect}>
-                    Get Started
+                <button type="button" className={pillClass} onClick={openConnect}>
+                    <span className="xologlobe-nav-pill__label">Get Started</span>
                 </button>
             </nav>
         );
@@ -86,21 +86,18 @@ function UserMenu({ isSticky = false }: UserMenuProps) {
             <button
                 type="button"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className={`cursor-pointer flex items-center justify-center overflow-hidden rounded-full border-2 border-white/30 bg-gradient-to-br from-[#667eea] to-[#764ba2] p-0 font-bold text-white transition-all duration-300 hover:scale-105 hover:border-white/60 ${isSticky ? 'h-10 min-w-10 px-2 text-sm' : 'h-12 min-w-12 px-2 text-sm md:text-base'}`}
+                className={pillClass}
                 aria-label="User menu"
+                aria-expanded={isDropdownOpen}
             >
                 {isWalletSession && user.walletAddress ? (
-                    <span className="max-w-[7.5rem] truncate font-mono text-xs font-semibold md:text-sm">
+                    <span className="xologlobe-nav-pill__label font-mono text-xs font-semibold md:text-sm">
                         {truncateWalletAddress(user.walletAddress)}
                     </span>
-                ) : user.pictureUrl ? (
-                    <img
-                        src={user.pictureUrl}
-                        alt={user.name || 'User'}
-                        className="h-full w-full rounded-full object-cover"
-                    />
                 ) : (
-                    <span className="text-white font-semibold">{getUserInitial()}</span>
+                    <span className="xologlobe-nav-pill__label font-semibold tracking-tight">
+                        {accountDisplayLabel(user)}
+                    </span>
                 )}
             </button>
 
