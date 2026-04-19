@@ -25,6 +25,47 @@ type LegacyStoryRow = {
 
 const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
   {
+    id: 'Ghost-Xolo-Gecko',
+    imageAtLg: 'left',
+    imageSrc: '/home/GhostXoloGecko.jpg',
+    imageAlt: 'Ghost Xolo Gecko',
+    borderColor: 'border-green-500',
+    titleColor: 'text-green-500',
+    eyebrow: 'The XoloDojo',
+    title: (
+      <>
+        The XoloDojo: 道 (Dō), meaning "path" or "way," and 場 (Jō), meaning
+        "place"
+      </>
+    ),
+    body: (
+      <>
+        <p className="mb-4">
+          Welcome to the XoloDojo — a sacred digital sanctuary rooted in the
+          Xoloitzquintli’s timeless values of unwavering loyalty, transformative
+          guardianship, deep respect, humility, resilience, and shared
+          reverence.{' '}
+        </p>
+        <p className="mb-4">
+          These principles form the ethical heart of our community — a space of
+          trust, honor, and genuine harmony where every holder is welcomed as
+          family. At the living heart of the XoloDojo is Xglobe, a token-gated
+          global platform where you network wallet-to-wallet, share skills and
+          cultures, and forge real person-to-person adventures across the
+          planet.
+        </p>
+        <p>
+          XoloDojo members are represented by their XoloNFT pinned on the
+          Xglobe, symbolising a personal talisman and lifelong companion
+          inviting you to step into a growing circle of aligned souls, pin your
+          place in history, and co-create a legacy of connection, community, and
+          future growth. LfG!!! Own your Xolo. Own your Adventure. Own your
+          Journey.
+        </p>
+      </>
+    ),
+  },
+  {
     id: 'Stained-Glass-Xolo',
     imageAtLg: 'right',
     imageSrc: '/home/StaindGlassXoloSkiGoggles.jpg',
@@ -59,10 +100,10 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     ),
   },
   {
-    id: 'Spacesuit-Xolo',
+    id: 'Unlock-Xglobe',
     imageAtLg: 'left',
-    imageSrc: '/home/SpacesuitXoloRed.jpg',
-    imageAlt: 'Spacesuit Xolo',
+    imageSrc: '/home/PostalXolo.jpg',
+    imageAlt: 'Postal Xolo',
     borderColor: 'border-amber-400',
     titleColor: 'text-amber-400',
     eyebrow: 'Unlock Xglobe',
@@ -96,10 +137,10 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     ),
   },
   {
-    id: 'Abstract-Xolo-Blue',
+    id: 'Pin Your Presence',
     imageAtLg: 'right',
-    imageSrc: '/home/AbstractXoloBlue.jpg',
-    imageAlt: 'Abstract Xolo Blue',
+    imageSrc: '/home/WetPaintXolo.jpg',
+    imageAlt: 'Wet Paint Xolo',
     borderColor: 'border-sky-400',
     titleColor: 'text-sky-400',
     eyebrow: 'Pin your presence',
@@ -129,10 +170,10 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     ),
   },
   {
-    id: 'Spacesuit-Xolo-Legacy',
+    id: 'TheXoloitzquintleLegacy',
     imageAtLg: 'left',
-    imageSrc: '/home/SpacesuitXoloRed.jpg',
-    imageAlt: 'Spacesuit Xolo',
+    imageSrc: '/home/GalacticXolo.png',
+    imageAlt: 'Galactic Xolo',
     borderColor: 'border-amber-400',
     titleColor: 'text-amber-400',
     eyebrow: 'The Xoloitzquintle Legacy',
@@ -163,41 +204,34 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     ),
   },
   {
-    id: 'utility-xglobe',
+    id: 'The Vision',
     imageAtLg: 'right',
-    imageSrc: '/home/SpacesuitXoloRed.jpg',
-    imageAlt: 'Spacesuit Xolo',
+    imageSrc: '/home/AbstractXoloBlue.jpg',
+    imageAlt: 'Postal Xolo',
     borderColor: 'border-amber-400',
     titleColor: 'text-amber-400',
-    eyebrow: 'Community',
-    title: <>More than a mint, More than a project</>,
+    eyebrow: 'A vision',
+    title: <>Built for the long game</>,
     body: (
       <>
         <p className="mb-4">
-          The mint is the beginning, not the just the finish line. XoloDojo is
-          being built as a living ecosystem fostering collection, collaboration,
-          travel, culture, and community, expanding across time zones and time
-          itself.
+          The vision is to provide the tools needed to build a global community rooted in trust, loyalty, and collaboration - helping people see where we are and discover each other without the restrictions of borders and time zones.
         </p>
 
         <p className="mb-4">
-          The Xolos open the door. Xglobe gives the world a stage. The PinBox
-          provides the presence. What brings it all to life is the networking
-          collaborations that grow from there; the movement, the people, the
-          stories, and the journey back home.
+          From shared skills and services to products, projects, meetups and exchanges, XoloDojo is being built to make community more visible, more accessible and connected through real presence.
         </p>
 
         <p className="mb-4">
-          The Xoloitzquintle collection is for the community to bond with, build
-          with, grow with, and thrive.
+          What begins with a Xolo can build into something much bigger: a worldwide network shaped by connection, culture, shared value, and person-to-person oppurtunity.
         </p>
 
-        <p>One Xglobe. One Pin. One Pinbox.</p>
+        <p>.</p>
       </>
     ),
   },
   {
-    id: 'Team-Fire-Xolo',
+    id: 'The Team',
     imageAtLg: 'left',
     imageSrc: '/home/TeamFireXolo.jpg',
     imageAlt: 'Team Fire Xolo',
@@ -235,47 +269,6 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
           This unstoppable trio — united in friendship, loyalty, and mutual
           respect, are forever bonded by an eternal flame, with the creation of
           XoloDojo, the stuff of legends, forever on-chain.
-        </p>
-      </>
-    ),
-  },
-  {
-    id: 'Ghost-Xolo-Gecko',
-    imageAtLg: 'right',
-    imageSrc: '/home/GhostXoloGecko.jpg',
-    imageAlt: 'Ghost Xolo Gecko',
-    borderColor: 'border-green-500',
-    titleColor: 'text-green-500',
-    eyebrow: 'The XoloDojo',
-    title: (
-      <>
-        The XoloDojo: 道 (Dō), meaning "path" or "way," and 場 (Jō), meaning
-        "place"
-      </>
-    ),
-    body: (
-      <>
-        <p className="mb-4">
-          Welcome to the XoloDojo — a sacred digital sanctuary rooted in the
-          Xoloitzquintli’s timeless values of unwavering loyalty, transformative
-          guardianship, deep respect, humility, resilience, and shared
-          reverence.{' '}
-        </p>
-        <p className="mb-4">
-          These principles form the ethical heart of our community — a space of
-          trust, honor, and genuine harmony where every holder is welcomed as
-          family. At the living heart of the XoloDojo is Xglobe, a token-gated
-          global platform where you network wallet-to-wallet, share skills and
-          cultures, and forge real person-to-person adventures across the
-          planet.
-        </p>
-        <p>
-          XoloDojo members are represented by their XoloNFT pinned on the
-          Xglobe, symbolising a personal talisman and lifelong companion
-          inviting you to step into a growing circle of aligned souls, pin your
-          place in history, and co-create a legacy of connection, community, and
-          future growth. LfG!!! Own your Xolo. Own your Adventure. Own your
-          Journey.
         </p>
       </>
     ),

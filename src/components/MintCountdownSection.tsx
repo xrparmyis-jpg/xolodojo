@@ -7,7 +7,7 @@ import GsapPageContent from './GsapPageContent';
  *
  * May 27, 2026, 4:20 PM in US Pacific. Late May uses PDT (−07:00); use −08:00 if you need literal PST.
  */
-export const MINT_COUNTDOWN_END_ISO = '2026-05-27T16:20:00-07:00';
+export const MINT_COUNTDOWN_END_ISO = '2026-07-11T16:20:00-07:00';
 
 /** Opens from “Mint Now” after the countdown completes. */
 export const MINT_LIVE_URL = 'https://xrpl.cafe';
