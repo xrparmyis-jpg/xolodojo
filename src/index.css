@@ -620,7 +620,7 @@ span {
   white-space: nowrap;
 }
 
-/* Globe infobox + profile grid: compact thumbtack (shared base; use --dim or --pinned) */
+/* Globe infobox + profile: circular dark chip, muted icon → blue on hover / when pinned */
 .xologlobe-pin-thumbtack-btn {
   box-sizing: border-box;
   display: inline-flex;
@@ -630,10 +630,14 @@ span {
   align-items: center;
   justify-content: center;
   padding: 0;
-  border-radius: 0.375rem;
+  border-radius: 9999px;
   line-height: 0;
   text-decoration: none;
   cursor: pointer;
+  border: 1px solid rgb(255 255 255 / 20%);
+  background: #000000;
+  color: rgb(255 255 255 / 55%);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
   transition:
     color 0.2s ease,
     background-color 0.2s ease,
@@ -642,25 +646,8 @@ span {
     box-shadow 0.2s ease;
 }
 
-/* Default / legacy: only when neither modifier — keep neutral; prefer --dim or --pinned */
-.xologlobe-pin-thumbtack-btn:not(.xologlobe-pin-thumbtack-btn--dim):not(.xologlobe-pin-thumbtack-btn--pinned) {
-  border: 1px solid rgb(18 175 252 / 35%);
-  background: #12affc5c;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-  color: #2563eb;
-}
-
-.xologlobe-pin-thumbtack-btn:not(.xologlobe-pin-thumbtack-btn--dim):not(.xologlobe-pin-thumbtack-btn--pinned):hover,
-.xologlobe-pin-thumbtack-btn:not(.xologlobe-pin-thumbtack-btn--dim):not(.xologlobe-pin-thumbtack-btn--pinned):focus-visible {
-  background: #12affc8c;
-  color: #2563eb;
-  transform: scale(1.05);
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
-  outline: none;
-}
-
 .xologlobe-pin-thumbtack-btn:focus-visible {
-  outline: 2px solid rgb(18 175 252 / 55%);
+  outline: 2px solid rgb(96 165 250 / 0.45);
   outline-offset: 2px;
 }
 
@@ -672,41 +659,43 @@ span {
   opacity: 1;
 }
 
-/* Unpinned on profile grid (rest → pinned look on hover) */
+/* Unpinned: grey icon; hover → blue icon + slightly stronger border */
 .xologlobe-pin-thumbtack-btn--dim {
-  border: 1px solid rgb(255 255 255 / 18%);
-  background: rgb(0 0 0 / 40%);
-  color: rgb(255 255 255 / 65%);
-  box-shadow: none;
+  border-color: rgb(255 255 255 / 18%) !important;
+  background: #000000 !important;
+  color: rgb(255 255 255 / 55%) !important;
 }
 
 .xologlobe-pin-thumbtack-btn--dim:hover,
 .xologlobe-pin-thumbtack-btn--dim:focus-visible {
-  border-color: rgb(18 175 252 / 40%);
-  background: #12affc8c;
-  color: #2563eb;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  border-color: rgb(96 165 250 / 0.45) !important;
+  background: #000000 !important;
+  color: #2563eb !important;
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
 }
 
-/*
- * Pinned / “selected” — light cyan field, blue-600 icon (matches profile NFT overlay).
- * Use !important so we win over: (1) parent `text-white/…` utilities, (2) Mapbox
- * `.mapboxgl-popup-content { color: … !important }` which otherwise makes the chip look dark/teal.
- */
+.xologlobe-pin-thumbtack-btn--dim svg,
+.xologlobe-pin-thumbtack-btn--dim .svg-inline--fa {
+  color: inherit !important;
+  fill: currentColor !important;
+}
+
+/* Pinned: blue icon, same dark circle, blue-tinted border */
 .xologlobe-pin-thumbtack-btn--pinned {
-  border: 1px solid rgb(18 175 252 / 45%) !important;
-  background: #12affc5c !important;
+  border: 1px solid rgb(59 130 246 / 0.45) !important;
+  background: #000000 !important;
   color: #2563eb !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45) !important;
 }
 
 .xologlobe-pin-thumbtack-btn--pinned:hover,
 .xologlobe-pin-thumbtack-btn--pinned:focus-visible {
-  border-color: rgb(18 175 252 / 55%) !important;
-  background: #12affc8c !important;
+  border-color: rgb(96 165 250 / 0.6) !important;
+  background: #000000 !important;
   color: #2563eb !important;
   transform: scale(1.05);
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.35) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45) !important;
 }
 
 .xologlobe-pin-thumbtack-btn--pinned svg,
@@ -716,20 +705,20 @@ span {
   opacity: 1 !important;
 }
 
-/* Globe popup: extra specificity vs .mapboxgl-popup-content color !important */
+/* Mapbox popup: `.mapboxgl-popup-content { color: … !important }` — keep pinned chip readable */
 .mapboxgl-popup.xolo-globe-popup .mapboxgl-popup-content a.xologlobe-pin-thumbtack-btn.xologlobe-pin-thumbtack-btn--pinned {
-  border: 1px solid rgb(18 175 252 / 45%) !important;
-  background: #12affc5c !important;
+  border: 1px solid rgb(59 130 246 / 0.45) !important;
+  background: #000000 !important;
   color: #2563eb !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45) !important;
 }
 
 .mapboxgl-popup.xolo-globe-popup .mapboxgl-popup-content a.xologlobe-pin-thumbtack-btn.xologlobe-pin-thumbtack-btn--pinned:hover,
 .mapboxgl-popup.xolo-globe-popup .mapboxgl-popup-content a.xologlobe-pin-thumbtack-btn.xologlobe-pin-thumbtack-btn--pinned:focus-visible {
-  border-color: rgb(18 175 252 / 55%) !important;
-  background: #12affc8c !important;
+  border-color: rgb(96 165 250 / 0.6) !important;
+  background: #000000 !important;
   color: #2563eb !important;
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.35) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45) !important;
 }
 
 .mapboxgl-popup.xolo-globe-popup .mapboxgl-popup-content a.xologlobe-pin-thumbtack-btn.xologlobe-pin-thumbtack-btn--pinned svg,

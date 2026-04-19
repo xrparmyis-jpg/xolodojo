@@ -1096,7 +1096,7 @@ function WalletConnectionContent({
                                     NFTs Found: <span className="font-semibold text-white">{connectedWalletAssets.nft_count}</span>
                                     {' — Click the '}
                                     <span
-                                        className="mx-1 inline-flex align-middle translate-y-[2px] xologlobe-pin-thumbtack-btn xologlobe-pin-thumbtack-btn--pinned"
+                                        className="mx-1 inline-flex align-middle translate-y-[2px] xologlobe-pin-thumbtack-btn xologlobe-pin-thumbtack-btn--dim"
                                         aria-hidden
                                     >
                                         <FontAwesomeIcon icon={faThumbtack} aria-hidden />
