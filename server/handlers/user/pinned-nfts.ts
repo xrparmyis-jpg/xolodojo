@@ -1,11 +1,18 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { Pool } from 'mysql2/promise';
 import { PIN_NOTE_MAX_LENGTH, PIN_NOTE_MIN_LENGTH } from '../../../src/constants/pinNote.js';
+import { normalizeNfTokenId } from '../../../src/utils/nfTokenId.js';
 import { parsePinWebsiteForStorage } from '../../../src/utils/pinWebsiteUrl.js';
 import { getAppMysqlPool } from '../../lib/mysqlPool.js';
-import { getRequestAuth } from '../../lib/sessionAuth.js';
+import { getRequestAuth, type RequestAuthState } from '../../lib/sessionAuth.js';
+import {
+  resolveCanonicalClassicAddress,
+  stripInvisible,
+} from '../../xrplClassicAddress.js';
 import {
   deleteUserPin,
   listPinsForUser,
+  listPinsForWalletAddress,
   listPinsForWalletOwner,
   normalizeWalletAddress,
   upsertUserPin,
@@ -88,6 +95,27 @@ function parseOptionalNumber(value: unknown): number | null {
   return null;
 }
 
+/** Avoid `??` with empty string — `""` is not nullish and would wipe existing DB title/collection. */
+function mergeIncomingString(
+  incoming: unknown,
+  previous: string | null | undefined
+): string | null {
+  if (incoming === undefined) {
+    return previous ?? null;
+  }
+  if (incoming === null) {
+    return null;
+  }
+  if (typeof incoming !== 'string') {
+    return previous ?? null;
+  }
+  const t = incoming.trim();
+  if (t === '') {
+    return previous ?? null;
+  }
+  return t;
+}
+
 function filterPinnedByWallet(
   pinnedNfts: PinnedNftItem[],
   walletAddress?: string
@@ -100,6 +128,71 @@ function filterPinnedByWallet(
   return pinnedNfts.filter(
     item => item.wallet_address === normalizedWalletAddress
   );
+}
+
+/**
+ * Same normalization chain as wallet-assets / session: strip invisibles, canonical classic, then lowercase.
+ * Ensures query/body wallet matches `user_pins.wallet_address` and `listPinsForWalletOwner` session key.
+ */
+function resolveWalletParamForCompare(raw: string | undefined): string | undefined {
+  if (!raw || typeof raw !== 'string') {
+    return undefined;
+  }
+  const stripped = stripInvisible(raw);
+  if (!stripped) {
+    return undefined;
+  }
+  const canonical =
+    resolveCanonicalClassicAddress(stripped) ??
+    resolveCanonicalClassicAddress(stripped.toLowerCase()) ??
+    stripped;
+  return normalizeWalletAddress(canonical);
+}
+
+/**
+ * Email sessions list pins with `user_id = ?` only. Wallet-only pins use `user_id IS NULL`
+ * and are returned by listPinsForWalletOwner. Without merging, users who pinned as wallet-only
+ * then use Profile with email + connected wallet see an empty list and broken edit.
+ */
+async function loadPinnedListForAuth(
+  pool: Pool,
+  auth: RequestAuthState,
+  walletForMerge: string | undefined
+): Promise<PinnedNftItem[]> {
+  const accountUserId = auth.kind === 'user' ? auth.userId : null;
+  const sessionWallet =
+    auth.kind === 'wallet' && auth.walletAddress
+      ? resolveWalletParamForCompare(auth.walletAddress) ??
+        normalizeWalletAddress(auth.walletAddress)
+      : null;
+
+  if (accountUserId != null) {
+    const userPins = await listPinsForUser(pool, accountUserId);
+    if (!walletForMerge) {
+      return userPins;
+    }
+    const walletOnly = await listPinsForWalletOwner(pool, walletForMerge);
+    const seen = new Set(
+      userPins.map(
+        p => `${normalizeNfTokenId(p.token_id)}|${p.wallet_address}`
+      )
+    );
+    const merged = [...userPins];
+    for (const w of walletOnly) {
+      const key = `${normalizeNfTokenId(w.token_id)}|${w.wallet_address}`;
+      if (!seen.has(key)) {
+        merged.push(w);
+        seen.add(key);
+      }
+    }
+    return merged;
+  }
+
+  if (sessionWallet) {
+    return listPinsForWalletAddress(pool, sessionWallet);
+  }
+
+  return [];
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -122,23 +215,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           : req.query.wallet_address
         : (req.body?.wallet_address as string | undefined);
     const walletAddress = walletAddressInput
-      ? normalizeWalletAddress(walletAddressInput)
+      ? resolveWalletParamForCompare(walletAddressInput)
       : undefined;
     const pool = getAppMysqlPool();
 
     const accountUserId = auth.kind === 'user' ? auth.userId : null;
     const sessionWallet =
-      auth.kind === 'wallet' ? normalizeWalletAddress(auth.walletAddress) : null;
-
-    const pinnedNfts =
-      accountUserId != null
-        ? await listPinsForUser(pool, accountUserId)
-        : sessionWallet
-          ? await listPinsForWalletOwner(pool, sessionWallet)
-          : [];
-    const scopedPinnedNfts = filterPinnedByWallet(pinnedNfts, walletAddress);
+      auth.kind === 'wallet' && auth.walletAddress
+        ? resolveWalletParamForCompare(auth.walletAddress) ??
+          normalizeWalletAddress(auth.walletAddress)
+        : null;
 
     if (req.method === 'GET') {
+      const pinnedNfts = await loadPinnedListForAuth(pool, auth, walletAddress);
+      const scopedPinnedNfts =
+        auth.kind === 'wallet'
+          ? pinnedNfts
+          : filterPinnedByWallet(pinnedNfts, walletAddress);
       res.status(200).json({ success: true, pinned_nfts: scopedPinnedNfts });
       return;
     }
@@ -161,7 +254,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           }
         | undefined;
 
-      const tokenId = nft?.token_id?.trim();
+      const tokenId = normalizeNfTokenId(nft?.token_id?.trim() ?? '');
       if (!tokenId) {
         res.status(400).json({ error: 'Missing nft.token_id' });
         return;
@@ -169,7 +262,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const pinWalletAddress =
         typeof nft?.wallet_address === 'string'
-          ? normalizeWalletAddress(nft.wallet_address)
+          ? resolveWalletParamForCompare(nft.wallet_address) ?? walletAddress
           : walletAddress;
 
       if (!pinWalletAddress) {
@@ -178,15 +271,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       if (auth.kind === 'wallet') {
-        if (pinWalletAddress !== sessionWallet) {
+        if (sessionWallet != null && pinWalletAddress !== sessionWallet) {
           res.status(403).json({ error: 'Cannot pin for a different wallet' });
           return;
         }
       }
 
+      const pinnedNfts = await loadPinnedListForAuth(
+        pool,
+        auth,
+        walletAddress ?? pinWalletAddress
+      );
+
       const existing = pinnedNfts.find(
         item =>
-          item.token_id === tokenId &&
+          normalizeNfTokenId(item.token_id) === tokenId &&
           item.wallet_address === pinWalletAddress
       );
       const nowIso = new Date().toISOString();
@@ -238,27 +337,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         latitude,
         longitude,
         imageUrl: nft?.image_url ?? existing?.image_url ?? null,
-        title: nft?.title ?? existing?.title ?? null,
-        collectionName: nft?.collection_name ?? existing?.collection_name ?? null,
+        title: mergeIncomingString(nft?.title, existing?.title ?? null),
+        collectionName: mergeIncomingString(
+          nft?.collection_name,
+          existing?.collection_name ?? null
+        ),
         socials,
         pinNote: pinDesc,
         websiteUrl: mergedWebsite,
         pinnedAtIsoForInsert: existing?.pinned_at ?? nowIso,
       });
 
-      const nextPins =
-        accountUserId != null
-          ? await listPinsForUser(pool, accountUserId)
-          : sessionWallet
-            ? await listPinsForWalletOwner(pool, sessionWallet)
-            : [];
+      const nextPins = await loadPinnedListForAuth(
+        pool,
+        auth,
+        walletAddress ?? pinWalletAddress
+      );
+      const responsePins =
+        auth.kind === 'wallet'
+          ? nextPins
+          : filterPinnedByWallet(nextPins, pinWalletAddress);
       return res.status(200).json({
         success: true,
-        pinned_nfts: filterPinnedByWallet(nextPins, pinWalletAddress),
+        pinned_nfts: responsePins,
       });
     }
 
-    const tokenId = (req.body?.token_id as string | undefined)?.trim();
+    const tokenId = normalizeNfTokenId(
+      (req.body?.token_id as string | undefined)?.trim() ?? ''
+    );
     if (!tokenId) {
       return res.status(400).json({ error: 'Missing token_id' });
     }
@@ -269,22 +376,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .json({ error: 'Missing wallet_address for unpin operation' });
     }
 
-    if (auth.kind === 'wallet' && walletAddress !== sessionWallet) {
+    if (
+      auth.kind === 'wallet' &&
+      sessionWallet != null &&
+      walletAddress !== sessionWallet
+    ) {
       res.status(403).json({ error: 'Cannot unpin for a different wallet' });
       return;
     }
 
     await deleteUserPin(pool, accountUserId, tokenId, walletAddress);
 
-    const nextPins =
-      accountUserId != null
-        ? await listPinsForUser(pool, accountUserId)
-        : sessionWallet
-          ? await listPinsForWalletOwner(pool, sessionWallet)
-          : [];
+    const nextPins = await loadPinnedListForAuth(pool, auth, walletAddress);
+    const deleteResponsePins =
+      auth.kind === 'wallet'
+        ? nextPins
+        : filterPinnedByWallet(nextPins, walletAddress);
     return res.status(200).json({
       success: true,
-      pinned_nfts: filterPinnedByWallet(nextPins, walletAddress),
+      pinned_nfts: deleteResponsePins,
     });
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error));

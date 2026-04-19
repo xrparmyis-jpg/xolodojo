@@ -2,6 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import type { Map } from 'mapbox-gl';
 import { useSearchParams } from 'react-router-dom';
+import { useAuth } from '../providers/AuthContext';
+import { useUserContext } from '../providers/UserContext';
+import { normalizeXrplAddressForCompare } from '../utils/xrplClassicAddress';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faAnglesDown,
@@ -35,6 +38,19 @@ interface MapBoxXoloGlobeProps {
 
 export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
     const [searchParams] = useSearchParams();
+    const { user, loading: authLoading } = useAuth();
+    const { wallets } = useUserContext();
+
+    const viewerWalletAddress = useMemo(() => {
+        if (authLoading || !user?.id) {
+            return null;
+        }
+        if (user.authMode === 'wallet' && user.walletAddress) {
+            return user.walletAddress;
+        }
+        const connected = wallets.find((w) => w.is_connected);
+        return connected?.wallet_address ?? null;
+    }, [authLoading, user?.id, user?.authMode, user?.walletAddress, wallets]);
     const mapContainerRef = useRef<HTMLDivElement | null>(null);
     const mapRef = useRef<Map | null>(null);
     const markersRef = useRef<mapboxgl.Marker[]>([]);
@@ -415,6 +431,12 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
                         socials: pin.socials,
                         latitude: pin.latitude,
                         longitude: pin.longitude,
+                        ownerProfileHref:
+                            viewerWalletAddress
+                            && normalizeXrplAddressForCompare(viewerWalletAddress)
+                                === normalizeXrplAddressForCompare(pin.wallet_address)
+                                ? `/profile?pin=${encodeURIComponent(pin.token_id)}`
+                                : null,
                     })
                 );
 
@@ -621,7 +643,7 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
         return () => {
             window.clearTimeout(timeoutId);
         };
-    }, [openTargetPinFromQuery, pins]);
+    }, [openTargetPinFromQuery, pins, viewerWalletAddress]);
 
     if (!hasMapToken) {
         return (

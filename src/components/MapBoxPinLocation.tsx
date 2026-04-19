@@ -472,8 +472,8 @@ export default function MapBoxPinLocation({
     }
 
     return (
-        <div className={`${className || 'relative'} mapbox-pin-controls`}>
-            <div className="relative">
+        <div className={`${className || 'relative'} mapbox-pin-controls overflow-visible`}>
+            <div className="relative overflow-visible">
                 <div ref={mapContainerRef} className={`${mapHeightClassName} w-full overflow-hidden rounded-lg border border-[#3fcfcf2e]`} />
 
                 <div className="pointer-events-auto absolute left-3 top-3 z-10 xologlobe-map-ctrl-group">
@@ -531,8 +531,8 @@ export default function MapBoxPinLocation({
                 </p>
             ) : null}
 
-            <div className="mt-3 text-sm text-white/85">
-                <div className="relative z-20">
+            <div className="mt-3 overflow-visible text-sm text-white/85">
+                <div className="relative z-20 overflow-visible">
                     <div className="flex w-full min-w-0 items-center gap-3">
                         <input
                             type="text"
@@ -560,9 +560,11 @@ export default function MapBoxPinLocation({
 
                     {searchResults.length > 0 ? (
                         <div
+                            role="listbox"
                             className={
-                                'absolute left-0 right-0 top-full z-30 mt-1 max-h-52 overflow-auto rounded-lg ' +
-                                'border border-white/20 bg-black/90 backdrop-blur-sm shadow-[0_10px_28px_rgba(0,0,0,0.55)]'
+                                /* Opens upward over the map so the modal/footer don’t grow or scroll */
+                                'absolute left-0 right-0 bottom-full z-[60] mb-1 max-h-[min(50vh,18rem)] overflow-y-auto overflow-x-hidden rounded-lg ' +
+                                'border border-white/20 bg-black/95 backdrop-blur-sm shadow-[0_-8px_32px_rgba(0,0,0,0.65)]'
                             }
                         >
                             {searchResults.map((result) => (
@@ -570,7 +572,7 @@ export default function MapBoxPinLocation({
                                     type="button"
                                     key={result.id}
                                     onClick={() => handleSelectSearchResult(result)}
-                                    className="cursor-pointer block w-full border-b border-white/10 px-3 py-2 text-left text-sm text-white/90 last:border-b-0 transition-colors duration-200 hover:bg-white/10"
+                                    className="cursor-pointer block w-full min-w-0 border-b border-white/10 px-3 py-2 text-left text-sm text-white/90 last:border-b-0 transition-colors duration-200 hover:bg-white/10 break-words"
                                 >
                                     {result.place_name}
                                 </button>
@@ -580,7 +582,7 @@ export default function MapBoxPinLocation({
                 </div>
 
                 {footerAction ? (
-                    <div className="relative z-10 mt-3 flex w-full flex-wrap items-center gap-3">
+                    <div className="relative z-[15] mt-3 flex w-full flex-wrap items-center gap-3">
                         {footerAction}
                     </div>
                 ) : null}

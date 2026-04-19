@@ -198,9 +198,11 @@ function Menu({
                                                             openConnect();
                                                             closeMobileMenu();
                                                         }}
-                                                        className="mt-2 flex w-full cursor-pointer items-center gap-3 border-0 border-b border-white/10 bg-transparent py-3 text-left text-base font-medium text-white transition-colors hover:text-[#b7e9f7]"
+                                                        className="xologlobe-nav-pill xologlobe-nav-pill--sticky mt-2 w-full max-w-none justify-center py-2.5"
                                                     >
-                                                        <span>Get Started</span>
+                                                        <span className="xologlobe-nav-pill__label text-base font-semibold">
+                                                            Get Started
+                                                        </span>
                                                     </button>
                                                 </li>
                                             )}

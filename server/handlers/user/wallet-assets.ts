@@ -384,28 +384,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    const heldNfTokenIds = new Set(
-      nfts
-        .map(n => n.NFTokenID)
-        .filter((id): id is string => typeof id === 'string' && id.length > 0)
-    );
-    try {
-      const removed = await deletePinsForWalletNotHeld(
-        dbPool,
-        userId,
-        accountForRpc,
-        heldNfTokenIds
+    // Wallet-only sessions (`user_id IS NULL` pins): do not reconcile pins from ledger here.
+    // The NOT IN (held tokens) delete can drop pins when rippled NFTokenID strings and DB
+    // token_id differ slightly; email+wallet users still get cleanup below.
+    if (auth.kind !== 'wallet') {
+      const heldNfTokenIds = new Set(
+        nfts
+          .map(n => n.NFTokenID)
+          .filter((id): id is string => typeof id === 'string' && id.length > 0)
       );
-      if (removed > 0) {
-        console.log('[wallet-assets] Removed stale pins (NFT no longer in wallet)', {
+      try {
+        const removed = await deletePinsForWalletNotHeld(
+          dbPool,
           userId,
-          account: accountForRpc,
-          removed,
-          onChainNftCount: heldNfTokenIds.size,
-        });
+          accountForRpc,
+          heldNfTokenIds,
+          nfts.length
+        );
+        if (removed > 0) {
+          console.log('[wallet-assets] Removed stale pins (NFT no longer in wallet)', {
+            userId,
+            account: accountForRpc,
+            removed,
+            onChainNftCount: heldNfTokenIds.size,
+          });
+        }
+      } catch (reconcileErr) {
+        console.warn('[wallet-assets] Pin reconcile failed (non-fatal):', reconcileErr);
       }
-    } catch (reconcileErr) {
-      console.warn('[wallet-assets] Pin reconcile failed (non-fatal):', reconcileErr);
     }
 
     return res.status(200).json({

@@ -567,3 +567,173 @@ span {
 .xologlobe-map-ctrl-group.xologlobe-map-ctrl-group--row > button.xologlobe-map-ctrl-btn:last-child {
   border-right: 0;
 }
+
+/* Header UserMenu / Get Started — same tokens as .xologlobe-map-ctrl-btn (Xglobe & pin map) */
+.xologlobe-nav-pill {
+  box-sizing: border-box;
+  display: inline-flex;
+  max-width: min(13.5rem, 88vw);
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  border: 1px solid rgb(18 175 252 / 35%);
+  border-radius: 0.375rem;
+  background: #12affc5c;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  color: #c9e8e9;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.xologlobe-nav-pill:hover:not(:disabled),
+.xologlobe-nav-pill:focus-visible:not(:disabled) {
+  background: #12affc8c;
+  color: #f8fdff;
+  transform: scale(1.05);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
+  outline: none;
+}
+
+.xologlobe-nav-pill:focus-visible:not(:disabled) {
+  outline: 2px solid rgb(18 175 252 / 55%);
+  outline-offset: 2px;
+}
+
+.xologlobe-nav-pill--sticky {
+  min-height: 40px;
+  padding: 0 14px;
+  font-size: 0.8125rem;
+}
+
+.xologlobe-nav-pill__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Globe infobox + profile grid: compact thumbtack (shared base; use --dim or --pinned) */
+.xologlobe-pin-thumbtack-btn {
+  box-sizing: border-box;
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 0.375rem;
+  line-height: 0;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+/* Default / legacy: only when neither modifier — keep neutral; prefer --dim or --pinned */
+.xologlobe-pin-thumbtack-btn:not(.xologlobe-pin-thumbtack-btn--dim):not(.xologlobe-pin-thumbtack-btn--pinned) {
+  border: 1px solid rgb(18 175 252 / 35%);
+  background: #12affc5c;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  color: #2563eb;
+}
+
+.xologlobe-pin-thumbtack-btn:not(.xologlobe-pin-thumbtack-btn--dim):not(.xologlobe-pin-thumbtack-btn--pinned):hover,
+.xologlobe-pin-thumbtack-btn:not(.xologlobe-pin-thumbtack-btn--dim):not(.xologlobe-pin-thumbtack-btn--pinned):focus-visible {
+  background: #12affc8c;
+  color: #2563eb;
+  transform: scale(1.05);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
+  outline: none;
+}
+
+.xologlobe-pin-thumbtack-btn:focus-visible {
+  outline: 2px solid rgb(18 175 252 / 55%);
+  outline-offset: 2px;
+}
+
+.xologlobe-pin-thumbtack-btn svg,
+.xologlobe-pin-thumbtack-btn .svg-inline--fa {
+  width: 14px !important;
+  height: 14px !important;
+  display: block;
+  opacity: 1;
+}
+
+/* Unpinned on profile grid (rest → pinned look on hover) */
+.xologlobe-pin-thumbtack-btn--dim {
+  border: 1px solid rgb(255 255 255 / 18%);
+  background: rgb(0 0 0 / 40%);
+  color: rgb(255 255 255 / 65%);
+  box-shadow: none;
+}
+
+.xologlobe-pin-thumbtack-btn--dim:hover,
+.xologlobe-pin-thumbtack-btn--dim:focus-visible {
+  border-color: rgb(18 175 252 / 40%);
+  background: #12affc8c;
+  color: #2563eb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+/*
+ * Pinned / “selected” — light cyan field, blue-600 icon (matches profile NFT overlay).
+ * Use !important so we win over: (1) parent `text-white/…` utilities, (2) Mapbox
+ * `.mapboxgl-popup-content { color: … !important }` which otherwise makes the chip look dark/teal.
+ */
+.xologlobe-pin-thumbtack-btn--pinned {
+  border: 1px solid rgb(18 175 252 / 45%) !important;
+  background: #12affc5c !important;
+  color: #2563eb !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28) !important;
+}
+
+.xologlobe-pin-thumbtack-btn--pinned:hover,
+.xologlobe-pin-thumbtack-btn--pinned:focus-visible {
+  border-color: rgb(18 175 252 / 55%) !important;
+  background: #12affc8c !important;
+  color: #2563eb !important;
+  transform: scale(1.05);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.35) !important;
+}
+
+.xologlobe-pin-thumbtack-btn--pinned svg,
+.xologlobe-pin-thumbtack-btn--pinned .svg-inline--fa {
+  color: #2563eb !important;
+  fill: currentColor !important;
+  opacity: 1 !important;
+}
+
+/* Globe popup: extra specificity vs .mapboxgl-popup-content color !important */
+.mapboxgl-popup.xolo-globe-popup .mapboxgl-popup-content a.xologlobe-pin-thumbtack-btn.xologlobe-pin-thumbtack-btn--pinned {
+  border: 1px solid rgb(18 175 252 / 45%) !important;
+  background: #12affc5c !important;
+  color: #2563eb !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28) !important;
+}
+
+.mapboxgl-popup.xolo-globe-popup .mapboxgl-popup-content a.xologlobe-pin-thumbtack-btn.xologlobe-pin-thumbtack-btn--pinned:hover,
+.mapboxgl-popup.xolo-globe-popup .mapboxgl-popup-content a.xologlobe-pin-thumbtack-btn.xologlobe-pin-thumbtack-btn--pinned:focus-visible {
+  border-color: rgb(18 175 252 / 55%) !important;
+  background: #12affc8c !important;
+  color: #2563eb !important;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.35) !important;
+}
+
+.mapboxgl-popup.xolo-globe-popup .mapboxgl-popup-content a.xologlobe-pin-thumbtack-btn.xologlobe-pin-thumbtack-btn--pinned svg,
+.mapboxgl-popup.xolo-globe-popup .mapboxgl-popup-content a.xologlobe-pin-thumbtack-btn.xologlobe-pin-thumbtack-btn--pinned .svg-inline--fa {
+  color: #2563eb !important;
+  fill: currentColor !important;
+}

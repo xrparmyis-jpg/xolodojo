@@ -49,3 +49,8 @@ export function pickBestClassicAddressCandidate(candidates: string[]): string | 
 	}
 	return bestScore >= 0 ? best : null;
 }
+
+/** Case-insensitive compare for XRPL classic addresses (APIs often vary casing). */
+export function normalizeXrplAddressForCompare(addr: string | null | undefined): string {
+	return stripInvisible(addr ?? '').toLowerCase();
+}
