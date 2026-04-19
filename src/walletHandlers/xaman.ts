@@ -14,12 +14,34 @@ import { getUserWallets, type Wallet } from '../services/walletService';
 
 const xamanApiKey =
 	import.meta.env.VITE_XAMAN_API_KEY || import.meta.env.VITE_XUMM_API_KEY || '';
-const configuredRedirectUrl = import.meta.env.VITE_XAMAN_REDIRECT_URL || '';
+const configuredRedirectUrl = (import.meta.env.VITE_XAMAN_REDIRECT_URL || '').trim();
 const rememberXamanJwt = import.meta.env.VITE_XAMAN_REMEMBER_JWT !== 'false';
 let xamanPkce: XummPkce | null = null;
 
 function isXamanConfigured() {
 	return Boolean(xamanApiKey);
+}
+
+/**
+ * OAuth redirect_uri must exactly match a URL allowed in the Xaman Developer Console.
+ * When `VITE_XAMAN_REDIRECT_URL` is unset:
+ * - Local dev uses `origin/` (typical http://localhost:5173/ registration).
+ * - Deployed sites use `origin/profile?xaman_return=1` so production matches common
+ *   console entries like https://xolodojo.vercel.app/profile?xaman_return=1
+ *   (root-only registration would mismatch and yield access_denied / invalid redirect).
+ */
+function getDefaultXamanRedirectUrl(): string {
+	const origin = window.location.origin;
+	const host = window.location.hostname;
+	const isLocal =
+		host === 'localhost' ||
+		host === '127.0.0.1' ||
+		host === '[::1]' ||
+		host.endsWith('.local');
+	if (isLocal) {
+		return `${origin}/`;
+	}
+	return `${origin}/profile?xaman_return=1`;
 }
 
 function getXamanRedirectUrl() {
@@ -29,7 +51,7 @@ function getXamanRedirectUrl() {
 	if (configuredRedirectUrl) {
 		return configuredRedirectUrl;
 	}
-	return `${window.location.origin}/`;
+	return getDefaultXamanRedirectUrl();
 }
 
 export function getXamanClient() {
