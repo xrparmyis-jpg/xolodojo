@@ -12,8 +12,11 @@ import {
 } from '../constants/walletUiMessages';
 import { getUserWallets, type Wallet } from '../services/walletService';
 
-const xamanApiKey =
-	import.meta.env.VITE_XAMAN_API_KEY || import.meta.env.VITE_XUMM_API_KEY || '';
+const xamanApiKey = (
+	import.meta.env.VITE_XAMAN_API_KEY ||
+	import.meta.env.VITE_XUMM_API_KEY ||
+	''
+).trim();
 const configuredRedirectUrl = (import.meta.env.VITE_XAMAN_REDIRECT_URL || '').trim();
 const rememberXamanJwt = import.meta.env.VITE_XAMAN_REMEMBER_JWT !== 'false';
 let xamanPkce: XummPkce | null = null;
@@ -261,6 +264,22 @@ export const xamanHandler: IWalletHandler = {
 			}
 
 			const client = getXamanClient();
+			try {
+				const thread = (
+					window as unknown as { _XummPkce?: { authorizeUrl: () => string } }
+				)._XummPkce;
+				if (thread && typeof thread.authorizeUrl === 'function') {
+					const authUrl = new URL(thread.authorizeUrl());
+					// eslint-disable-next-line no-console
+					console.log('[Xaman][connect] oauth2.xumm.app /auth (from SDK)', {
+						client_id: authUrl.searchParams.get('client_id'),
+						redirect_uri: authUrl.searchParams.get('redirect_uri'),
+						response_type: authUrl.searchParams.get('response_type'),
+					});
+				}
+			} catch {
+				/* ignore */
+			}
 			client.on('retrieved', () => {
 				// eslint-disable-next-line no-console
 				console.log('[Xaman][SDK] event: retrieved (mobile redirect / session restore)');

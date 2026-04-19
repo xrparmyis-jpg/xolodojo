@@ -73,7 +73,7 @@ function UserMenu({ isSticky = false }: UserMenuProps) {
         return (
             <nav className="flex items-center gap-6" aria-label="Account">
                 <button type="button" className={desktopAuthLinkClass} onClick={openConnect}>
-                    Connect
+                    Get Started
                 </button>
             </nav>
         );

@@ -1061,7 +1061,7 @@ function WalletConnectionContent({
                     disabled={walletBusyMessage !== null || isWalletConnectPending}
                     className="w-full text-center bg-blue-600 hover:bg-blue-700 active:bg-blue-800"
                 >
-                    {isWalletConnectPending ? OPENING_WALLETCONNECT_MESSAGE : 'Choose wallet type'}
+                    {isWalletConnectPending ? OPENING_WALLETCONNECT_MESSAGE : 'Choose Wallet'}
                 </Button>
             )}
             {variant !== 'wallet_session' && variant !== 'wallet_auth' && (

@@ -200,7 +200,7 @@ function Menu({
                                                         }}
                                                         className="mt-2 flex w-full cursor-pointer items-center gap-3 border-0 border-b border-white/10 bg-transparent py-3 text-left text-base font-medium text-white transition-colors hover:text-[#b7e9f7]"
                                                     >
-                                                        <span>Connect</span>
+                                                        <span>Get Started</span>
                                                     </button>
                                                 </li>
                                             )}

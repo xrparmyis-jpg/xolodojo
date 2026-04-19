@@ -11,6 +11,7 @@ type JoeyWalletQrModalProps = {
 /**
  * Desktop / fallback: scan QR or open Joey via deeplink button.
  * On mobile with auto-deeplink, this usually never mounts (see useJoeyWalletConnect).
+ * Overlay z-[1200] sits above Connect wallet / {@link Modal} (z-[1100]) so the QR stays visible.
  */
 export function JoeyWalletQrModal({ open, connectionUri, deepLink, onCancel }: JoeyWalletQrModalProps) {
 	if (!open || !connectionUri || typeof document === 'undefined') {
@@ -18,7 +19,7 @@ export function JoeyWalletQrModal({ open, connectionUri, deepLink, onCancel }: J
 	}
 
 	return createPortal(
-		<div className="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-black/80 p-4 sm:p-6">
+		<div className="fixed inset-0 z-[1200] flex items-center justify-center overflow-y-auto bg-black/80 p-4 sm:p-6">
 			<div className="w-full max-w-sm rounded-xl bg-neutral-900 p-6 shadow-xl border border-white/10">
 				<h3 className="text-white text-lg font-semibold mb-2">Scan With Joey Wallet</h3>
 				<p className="text-sm text-white/70 mb-4">
