@@ -1612,14 +1612,15 @@ export default function NftGallery({
                                 )}
                             </p>
                             <p className="mt-2 text-white/65">
-                                You may come back to modify/remove your pin by clicking on the{' '}
+                                You may come back to modify or remove your pin by clicking the{' '}
                                 <span
                                     className="xologlobe-pin-thumbtack-btn xologlobe-pin-thumbtack-btn--pinned mx-0.5 translate-y-[2px] align-text-bottom"
                                     aria-hidden
                                 >
                                     <FontAwesomeIcon icon={faThumbtack} aria-hidden />
                                 </span>
-                                <span className="sr-only">pin icon</span>.
+                                <span className="sr-only"> thumbtack</span>
+                                {' on your NFT card in Profile.'}
                             </p>
                         </div>
 

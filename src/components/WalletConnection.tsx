@@ -1094,11 +1094,15 @@ function WalletConnectionContent({
                             <div className="flex items-start justify-between gap-3">
                                 <p>
                                     NFTs Found: <span className="font-semibold text-white">{connectedWalletAssets.nft_count}</span>
-                                    {' - Click the '}
-                                    <span className="mx-1 inline-flex h-5 w-5 items-center justify-center rounded-full border border-black/55 bg-black text-blue-600 align-middle">
-                                        <FontAwesomeIcon icon={faThumbtack} className="text-[10px]" />
+                                    {' — Click the '}
+                                    <span
+                                        className="mx-1 inline-flex align-middle translate-y-[2px] xologlobe-pin-thumbtack-btn xologlobe-pin-thumbtack-btn--pinned"
+                                        aria-hidden
+                                    >
+                                        <FontAwesomeIcon icon={faThumbtack} aria-hidden />
                                     </span>
-                                    {' to pin an NFT to the Xglobe, Click on the NFT to view more details.'}
+                                    <span className="sr-only">thumbtack icon</span>
+                                    {' '}to pin an NFT to the Xglobe. Click an NFT for more details.
                                 </p>
                                 <button
                                     type="button"

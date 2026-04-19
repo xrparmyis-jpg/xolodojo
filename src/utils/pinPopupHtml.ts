@@ -159,7 +159,7 @@ export function buildPinPopupHtml(pin: PinPopupContent): string {
     : '';
 
   const ownerThumbtackHtml = ownerHref
-    ? `<a class="xologlobe-pin-thumbtack-btn shrink-0" href="${escapeHtml(ownerHref)}" title="Edit pin on profile" aria-label="Edit pin on profile">${thumbtackSvg}</a>`
+    ? `<a class="xologlobe-pin-thumbtack-btn xologlobe-pin-thumbtack-btn--pinned shrink-0" href="${escapeHtml(ownerHref)}" title="Edit pin on profile" aria-label="Edit pin on profile">${thumbtackSvg}</a>`
     : '';
 
   let footerHtml = '';
