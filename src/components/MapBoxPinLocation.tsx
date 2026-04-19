@@ -561,7 +561,7 @@ export default function MapBoxPinLocation({
                     {searchResults.length > 0 ? (
                         <div
                             className={
-                                'absolute left-0 right-0 top-full z-30 mt-1 max-h-52 overflow-auto rounded-lg ' +
+                                'absolute left-0 right-0 top-full z-30 mt-1 max-h-[min(50vh,18rem)] overflow-y-auto overflow-x-hidden rounded-lg ' +
                                 'border border-white/20 bg-black/90 backdrop-blur-sm shadow-[0_10px_28px_rgba(0,0,0,0.55)]'
                             }
                         >
@@ -570,7 +570,7 @@ export default function MapBoxPinLocation({
                                     type="button"
                                     key={result.id}
                                     onClick={() => handleSelectSearchResult(result)}
-                                    className="cursor-pointer block w-full border-b border-white/10 px-3 py-2 text-left text-sm text-white/90 last:border-b-0 transition-colors duration-200 hover:bg-white/10"
+                                    className="cursor-pointer block w-full min-w-0 border-b border-white/10 px-3 py-2 text-left text-sm text-white/90 last:border-b-0 transition-colors duration-200 hover:bg-white/10 break-words"
                                 >
                                     {result.place_name}
                                 </button>

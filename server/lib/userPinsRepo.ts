@@ -1,5 +1,6 @@
 import type mysql from 'mysql2/promise';
 import type { ResultSetHeader } from 'mysql2';
+import { normalizeNfTokenId } from '../../src/utils/nfTokenId.js';
 
 export interface PinnedNftSocials {
   twitter?: string;
@@ -98,8 +99,9 @@ function pinnedAtToIso(value: unknown): string {
 function mapRow(row: Record<string, unknown>): PinnedNftItem {
   const lat = toFiniteNumber(row.latitude);
   const lng = toFiniteNumber(row.longitude);
+  const rawTokenId = typeof row.token_id === 'string' ? row.token_id : '';
   return {
-    token_id: typeof row.token_id === 'string' ? row.token_id : '',
+    token_id: rawTokenId ? normalizeNfTokenId(rawTokenId) : '',
     wallet_address:
       typeof row.wallet_address === 'string'
         ? normalizeWalletAddress(row.wallet_address)
@@ -177,6 +179,7 @@ export async function upsertUserPin(
   }
 ): Promise<void> {
   const wa = normalizeWalletAddress(params.walletAddress);
+  const tokenId = normalizeNfTokenId(params.tokenId);
   const pinnedDate = new Date(params.pinnedAtIsoForInsert);
   const pinnedAtMysql = Number.isNaN(pinnedDate.getTime())
     ? new Date()
@@ -204,7 +207,7 @@ export async function upsertUserPin(
       website_url = VALUES(website_url)`,
     [
       params.userId,
-      params.tokenId,
+      tokenId,
       wa,
       params.issuer,
       params.uri,
@@ -228,16 +231,17 @@ export async function deleteUserPin(
   walletAddress: string
 ): Promise<void> {
   const wa = normalizeWalletAddress(walletAddress);
+  const tid = normalizeNfTokenId(tokenId);
   if (userId == null) {
     await pool.execute(
       `DELETE FROM user_pins WHERE user_id IS NULL AND token_id = ? AND wallet_address = ?`,
-      [tokenId, wa]
+      [tid, wa]
     );
     return;
   }
   await pool.execute(
     `DELETE FROM user_pins WHERE user_id = ? AND token_id = ? AND wallet_address = ?`,
-    [userId, tokenId, wa]
+    [userId, tid, wa]
   );
 }
 
@@ -275,10 +279,10 @@ export async function deletePinsForWalletNotHeld(
     );
     return (result as ResultSetHeader).affectedRows;
   }
-  const ids = [...heldNfTokenIds];
+  const ids = [...heldNfTokenIds].map(id => normalizeNfTokenId(id));
   const placeholders = ids.map(() => '?').join(', ');
   const [result] = await pool.execute(
-    `DELETE FROM user_pins WHERE ${userClause} AND wallet_address = ? AND token_id NOT IN (${placeholders})`,
+    `DELETE FROM user_pins WHERE ${userClause} AND wallet_address = ? AND UPPER(TRIM(token_id)) NOT IN (${placeholders})`,
     [...userParams, wa, ...ids]
   );
   return (result as ResultSetHeader).affectedRows;

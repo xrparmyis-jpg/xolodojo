@@ -11,6 +11,7 @@ import { useToast } from './ToastProvider';
 import type { WalletAssetSummary } from '../services/walletAssetService';
 import { PIN_NOTE_MAX_LENGTH, PIN_NOTE_MIN_LENGTH } from '../constants/pinNote';
 import { PIN_WEBSITE_MAX_LENGTH, parsePinWebsiteForStorage } from '../utils/pinWebsiteUrl';
+import { normalizeNfTokenId } from '../utils/nfTokenId';
 import {
     getPinnedNfts,
     pinNft,
@@ -190,7 +191,6 @@ export default function NftGallery({
     const [collectionFallbackTokens, setCollectionFallbackTokens] = useState<Record<string, boolean>>({});
     const [selectedNftTokenId, setSelectedNftTokenId] = useState<string | null>(null);
     const [copiedFieldKey, setCopiedFieldKey] = useState<string | null>(null);
-    const [pinnedTokenIds, setPinnedTokenIds] = useState<string[]>([]);
     const [pinnedNftItems, setPinnedNftItems] = useState<PinnedNftItem[]>([]);
     const [pinTargetTokenId, setPinTargetTokenId] = useState<string | null>(null);
     const [pinFormMode, setPinFormMode] = useState<PinFormMode>('create');
@@ -646,14 +646,12 @@ export default function NftGallery({
             try {
                 if (!walletAddress) {
                     setPinnedNftItems([]);
-                    setPinnedTokenIds([]);
                     return;
                 }
 
                 const pinned = await getPinnedNfts(walletAddress);
                 if (!cancelled) {
                     setPinnedNftItems(pinned);
-                    setPinnedTokenIds(pinned.map((item) => item.token_id));
                 }
             } catch (error) {
                 debugNft('Failed to load pinned NFTs', {
@@ -661,7 +659,6 @@ export default function NftGallery({
                 });
                 if (!cancelled) {
                     setPinnedNftItems([]);
-                    setPinnedTokenIds([]);
                 }
             }
         };
@@ -672,6 +669,11 @@ export default function NftGallery({
             cancelled = true;
         };
     }, [debugNft, walletAddress]);
+
+    const pinnedTokenIdSet = useMemo(
+        () => new Set(pinnedNftItems.map((p) => normalizeNfTokenId(p.token_id))),
+        [pinnedNftItems]
+    );
 
     const getPinSocialsSeed = useCallback((): ProfileSocials => {
         const source =
@@ -1015,7 +1017,8 @@ export default function NftGallery({
     };
 
     const openPinModalForEdit = (tokenId: string) => {
-        const existing = pinnedNftItems.find((p) => p.token_id === tokenId);
+        const idKey = normalizeNfTokenId(tokenId);
+        const existing = pinnedNftItems.find((p) => normalizeNfTokenId(p.token_id) === idKey);
         if (!existing) {
             showToast('error', 'Could not load this pin. Try refreshing.');
             return;
@@ -1112,7 +1115,6 @@ export default function NftGallery({
                 website_url: parsePinWebsiteForStorage(pinWebsiteSuffixInput),
             });
             setPinnedNftItems(nextPinned);
-            setPinnedTokenIds(nextPinned.map((item) => item.token_id));
             showToast('success', pinFormMode === 'edit' ? 'Pin updated successfully.' : 'NFT pinned successfully.');
             setPinSuccessState({
                 tokenId: pinTargetNft.token_id,
@@ -1170,7 +1172,6 @@ export default function NftGallery({
             setIsPinActionLoading(true);
             const nextPinned = await unpinNft(tokenToUnpin, walletAddress);
             setPinnedNftItems(nextPinned);
-            setPinnedTokenIds(nextPinned.map((item) => item.token_id));
             setPendingUnpinTokenId(null);
             showToast('success', 'NFT unpinned successfully.');
             if (wasEditingThisPin) {
@@ -1264,7 +1265,7 @@ export default function NftGallery({
                             </button>
 
                             {(() => {
-                                const isPinned = pinnedTokenIds.includes(nft.token_id);
+                                const isPinned = pinnedTokenIdSet.has(normalizeNfTokenId(nft.token_id));
 
                                 return (
                                     <button
@@ -1424,6 +1425,7 @@ export default function NftGallery({
 
             <Modal
                 isOpen={pinTargetNft != null || pinSuccessState != null}
+                allowVerticalOverflow
                 title={
                     pinSuccessState
                         ? pinSuccessState.kind === 'updated'
@@ -1488,7 +1490,7 @@ export default function NftGallery({
                 ) : pinTargetNft && (
                     <div className="space-y-4 text-sm text-white/85">
                         {pinFormStep === 1 ? (
-                            <>
+                            <div className="max-h-[min(72vh,640px)] space-y-4 overflow-y-auto overflow-x-hidden pr-1">
                                 <div className="w-full min-w-0 flex flex-col">
                                     <label htmlFor="pin-title" className="block text-xs font-semibold uppercase tracking-wide text-white/80 mb-1">
                                         Pin Title <span className="text-red-300">*</span>
@@ -1696,9 +1698,9 @@ export default function NftGallery({
                                         Continue
                                     </Button>
                                 </div>
-                            </>
+                            </div>
                         ) : (
-                            <div className="w-full min-w-0 flex flex-col">
+                            <div className="w-full min-w-0 flex flex-col overflow-visible">
                                 <label className="block text-xs font-semibold uppercase tracking-wide text-white/80 mb-1">
                                     Pin map location
                                 </label>

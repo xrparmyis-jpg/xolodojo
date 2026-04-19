@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { PIN_NOTE_MAX_LENGTH, PIN_NOTE_MIN_LENGTH } from '../../../src/constants/pinNote.js';
+import { normalizeNfTokenId } from '../../../src/utils/nfTokenId.js';
 import { parsePinWebsiteForStorage } from '../../../src/utils/pinWebsiteUrl.js';
 import { getAppMysqlPool } from '../../lib/mysqlPool.js';
 import { getRequestAuth } from '../../lib/sessionAuth.js';
@@ -88,6 +89,27 @@ function parseOptionalNumber(value: unknown): number | null {
   return null;
 }
 
+/** Avoid `??` with empty string — `""` is not nullish and would wipe existing DB title/collection. */
+function mergeIncomingString(
+  incoming: unknown,
+  previous: string | null | undefined
+): string | null {
+  if (incoming === undefined) {
+    return previous ?? null;
+  }
+  if (incoming === null) {
+    return null;
+  }
+  if (typeof incoming !== 'string') {
+    return previous ?? null;
+  }
+  const t = incoming.trim();
+  if (t === '') {
+    return previous ?? null;
+  }
+  return t;
+}
+
 function filterPinnedByWallet(
   pinnedNfts: PinnedNftItem[],
   walletAddress?: string
@@ -161,7 +183,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           }
         | undefined;
 
-      const tokenId = nft?.token_id?.trim();
+      const tokenId = normalizeNfTokenId(nft?.token_id?.trim() ?? '');
       if (!tokenId) {
         res.status(400).json({ error: 'Missing nft.token_id' });
         return;
@@ -186,7 +208,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const existing = pinnedNfts.find(
         item =>
-          item.token_id === tokenId &&
+          normalizeNfTokenId(item.token_id) === tokenId &&
           item.wallet_address === pinWalletAddress
       );
       const nowIso = new Date().toISOString();
@@ -238,8 +260,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         latitude,
         longitude,
         imageUrl: nft?.image_url ?? existing?.image_url ?? null,
-        title: nft?.title ?? existing?.title ?? null,
-        collectionName: nft?.collection_name ?? existing?.collection_name ?? null,
+        title: mergeIncomingString(nft?.title, existing?.title ?? null),
+        collectionName: mergeIncomingString(
+          nft?.collection_name,
+          existing?.collection_name ?? null
+        ),
         socials,
         pinNote: pinDesc,
         websiteUrl: mergedWebsite,
@@ -258,7 +283,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    const tokenId = (req.body?.token_id as string | undefined)?.trim();
+    const tokenId = normalizeNfTokenId(
+      (req.body?.token_id as string | undefined)?.trim() ?? ''
+    );
     if (!tokenId) {
       return res.status(400).json({ error: 'Missing token_id' });
     }
