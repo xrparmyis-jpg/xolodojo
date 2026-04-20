@@ -24,7 +24,6 @@ export interface PinnedNftItem {
   collection_name?: string | null;
   socials?: PinnedNftSocials | null;
   pin_note?: string | null;
-  website_url?: string | null;
   pinned_at: string;
 }
 
@@ -116,7 +115,6 @@ function mapRow(row: Record<string, unknown>): PinnedNftItem {
       typeof row.collection_name === 'string' ? row.collection_name : null,
     socials: parseSocialsFromDb(row.socials),
     pin_note: typeof row.pin_note === 'string' ? row.pin_note : null,
-    website_url: typeof row.website_url === 'string' ? row.website_url : null,
     pinned_at: pinnedAtToIso(row.pinned_at),
   };
 }
@@ -127,7 +125,7 @@ export async function listPinsForUser(
   walletAddress?: string
 ): Promise<PinnedNftItem[]> {
   const baseSql = `SELECT token_id, wallet_address, issuer, uri, latitude, longitude,
-    image_url, title, collection_name, socials, pin_note, website_url, pinned_at
+    image_url, title, collection_name, socials, pin_note, pinned_at
     FROM user_pins WHERE user_id = ?`;
   const [rows] = (walletAddress
     ? await pool.execute(
@@ -149,7 +147,7 @@ export async function listPinsForWalletOwner(
   const wa = normalizeWalletAddress(walletAddress);
   const [rows] = (await pool.execute(
     `SELECT token_id, wallet_address, issuer, uri, latitude, longitude,
-      image_url, title, collection_name, socials, pin_note, website_url, pinned_at
+      image_url, title, collection_name, socials, pin_note, pinned_at
      FROM user_pins
      WHERE user_id IS NULL AND wallet_address = ?
      ORDER BY pinned_at DESC`,
@@ -170,7 +168,7 @@ export async function listPinsForWalletAddress(
   const wa = normalizeWalletAddress(walletAddress);
   const [rows] = (await pool.execute(
     `SELECT token_id, wallet_address, issuer, uri, latitude, longitude,
-      image_url, title, collection_name, socials, pin_note, website_url, pinned_at
+      image_url, title, collection_name, socials, pin_note, pinned_at
      FROM user_pins
      WHERE wallet_address = ?
      ORDER BY pinned_at DESC`,
@@ -194,7 +192,6 @@ export async function upsertUserPin(
     collectionName: string | null;
     socials: PinnedNftSocials | null;
     pinNote: string | null;
-    websiteUrl: string | null;
     /** ISO string for new pins only; duplicate key updates keep existing `pinned_at`. */
     pinnedAtIsoForInsert: string;
   }
@@ -213,8 +210,8 @@ export async function upsertUserPin(
     `INSERT INTO user_pins (
       user_id, token_id, wallet_address, issuer, uri,
       latitude, longitude, image_url, title, collection_name,
-      socials, pin_note, website_url, pinned_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      socials, pin_note, pinned_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON DUPLICATE KEY UPDATE
       user_id = VALUES(user_id),
       issuer = VALUES(issuer),
@@ -225,8 +222,7 @@ export async function upsertUserPin(
       title = VALUES(title),
       collection_name = VALUES(collection_name),
       socials = VALUES(socials),
-      pin_note = VALUES(pin_note),
-      website_url = VALUES(website_url)`,
+      pin_note = VALUES(pin_note)`,
     [
       params.userId,
       tokenId,
@@ -240,7 +236,6 @@ export async function upsertUserPin(
       params.collectionName,
       socialsParam,
       params.pinNote,
-      params.websiteUrl,
       pinnedAtMysql,
     ]
   );
@@ -334,7 +329,7 @@ function toUniquePins(items: PinnedNftItem[]): PinnedNftItem[] {
 export async function listGlobePins(pool: mysql.Pool): Promise<PinnedNftItem[]> {
   const [rows] = (await pool.execute(
     `SELECT token_id, wallet_address, issuer, uri, latitude, longitude,
-      image_url, title, collection_name, socials, pin_note, website_url, pinned_at
+      image_url, title, collection_name, socials, pin_note, pinned_at
      FROM user_pins
      ORDER BY pinned_at DESC`
   )) as [Record<string, unknown>[], unknown];

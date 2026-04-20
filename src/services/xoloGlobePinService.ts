@@ -21,7 +21,6 @@ export interface XoloGlobePin {
   collection_name: string | null;
   socials?: XoloGlobePinSocials | null;
   pin_note?: string | null;
-  website_url?: string | null;
   pinned_at: string;
 }
 
