@@ -24,7 +24,6 @@ export interface PinnedNftItem {
   collection_name?: string | null;
   socials?: PinnedNftSocials | null;
   pin_note?: string | null;
-  website_url?: string | null;
   pinned_at: string;
 }
 
@@ -63,7 +62,6 @@ export async function pinNft(nft: {
   collection_name?: string | null;
   socials?: PinnedNftSocials;
   pin_note?: string | null;
-  website_url?: string | null;
 }): Promise<PinnedNftItem[]> {
   const response = await credFetch(`${API_BASE_URL}/user/pinned-nfts`, {
     method: 'POST',

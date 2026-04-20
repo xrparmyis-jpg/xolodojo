@@ -18,11 +18,11 @@ import { useToast } from './ToastProvider';
 import { useAuth } from '../providers/AuthContext';
 import type { WalletAssetSummary } from '../services/walletAssetService';
 import { PIN_NOTE_MAX_LENGTH, PIN_NOTE_MIN_LENGTH } from '../constants/pinNote';
-import {
-  PIN_WEBSITE_MAX_LENGTH,
-  parsePinWebsiteForStorage,
-} from '../utils/pinWebsiteUrl';
 import { normalizeNfTokenId } from '../utils/nfTokenId';
+import { legacyPinNoteToHtml } from '../utils/pinNoteHtml';
+import { plainTextLengthFromHtml } from '../utils/pinNotePlainText';
+import { sanitizePinNoteHtml } from '../utils/sanitizePinNoteHtml';
+import PinNoteEditor from './PinNoteEditor';
 import {
   getPinnedNfts,
   pinNft,
@@ -287,7 +287,6 @@ export default function NftGallery({
   } | null>(null);
   const [pinTitleInput, setPinTitleInput] = useState('');
   const [pinNoteInput, setPinNoteInput] = useState('');
-  const [pinWebsiteSuffixInput, setPinWebsiteSuffixInput] = useState('');
   const [pinSuccessState, setPinSuccessState] = useState<{
     tokenId: string;
     title: string;
@@ -1195,11 +1194,14 @@ export default function NftGallery({
     : '';
 
   const normalizedPinTitle = pinTitleInput.trim();
-  const normalizedPinNote = pinNoteInput
-    .replace(/\r\n/g, '\n')
-    .replace(/\r/g, '\n')
-    .trim()
-    .slice(0, PIN_NOTE_MAX_LENGTH);
+  const sanitizedPinNote = useMemo(
+    () => sanitizePinNoteHtml(pinNoteInput),
+    [pinNoteInput]
+  );
+  const pinNotePlainLength = useMemo(
+    () => plainTextLengthFromHtml(sanitizedPinNote),
+    [sanitizedPinNote]
+  );
 
   const selectedPinSocials = useMemo(
     () => normalizeSocials(pinDraftSocials) as PinnedNftSocials,
@@ -1223,24 +1225,18 @@ export default function NftGallery({
     return {
       tokenId: pinTargetNft.token_id,
       title: pinTitleInput,
-      pinNote: pinNoteInput,
-      websiteUrl: parsePinWebsiteForStorage(pinWebsiteSuffixInput),
+      pinNote: sanitizedPinNote,
       socials: selectedPinSocials,
     };
-  }, [
-    pinTargetNft,
-    pinTitleInput,
-    pinNoteInput,
-    pinWebsiteSuffixInput,
-    selectedPinSocials,
-  ]);
+  }, [pinTargetNft, pinTitleInput, sanitizedPinNote, selectedPinSocials]);
 
   const canContinuePinFormStep1 = Boolean(
     pinTargetNft &&
-    walletAddress &&
-    normalizedPinTitle.length > 0 &&
-    normalizedPinNote.length >= PIN_NOTE_MIN_LENGTH &&
-    !isPinActionLoading
+      walletAddress &&
+      normalizedPinTitle.length > 0 &&
+      pinNotePlainLength >= PIN_NOTE_MIN_LENGTH &&
+      pinNotePlainLength <= PIN_NOTE_MAX_LENGTH &&
+      !isPinActionLoading
   );
 
   const canSubmitPin = Boolean(canContinuePinFormStep1 && pinLocation);
@@ -1301,7 +1297,6 @@ export default function NftGallery({
       `NFT ${tokenId.slice(0, 8)}...`;
     setPinTitleInput(defaultTitle);
     setPinNoteInput('');
-    setPinWebsiteSuffixInput('');
     setPinSocialsUiFromDraft(getPinSocialsSeed());
   };
 
@@ -1337,12 +1332,7 @@ export default function NftGallery({
       (existing.title && existing.title.trim()) || fallbackTitle
     );
     const noteVal = existing.pin_note;
-    setPinNoteInput(typeof noteVal === 'string' ? noteVal : '');
-    setPinWebsiteSuffixInput(
-      typeof existing.website_url === 'string' && existing.website_url.trim()
-        ? existing.website_url.trim()
-        : ''
-    );
+    setPinNoteInput(legacyPinNoteToHtml(typeof noteVal === 'string' ? noteVal : ''));
     setPinSocialsUiFromDraft(
       applyPinSocialsSeedWithOptionalPin(existing.socials ?? null)
     );
@@ -1356,7 +1346,6 @@ export default function NftGallery({
     setPinLocation(null);
     setPinTitleInput('');
     setPinNoteInput('');
-    setPinWebsiteSuffixInput('');
     setPinDraftSocials({});
     setPinVisibleSocialInputs(createEmptyVisibleInputs());
     setPendingRemovePinSocial(null);
@@ -1393,10 +1382,18 @@ export default function NftGallery({
       return;
     }
 
-    if (normalizedPinNote.length < PIN_NOTE_MIN_LENGTH) {
+    if (pinNotePlainLength < PIN_NOTE_MIN_LENGTH) {
       showToast(
         'error',
-        `Please add a pin description (at least ${PIN_NOTE_MIN_LENGTH} characters).`
+        `Please add a pin description (at least ${PIN_NOTE_MIN_LENGTH} visible characters).`
+      );
+      return;
+    }
+
+    if (pinNotePlainLength > PIN_NOTE_MAX_LENGTH) {
+      showToast(
+        'error',
+        `Pin description is too long (max ${PIN_NOTE_MAX_LENGTH} characters).`
       );
       return;
     }
@@ -1422,8 +1419,7 @@ export default function NftGallery({
         title: normalizedPinTitle,
         collection_name: pinTargetCollectionName,
         socials: socialsPayload,
-        pin_note: normalizedPinNote,
-        website_url: parsePinWebsiteForStorage(pinWebsiteSuffixInput),
+        pin_note: sanitizedPinNote,
       });
       setPinnedNftItems(nextPinned);
       showToast(
@@ -1443,7 +1439,6 @@ export default function NftGallery({
       setPinLocation(null);
       setPinTitleInput('');
       setPinNoteInput('');
-      setPinWebsiteSuffixInput('');
       setPinDraftSocials({});
       setPinVisibleSocialInputs(createEmptyVisibleInputs());
     } catch (error) {
@@ -1462,7 +1457,8 @@ export default function NftGallery({
     debugNft,
     getNftThumbnailUrl,
     normalizedPinTitle,
-    normalizedPinNote,
+    sanitizedPinNote,
+    pinNotePlainLength,
     pinLocation,
     pinTargetCollectionName,
     pinTargetNft,
@@ -1471,7 +1467,6 @@ export default function NftGallery({
     showToast,
     walletAddress,
     pinFormMode,
-    pinWebsiteSuffixInput,
   ]);
 
   const handleConfirmUnpin = async () => {
@@ -1888,78 +1883,19 @@ export default function NftGallery({
                     >
                       Pin Description <span className="text-red-300">*</span>{' '}
                       <span className="font-normal text-white/50 normal-case">
-                        (max {PIN_NOTE_MAX_LENGTH} characters)
+                        (bold, italic, lists, links — min {PIN_NOTE_MIN_LENGTH} chars;
+                        max {PIN_NOTE_MAX_LENGTH} chars)
                       </span>
                     </label>
-                    <textarea
+                    <PinNoteEditor
                       id="pin-description"
                       value={pinNoteInput}
-                      onChange={event => {
-                        const next = event.target.value;
-                        setPinNoteInput(
-                          next.length > PIN_NOTE_MAX_LENGTH
-                            ? next.slice(0, PIN_NOTE_MAX_LENGTH)
-                            : next
-                        );
-                      }}
-                      placeholder="Short line shown on the globe"
-                      rows={4}
-                      className="w-full min-w-0 resize-none rounded-lg border border-white/20 bg-black/40 px-3 py-2 text-sm text-white/90 placeholder:text-white/45 focus:outline-none focus:border-blue-500 transition-all duration-200"
+                      onChange={setPinNoteInput}
+                      disabled={isPinActionLoading}
                     />
                     <p className="mt-0.5 text-[11px] text-white/45">
-                      {pinNoteInput.length}/{PIN_NOTE_MAX_LENGTH}
+                      Text count: {pinNotePlainLength} / {PIN_NOTE_MAX_LENGTH}
                     </p>
-                  </div>
-
-                  <div className="w-full min-w-0 flex flex-col">
-                    <label
-                      htmlFor="pin-website"
-                      className="block text-xs font-semibold uppercase tracking-wide text-white/80 mb-1"
-                    >
-                      WEBSITE/PROJECT{' '}
-                      <span className="font-normal normal-case text-white/50">
-                        (optional)
-                      </span>
-                    </label>
-                    <div className="flex min-w-0 items-stretch overflow-hidden rounded-lg border border-white/20 bg-black/40 transition-all duration-200 focus-within:border-blue-500">
-                      <span
-                        className="flex shrink-0 items-center border-r border-white/15 bg-black/50 pl-3 pr-1 text-sm text-white/50 select-none"
-                        aria-hidden
-                      >
-                        https://
-                      </span>
-                      <input
-                        id="pin-website"
-                        type="text"
-                        inputMode="url"
-                        autoComplete="url"
-                        value={pinWebsiteSuffixInput}
-                        onChange={event => {
-                          const next = event.target.value;
-                          setPinWebsiteSuffixInput(
-                            next.length > PIN_WEBSITE_MAX_LENGTH
-                              ? next.slice(0, PIN_WEBSITE_MAX_LENGTH)
-                              : next
-                          );
-                        }}
-                        onPaste={event => {
-                          const raw = event.clipboardData.getData('text/plain');
-                          const trimmed = raw.trim();
-                          if (!/^https?:\/\//i.test(trimmed)) {
-                            return;
-                          }
-                          event.preventDefault();
-                          const normalized = parsePinWebsiteForStorage(trimmed);
-                          const next = (normalized ?? '').slice(
-                            0,
-                            PIN_WEBSITE_MAX_LENGTH
-                          );
-                          setPinWebsiteSuffixInput(next);
-                        }}
-                        placeholder="xolodojo.io"
-                        className="min-w-0 flex-1 border-0 bg-transparent py-2 pr-3 pl-2 text-sm text-white/90 placeholder:text-white/40 focus:outline-none focus:ring-0"
-                      />
-                    </div>
                   </div>
 
                   <div className="w-full min-w-0 flex flex-col">

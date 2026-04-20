@@ -321,6 +321,59 @@ span {
   line-height: 1.45;
 }
 
+.xolo-popup-note--richtext {
+  white-space: normal;
+}
+
+.xolo-popup-note--richtext p {
+  margin: 0.35em 0;
+}
+
+.xolo-popup-note--richtext a {
+  color: rgb(103 232 249);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.xolo-popup-note--richtext ul,
+.xolo-popup-note--richtext ol {
+  margin: 0.35em 0;
+  padding-left: 1.25em;
+}
+
+.xolo-popup-note--richtext ul {
+  list-style: disc;
+}
+
+.xolo-popup-note--richtext ol {
+  list-style: decimal;
+}
+
+.xolo-popup-note--richtext li {
+  margin: 0.15em 0;
+}
+
+.pin-note-editor .ProseMirror ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+  margin: 0.35em 0;
+}
+
+.pin-note-editor .ProseMirror ol {
+  list-style: decimal;
+  padding-left: 1.25rem;
+  margin: 0.35em 0;
+}
+
+.pin-note-editor .ProseMirror p {
+  margin: 0.35em 0;
+}
+
+.pin-note-editor .ProseMirror a {
+  color: rgb(125 211 252);
+  text-decoration: underline;
+}
+
 .mapboxgl-popup.xolo-globe-popup .mapboxgl-popup-content .xolo-popup-note {
   color: rgb(235 236 237 / 98%) !important;
 }

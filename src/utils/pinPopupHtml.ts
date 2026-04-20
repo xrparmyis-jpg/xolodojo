@@ -8,13 +8,12 @@ import {
   faXTwitter,
 } from '@fortawesome/free-brands-svg-icons';
 import { faClock, faThumbtack } from '@fortawesome/free-solid-svg-icons';
-import { pinWebsiteStorageToHref } from './pinWebsiteUrl';
+import { sanitizePinNoteHtml } from './sanitizePinNoteHtml';
 
 export interface PinPopupContent {
   token_id: string;
   title?: string | null;
   pin_note?: string | null;
-  website_url?: string | null;
   socials?: Partial<Record<SocialPlatformKey, string>> | null;
   latitude?: number;
   longitude?: number;
@@ -134,13 +133,9 @@ export function buildPinPopupHtml(pin: PinPopupContent): string {
     typeof pin.pin_note === 'string'
       ? pin.pin_note.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim()
       : '';
-  const noteHtml = noteRaw
-    ? `<p class="xolo-popup-note mt-1 text-sm">${escapeHtml(noteRaw)}</p>`
-    : '';
-
-  const websiteHref = pinWebsiteStorageToHref(pin.website_url);
-  const websiteHtml = websiteHref
-    ? `<p class="xolo-popup-website mt-2"><a class="text-sm font-medium text-cyan-300/95 underline decoration-cyan-400/50 underline-offset-2 hover:text-cyan-200 hover:decoration-cyan-300" href="${escapeHtml(websiteHref)}" target="_blank" rel="noopener noreferrer">Website/Project</a></p>`
+  const noteSanitized = noteRaw ? sanitizePinNoteHtml(noteRaw) : '';
+  const noteHtml = noteSanitized
+    ? `<div class="xolo-popup-note xolo-popup-note--richtext mt-1 text-sm">${noteSanitized}</div>`
     : '';
 
   const hasCoords =
@@ -181,7 +176,6 @@ export function buildPinPopupHtml(pin: PinPopupContent): string {
     `<div class="xolo-popup">` +
     `<h2 class="xolo-popup-title !mb-0">${title}</h2>` +
     `${noteHtml}` +
-    `${websiteHtml}` +
     `${socialsHtml}` +
     `${footerHtml}` +
     '</div>'

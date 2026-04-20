@@ -34,8 +34,6 @@ export interface MapBoxPinPopupPreview {
     tokenId: string;
     title: string;
     pinNote: string;
-    /** Host/path only; popup uses https:// */
-    websiteUrl?: string | null;
     socials: PinnedNftSocials;
 }
 
@@ -152,7 +150,6 @@ export default function MapBoxPinLocation({
                 token_id: preview.tokenId,
                 title: preview.title,
                 pin_note: preview.pinNote,
-                website_url: preview.websiteUrl ?? null,
                 socials: preview.socials,
                 latitude: ll.lat,
                 longitude: ll.lng,
