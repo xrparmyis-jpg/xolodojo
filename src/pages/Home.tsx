@@ -215,7 +215,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
         </p>
 
         <p className="mb-4">
-            XoloDojo is being built as a living ecosystem fostering community, collaboration, and culture. The Xolos open the door, Xglobe provides the stage, the Pinbox represents your presence of a shared movement, a friendship made along the way, and the mystical journey back home. The mint is just the beginning, not just the finish line.
+            XoloDojo is being built as a living ecosystem fostering community, collaboration, and culture. The Xolos open the door, Xglobe provides the stage, the Pinbox represents your presence of a shared movement, the friendships made along the way, and the mystical journey back home. The mint is just the beginning, not just the finish line.
         </p>
 
         <p>.</p>
