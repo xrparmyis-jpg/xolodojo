@@ -14,7 +14,6 @@ interface XoloGlobePin {
   collection_name: string | null;
   socials?: XoloGlobePinSocials | null;
   pin_note?: string | null;
-  website_url?: string | null;
   pinned_at: string;
 }
 
@@ -42,7 +41,6 @@ function toGlobePin(item: PinnedNftItem): XoloGlobePin {
     collection_name: item.collection_name ?? null,
     socials: item.socials ?? null,
     pin_note: item.pin_note ?? null,
-    website_url: item.website_url ?? null,
     pinned_at: item.pinned_at,
   };
 }

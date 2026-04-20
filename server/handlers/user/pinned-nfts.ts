@@ -2,7 +2,8 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import type { Pool } from 'mysql2/promise';
 import { PIN_NOTE_MAX_LENGTH, PIN_NOTE_MIN_LENGTH } from '../../../src/constants/pinNote.js';
 import { normalizeNfTokenId } from '../../../src/utils/nfTokenId.js';
-import { parsePinWebsiteForStorage } from '../../../src/utils/pinWebsiteUrl.js';
+import { plainTextLengthFromHtml } from '../../../src/utils/pinNotePlainText.js';
+import { sanitizePinNoteHtmlServer } from '../../lib/sanitizePinNoteHtml.js';
 import { getAppMysqlPool } from '../../lib/mysqlPool.js';
 import { getRequestAuth, type RequestAuthState } from '../../lib/sessionAuth.js';
 import {
@@ -61,23 +62,11 @@ function parsePinNote(value: unknown): string | null {
   if (!normalized) {
     return null;
   }
-  return normalized.slice(0, PIN_NOTE_MAX_LENGTH);
-}
-
-function resolvePinWebsiteUrl(
-  previous: string | null | undefined,
-  incoming: unknown
-): string | null {
-  if (incoming === undefined) {
-    return previous ?? null;
-  }
-  if (incoming === null) {
+  const sanitized = sanitizePinNoteHtmlServer(normalized);
+  if (!sanitized) {
     return null;
   }
-  if (typeof incoming !== 'string') {
-    return previous ?? null;
-  }
-  return parsePinWebsiteForStorage(incoming);
+  return sanitized;
 }
 
 function parseOptionalNumber(value: unknown): number | null {
@@ -250,7 +239,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             image_url?: string | null;
             socials?: PinnedNftSocials | null;
             pin_note?: string | null;
-            website_url?: string | null;
           }
         | undefined;
 
@@ -292,16 +280,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const latitude = parseOptionalNumber(nft?.latitude);
       const longitude = parseOptionalNumber(nft?.longitude);
       const socials = parsePinnedNftSocials(nft?.socials);
-      const resolvePinNote = (previous: string | null | undefined): string | null => {
+      const mergeIncomingPinNote = (
+        previous: string | null | undefined
+      ): string | null => {
         if (nft?.pin_note === undefined) {
           return previous ?? null;
         }
         return parsePinNote(nft.pin_note);
       };
-
-      const resolveWebsiteUrlField = (
-        previous: string | null | undefined
-      ): string | null => resolvePinWebsiteUrl(previous, nft?.website_url);
 
       if (latitude == null || longitude == null) {
         res.status(400).json({ error: 'Missing valid nft.latitude or nft.longitude' });
@@ -314,16 +300,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       const mergedPinNote = existing
-        ? resolvePinNote(existing.pin_note ?? null)
-        : resolvePinNote(undefined);
-      const mergedWebsite = resolveWebsiteUrlField(
-        existing?.website_url ?? undefined
-      );
+        ? mergeIncomingPinNote(existing.pin_note ?? null)
+        : mergeIncomingPinNote(undefined);
 
-      const pinDesc = mergedPinNote;
-      if (!pinDesc || pinDesc.length < PIN_NOTE_MIN_LENGTH) {
+      const plainLen = mergedPinNote
+        ? plainTextLengthFromHtml(mergedPinNote)
+        : 0;
+      if (!mergedPinNote || plainLen < PIN_NOTE_MIN_LENGTH) {
         res.status(400).json({
-          error: `Pin description must be at least ${PIN_NOTE_MIN_LENGTH} characters.`,
+          error: `Pin description must be at least ${PIN_NOTE_MIN_LENGTH} non-whitespace characters.`,
+        });
+        return;
+      }
+      if (plainLen > PIN_NOTE_MAX_LENGTH) {
+        res.status(400).json({
+          error: `Pin description is too long (max ${PIN_NOTE_MAX_LENGTH} characters).`,
         });
         return;
       }
@@ -343,8 +334,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           existing?.collection_name ?? null
         ),
         socials,
-        pinNote: pinDesc,
-        websiteUrl: mergedWebsite,
+        pinNote: mergedPinNote,
         pinnedAtIsoForInsert: existing?.pinned_at ?? nowIso,
       });
 
