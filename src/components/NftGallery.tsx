@@ -1359,7 +1359,7 @@ export default function NftGallery({
 
     const tokenId = pinSuccessState.tokenId;
     closePinModal();
-    navigate(`/xologlobe?pin=${encodeURIComponent(tokenId)}`);
+    navigate(`/xglobe?pin=${encodeURIComponent(tokenId)}`);
   };
 
   const handleSubmitPin = useCallback(async () => {

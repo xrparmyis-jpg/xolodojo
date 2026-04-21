@@ -5,7 +5,7 @@ import GsapPageContent from "../components/GsapPageContent";
 import GsapPageSubHeading from "../components/GsapPageSubHeading";
 import GsapPageHeading from "../components/GsapPageHeading";
 
-function XoloGlobe() {
+function Xglobe() {
     const { sectionRef, bgShapeOffset, colorBgOffset, colorBg2Offset } = useSectionParallaxOffsets();
 
     return (
@@ -124,4 +124,4 @@ function XoloGlobe() {
     );
 }
 
-export default XoloGlobe;
+export default Xglobe;
