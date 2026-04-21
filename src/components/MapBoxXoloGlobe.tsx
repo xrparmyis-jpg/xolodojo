@@ -29,6 +29,7 @@ import { getXoloGlobePins, type XoloGlobePin } from '../services/xoloGlobePinSer
 import { buildPinPopupHtml } from '../utils/pinPopupHtml';
 import { bindPinPopupLocalTimeClock } from '../utils/pinLocalTime';
 import { createGlobeStylePinMarkerElements } from '../utils/globeStyleMapMarker';
+import { computeGlobePinDisplayPositions } from '../utils/globePinClusters';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || '';
 
@@ -265,6 +266,7 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
         try {
             map.setConfigProperty('basemap', 'lightPreset', preset);
         } catch {
+            void 0; /* Standard style may not expose lightPreset on all Mapbox builds */
         }
         setLightPreset(preset);
     };
@@ -409,8 +411,14 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
 
         const timeoutId = window.setTimeout(() => {
             const nextMarkerElements: Array<{ marker: mapboxgl.Marker; visualElement: HTMLDivElement }> = [];
+            const displayPositions = computeGlobePinDisplayPositions(pins);
 
             const nextMarkers: mapboxgl.Marker[] = pins.map((pin) => {
+                const displayPos =
+                    displayPositions.get(pin.token_id) ?? {
+                        lng: pin.longitude,
+                        lat: pin.latitude,
+                    };
                 const { markerElement, markerVisualElement } = createGlobeStylePinMarkerElements(
                     pin.image_url || null,
                 );
@@ -497,7 +505,7 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
                         ),
                     );
                     map.easeTo({
-                        center: [pin.longitude, pin.latitude],
+                        center: [displayPos.lng, displayPos.lat],
                         zoom: targetZoom,
                         duration: pinFocusDuration,
                         easing: (t) => 1 - Math.pow(1 - t, 3),
@@ -612,7 +620,7 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
                     rotationAlignment: 'horizon',
                     offset: [0, 7],
                 })
-                    .setLngLat([pin.longitude, pin.latitude])
+                    .setLngLat([displayPos.lng, displayPos.lat])
                     .setPopup(popup)
                     .addTo(map);
 

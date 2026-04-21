@@ -1,4 +1,5 @@
--- Seed 15 XoloGlobe test markers + shared seed user (session auth).
+-- Seed 25 XoloGlobe test markers + shared seed user (session auth).
+-- Includes 10 pins near San Francisco (test-marker-c01–c10) for cluster / overlap testing.
 -- Safe to re-run: replaces pins for the seed user only (DELETE + INSERT).
 -- Does not rotate password if the seed user already exists (ON DUPLICATE KEY).
 --
@@ -63,6 +64,16 @@ INSERT INTO user_pins (
   (@seed_user_id, 'test-marker-012', 'rtestmarker012', NULL, NULL, 13.7563, 100.5018, '/image.png', 'Bangkok Test Pin', 'Xolo Test Pins', JSON_OBJECT('twitter', 'xolo_bkk', 'instagram', 'xolo.bkk'), 'Delta heat and river-laced sprawl.\n\nTest data.', UTC_TIMESTAMP(3)),
   (@seed_user_id, 'test-marker-013', 'rtestmarker013', NULL, NULL, 35.6895, 139.6917, '/02a.jpg', 'Tokyo Test Pin', 'Xolo Test Pins', JSON_OBJECT('twitter', 'xolo_tokyo', 'discord', '112233445566778899'), 'Deep bays and layered ridges toward the Pacific.\n\nStaging pin.', UTC_TIMESTAMP(3)),
   (@seed_user_id, 'test-marker-014', 'rtestmarker014', NULL, NULL, -33.8688, 151.2093, '/03a.jpg', 'Sydney Test Pin', 'Xolo Test Pins', JSON_OBJECT('tiktok', 'xolo.sydney', 'telegram', 'xolo_sydney'), 'Sandstone rims around a drowned valley harbour.\n\nTest only.', UTC_TIMESTAMP(3)),
-  (@seed_user_id, 'test-marker-015', 'rtestmarker015', NULL, NULL, -36.8485, 174.7633, '/03.jpg', 'Auckland Test Pin', 'Xolo Test Pins', JSON_OBJECT('instagram', 'xolo.auckland'), 'Volcanic cones between two busy harbours.\n\nStaging marker.', UTC_TIMESTAMP(3));
+  (@seed_user_id, 'test-marker-015', 'rtestmarker015', NULL, NULL, -36.8485, 174.7633, '/03.jpg', 'Auckland Test Pin', 'Xolo Test Pins', JSON_OBJECT('instagram', 'xolo.auckland'), 'Volcanic cones between two busy harbours.\n\nStaging marker.', UTC_TIMESTAMP(3)),
+  (@seed_user_id, 'test-marker-c01', 'rtestclust01', NULL, NULL, 37.77495, -122.41935, '/03c.jpg', 'SF cluster (tight A)', 'Xolo Cluster Test', JSON_OBJECT('twitter', 'xolo_cluster'), 'Cluster test pin — tight group near SF seed pin.', UTC_TIMESTAMP(3)),
+  (@seed_user_id, 'test-marker-c02', 'rtestclust02', NULL, NULL, 37.77488, -122.41942, '/03a.jpg', 'SF cluster (tight B)', 'Xolo Cluster Test', JSON_OBJECT('twitter', 'xolo_cluster'), 'Cluster test pin — tight group near SF seed pin.', UTC_TIMESTAMP(3)),
+  (@seed_user_id, 'test-marker-c03', 'rtestclust03', NULL, NULL, 37.77492, -122.41948, '/03b.jpg', 'SF cluster (tight C)', 'Xolo Cluster Test', JSON_OBJECT('twitter', 'xolo_cluster'), 'Cluster test pin — tight group near SF seed pin.', UTC_TIMESTAMP(3)),
+  (@seed_user_id, 'test-marker-c04', 'rtestclust04', NULL, NULL, 37.77525, -122.41890, '/03.jpg', 'SF cluster (pair A)', 'Xolo Cluster Test', JSON_OBJECT('twitter', 'xolo_cluster'), 'Cluster pair — a few dozen meters from the triple.', UTC_TIMESTAMP(3)),
+  (@seed_user_id, 'test-marker-c05', 'rtestclust05', NULL, NULL, 37.77522, -122.41895, '/01.jpg', 'SF cluster (pair B)', 'Xolo Cluster Test', JSON_OBJECT('twitter', 'xolo_cluster'), 'Cluster pair — very close to pair A.', UTC_TIMESTAMP(3)),
+  (@seed_user_id, 'test-marker-c06', 'rtestclust06', NULL, NULL, 37.77610, -122.41820, '/02a.jpg', 'SF cluster (spread 1)', 'Xolo Cluster Test', JSON_OBJECT('twitter', 'xolo_cluster'), 'Spread ring — farther from the tight cluster.', UTC_TIMESTAMP(3)),
+  (@seed_user_id, 'test-marker-c07', 'rtestclust07', NULL, NULL, 37.77500, -122.42080, '/image.png', 'SF cluster (spread 2)', 'Xolo Cluster Test', JSON_OBJECT('twitter', 'xolo_cluster'), 'Spread ring — west/south of downtown SF area.', UTC_TIMESTAMP(3)),
+  (@seed_user_id, 'test-marker-c08', 'rtestclust08', NULL, NULL, 37.77370, -122.41790, '/03b.jpg', 'SF cluster (spread 3)', 'Xolo Cluster Test', JSON_OBJECT('twitter', 'xolo_cluster'), 'Spread ring — east bay side of cluster.', UTC_TIMESTAMP(3)),
+  (@seed_user_id, 'test-marker-c09', 'rtestclust09', NULL, NULL, 37.77700, -122.41910, '/03.jpg', 'SF cluster (spread 4)', 'Xolo Cluster Test', JSON_OBJECT('twitter', 'xolo_cluster'), 'Spread ring — north.', UTC_TIMESTAMP(3)),
+  (@seed_user_id, 'test-marker-c10', 'rtestclust10', NULL, NULL, 37.77400, -122.42120, '/03c.jpg', 'SF cluster (spread 5)', 'Xolo Cluster Test', JSON_OBJECT('twitter', 'xolo_cluster'), 'Spread ring — southwest.', UTC_TIMESTAMP(3));
 
 SELECT COUNT(*) AS seeded_pin_count FROM user_pins WHERE user_id = @seed_user_id;

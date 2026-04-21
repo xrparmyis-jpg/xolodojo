@@ -60,7 +60,7 @@ function Menu({
         { path: '/xoloitzquintle', label: 'Xoloitzquintle' },
         { path: '/team', label: 'Team' },
         { path: '/vision', label: 'Vision' },
-        { path: '/xologlobe', label: 'Xglobe' },
+        { path: '/xglobe', label: 'Xglobe' },
     ];
 
     const mobileNavLinkClass = ({ isActive }: { isActive: boolean }) =>
