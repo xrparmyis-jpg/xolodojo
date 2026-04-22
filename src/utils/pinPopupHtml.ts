@@ -7,7 +7,8 @@ import {
   faTiktok,
   faXTwitter,
 } from '@fortawesome/free-brands-svg-icons';
-import { faClock, faThumbtack } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark as faBookmarkSolid, faClock, faShareNodes, faThumbtack } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 import { sanitizePinNoteHtml } from './sanitizePinNoteHtml';
 
 export interface PinPopupContent {
@@ -19,6 +20,14 @@ export interface PinPopupContent {
   longitude?: number;
   /** When set, shows a blue thumbtack linking back to profile (e.g. owner-only). */
   ownerProfileHref?: string | null;
+  /**
+   * Share + optional bookmark (when `canBookmark`). Defaults to true so globe + placement match.
+   * Set false to hide the action row (e.g. rare embeds).
+   */
+  showPinActions?: boolean;
+  /** Logged-in viewer: show bookmark control. */
+  canBookmark?: boolean;
+  isBookmarked?: boolean;
 }
 
 const socialPlatformMeta = {
@@ -95,6 +104,15 @@ const localTimeClockSvg = icon(faClock).html.join('');
 const tailwindLocalTimeClock =
   'inline-block align-middle w-[14px] h-[14px] text-[13px] leading-[14px] text-[#C9E8E9]';
 const thumbtackSvg = icon(faThumbtack).html.join('');
+const shareSvg = icon(faShareNodes, { classes: 'xolo-popup-fa' }).html.join('');
+const bookmarkOutlineSvg = icon(faBookmarkRegular, { classes: 'xolo-popup-fa' }).html.join('');
+const bookmarkSolidSvg = icon(faBookmarkSolid, { classes: 'xolo-popup-fa' }).html.join('');
+
+const actionBtnBase =
+  'xolo-popup-action-btn inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-md border border-white/20 bg-white/5 text-white/80 hover:border-white/40 hover:bg-white/10 hover:text-white transition-colors';
+/** Social chips: centered in the flex-1 area next to share/bookmark; wrap when needed. */
+const tailwindSocialsCluster =
+  'xolo-popup-socials flex min-h-8 min-w-0 flex-1 flex-wrap content-center justify-center gap-x-0.5 gap-y-1 pl-2 sm:pl-3';
 
 export function buildPinPopupHtml(pin: PinPopupContent): string {
   const fallbackTitle = `NFT ${pin.token_id.slice(0, 8)}...`;
@@ -124,10 +142,7 @@ export function buildPinPopupHtml(pin: PinPopupContent): string {
     })
     .filter((item): item is string => Boolean(item));
 
-  const socialsHtml =
-    socials.length > 0
-      ? `<div class="xolo-popup-socials flex flex-row flex-wrap gap-0.5 mt-2">${socials.join('')}</div>`
-      : '';
+  const socialsInner = socials.join('');
 
   const noteRaw =
     typeof pin.pin_note === 'string'
@@ -137,6 +152,46 @@ export function buildPinPopupHtml(pin: PinPopupContent): string {
   const noteHtml = noteSanitized
     ? `<div class="xolo-popup-note xolo-popup-note--richtext mt-1 text-sm">${noteSanitized}</div>`
     : '';
+
+  const showActions = pin.showPinActions !== false;
+  const canBookmark = Boolean(pin.canBookmark);
+  const isBookmarked = Boolean(pin.isBookmarked);
+  const safeToken = escapeHtml(pin.token_id);
+  const shareTitle = 'Copy link to this pin';
+  const shareLabel = 'Copy link to this pin';
+
+  const actionButtonsBlock =
+    showActions
+      ? `<div class="flex shrink-0 items-center gap-1.5">` +
+        `<button type="button" class="${actionBtnBase}" data-xolo-action="share" title="${escapeHtml(shareTitle)}" aria-label="${escapeHtml(shareLabel)}">` +
+        `<span class="xolo-popup-fa-wrap" aria-hidden="true">${shareSvg}</span></button>` +
+        (canBookmark
+          ? `<button type="button" class="${actionBtnBase} xolo-popup-action-btn--bookmark${isBookmarked ? ' xolo-popup-action-btn--bookmarked' : ''}" ` +
+            `data-xolo-action="bookmark" data-xolo-bookmarked="${isBookmarked ? '1' : '0'}" ` +
+            `title="${isBookmarked ? 'Remove from saved' : 'Save to profile'}" ` +
+            `aria-label="${isBookmarked ? 'Remove from saved' : 'Save to profile'}" ` +
+            `aria-pressed="${isBookmarked ? 'true' : 'false'}">` +
+            `<span class="xolo-popup-bm xolo-popup-bm--outline${isBookmarked ? ' hidden' : ''}" aria-hidden="true">${bookmarkOutlineSvg}</span>` +
+            `<span class="xolo-popup-bm xolo-popup-bm--solid${!isBookmarked ? ' hidden' : ''}" aria-hidden="true">${bookmarkSolidSvg}</span>` +
+            `</button>`
+          : '') +
+        `</div>`
+      : '';
+
+  const socialsOnlyHtml =
+    !showActions && socials.length > 0
+      ? `<div class="xolo-popup-socials-only mt-2 flex flex-row flex-wrap justify-center gap-0.5">${socialsInner}</div>`
+      : '';
+
+  const actionsAndSocialsRow =
+    showActions
+      ? `<div class="xolo-popup-actions mt-2 flex w-full min-w-0 max-w-full flex-row flex-wrap items-center gap-x-2 gap-y-2" data-xolo-popup-token="${safeToken}">` +
+        actionButtonsBlock +
+        (socials.length > 0
+          ? `<div class="${tailwindSocialsCluster}">${socialsInner}</div>`
+          : '') +
+        `</div>`
+      : '';
 
   const hasCoords =
     typeof pin.latitude === 'number' &&
@@ -176,7 +231,8 @@ export function buildPinPopupHtml(pin: PinPopupContent): string {
     `<div class="xolo-popup">` +
     `<h2 class="xolo-popup-title !mb-0">${title}</h2>` +
     `${noteHtml}` +
-    `${socialsHtml}` +
+    `${actionsAndSocialsRow}` +
+    `${socialsOnlyHtml}` +
     `${footerHtml}` +
     '</div>'
   );

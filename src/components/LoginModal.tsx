@@ -205,13 +205,31 @@ export default function LoginModal({
           name: signupName.trim(),
         }),
       });
-      const data = (await response.json().catch(() => ({ error: 'Failed to create account' }))) as {
-        error?: string;
-        message?: string;
-        emailSent?: boolean;
-      };
+      const raw = await response.text();
+      let data: { error?: string; message?: string; emailSent?: boolean; details?: string } = {};
+      if (raw) {
+        try {
+          data = JSON.parse(raw) as typeof data;
+        } catch {
+          setError(
+            `Could not read server response (HTTP ${response.status}). The API may be down: run "npm run dev:api" (port 3000) while using "npm run dev", or use "npm run dev:full".`
+          );
+          return;
+        }
+      } else if (!response.ok) {
+        setError(
+          `Request failed (HTTP ${response.status}). If you see this locally, start the API on port 3000 and ensure MySQL is running with DB_HOST / DB_NAME in .env.local.`
+        );
+        return;
+      }
       if (!response.ok) {
-        throw new Error(typeof data.error === 'string' ? data.error : 'Failed to create account');
+        const errMsg = typeof data.error === 'string' ? data.error : null;
+        const details = typeof data.details === 'string' ? data.details : '';
+        throw new Error(
+          errMsg && errMsg.length > 0
+            ? (details ? `${errMsg} (${details})` : errMsg)
+            : `Request failed (HTTP ${response.status})`
+        );
       }
       const createdMsg =
         typeof data.message === 'string'
@@ -231,7 +249,13 @@ export default function LoginModal({
       skipLoginRegisterClearOnce.current = true;
       setView('login');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create account');
+      if (err instanceof TypeError) {
+        setError(
+          'Network error (could not reach the server). For local dev, run the API: npm run dev:api (port 3000) with npm run dev, or npm run dev:full.'
+        );
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to create account');
+      }
     } finally {
       setIsLoading(false);
     }

@@ -5,6 +5,16 @@
 - Local Docker/MySQL: `database/migrations/wallet_routines_local.sql`
 - Hostinger/live (optional): `database/migrations/wallet_routines_hostinger.sql`
 
+## Xglobe saved pins (bookmarks)
+
+Apply once per environment (local Docker or production DB). Without it, `/api/user/saved-globe-pins` returns **500**.
+
+```bash
+docker exec -i donovan-db mysql -udonovan_user -pdonovan_password donovan_db < database/migrations/20260422_globe_pin_bookmarks.sql
+```
+
+Or from the host: `mysql -h 127.0.0.1 -P 3308 -u donovan_user -p donovan_db < database/migrations/20260422_globe_pin_bookmarks.sql`
+
 Companion handoff doc: `WALLET_SETUP.md`
 
 ## Quick Start

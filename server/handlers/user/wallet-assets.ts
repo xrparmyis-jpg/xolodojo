@@ -120,13 +120,24 @@ async function getConfiguredCollectionAddress(): Promise<string | null> {
   }
 }
 
-async function callXrpl<T>(method: string, params: Record<string, unknown>) {
+type CallXrplOptions = { timeoutMs?: number };
+
+const DEFAULT_XRPL_TIMEOUT_MS = 8000;
+/** `account_nfts` pages can be large; short timeouts fail whale wallets (many round-trips). */
+const ACCOUNT_NFTS_TIMEOUT_MS = 30_000;
+
+async function callXrpl<T>(
+  method: string,
+  params: Record<string, unknown>,
+  options?: CallXrplOptions
+) {
+  const timeoutMs = options?.timeoutMs ?? DEFAULT_XRPL_TIMEOUT_MS;
   const rpcUrls = getXrplRpcUrls();
   const errors: string[] = [];
 
   for (const xrplUrl of rpcUrls) {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
       const response = await fetch(xrplUrl, {
@@ -165,6 +176,38 @@ async function callXrpl<T>(method: string, params: Record<string, unknown>) {
   throw new Error(`XRPL RPC failed on all endpoints: ${errors.join(' | ')}`);
 }
 
+async function callXrplWithRetry<T>(
+  method: string,
+  params: Record<string, unknown>,
+  options: CallXrplOptions & { retries: number; label?: string }
+): Promise<T> {
+  const { retries, label, ...callOpts } = options;
+  let lastErr: Error = new Error('callXrplWithRetry: no attempt');
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      return await callXrpl<T>(method, params, callOpts);
+    } catch (e) {
+      lastErr = e instanceof Error ? e : new Error(String(e));
+      if (attempt < retries - 1) {
+        const wait = 500 * 2 ** attempt;
+        console.warn(
+          `[wallet-assets] ${label || method} attempt ${attempt + 1}/${retries} failed, retry in ${wait}ms:`,
+          lastErr.message
+        );
+        await new Promise((r) => setTimeout(r, wait));
+      }
+    }
+  }
+  throw lastErr;
+}
+
+/**
+ * Per XRPL `account_nfts`, `limit` is 20–400; default 100. Smaller pages mean more markers and
+ * total wall time for wallets with many NFTs (timeouts / serverless limits).
+ * @see https://xrpl.org/docs/references/http-websocket-apis/public-api-methods/account-methods/account_nfts
+ */
+const ACCOUNT_NFTS_PAGE_LIMIT = 400;
+
 function isAccountMissingRippledError(message: string): boolean {
   const m = message.toLowerCase();
   return (
@@ -180,18 +223,42 @@ async function fetchAllAccountNfts(
 ): Promise<Array<{ NFTokenID: string; Issuer?: string; URI?: string; NFTokenTaxon?: number }>> {
   let allNfts: Array<{ NFTokenID: string; Issuer?: string; URI?: string; NFTokenTaxon?: number }> = [];
   let marker: string | undefined;
+  let page = 0;
   do {
     const params: Record<string, unknown> = {
       account: accountForRpc,
       ledger_index: 'validated',
+      limit: ACCOUNT_NFTS_PAGE_LIMIT,
     };
-    if (marker) params.marker = marker;
-    const resp = await callXrpl<{
-      account_nfts?: Array<{ NFTokenID: string; Issuer?: string; URI?: string; NFTokenTaxon?: number }>;
+    if (marker) {
+      params.marker = marker;
+    }
+    const resp = await callXrplWithRetry<{
+      account_nfts?: Array<{
+        NFTokenID: string;
+        Issuer?: string;
+        URI?: string;
+        NFTokenTaxon?: number;
+      }>;
       marker?: string;
-    }>('account_nfts', params);
-    if (resp.account_nfts) allNfts = allNfts.concat(resp.account_nfts);
+    }>('account_nfts', params, {
+      timeoutMs: ACCOUNT_NFTS_TIMEOUT_MS,
+      retries: 3,
+      label: 'account_nfts',
+    });
+    if (resp.account_nfts) {
+      allNfts = allNfts.concat(resp.account_nfts);
+    }
     marker = resp.marker;
+    page += 1;
+    if (page > 0 && page % 10 === 0) {
+      console.log('[wallet-assets] account_nfts progress', {
+        accountForRpc,
+        page,
+        totalSoFar: allNfts.length,
+        hasMore: Boolean(marker),
+      });
+    }
   } while (marker);
   return allNfts;
 }
@@ -361,20 +428,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         (nft) => (nft.Issuer || '').toLowerCase() === configuredCollectionAddress
       );
       if (filteredNfts.length === 0) {
-        // Add detailed logs for debugging
+        const issuerSet = new Set(
+          nfts.map(n => (n.Issuer || '').toLowerCase()).filter(Boolean)
+        );
+        // Avoid multi‑MB console payloads for wallets with huge NFT lists
         console.log('[NFT DEBUG] No NFTs found for collection', {
           accountForRpc,
           configuredCollectionAddress,
           allNftCount: nfts.length,
-          allNftIds: nfts.map(n => n.NFTokenID),
-          allNftIssuers: nfts.map(n => n.Issuer),
+          uniqueIssuerCount: issuerSet.size,
+          issuerLowercaseSample: [...issuerSet].slice(0, 12),
+          collectionInIssuerSet: issuerSet.has(configuredCollectionAddress),
         });
       } else {
+        const ids = filteredNfts.map(n => n.NFTokenID);
         console.log('[NFT DEBUG] Filtered NFTs for collection', {
           accountForRpc,
           configuredCollectionAddress,
           filteredCount: filteredNfts.length,
-          filteredNftIds: filteredNfts.map(n => n.NFTokenID),
+          filteredNftIdSample: ids.slice(0, 24),
+          ...((ids.length > 24) ? { filteredNftIdCountTotal: ids.length } : {}),
         });
       }
     } else {

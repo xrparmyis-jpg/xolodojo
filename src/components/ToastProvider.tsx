@@ -84,6 +84,21 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         };
     }, [clearDismissTimeout]);
 
+    useEffect(() => {
+        const onBus = (ev: Event) => {
+            const d = (ev as CustomEvent<{ type?: string; message?: string }>).detail;
+            if (!d || (d.type !== 'success' && d.type !== 'error')) {
+                return;
+            }
+            if (typeof d.message !== 'string' || !d.message) {
+                return;
+            }
+            showToast(d.type, d.message);
+        };
+        window.addEventListener('xolo:toast', onBus);
+        return () => window.removeEventListener('xolo:toast', onBus);
+    }, [showToast]);
+
     const value = useMemo(() => ({ showToast, clearToasts }), [clearToasts, showToast]);
 
     return (

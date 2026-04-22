@@ -93,6 +93,34 @@ a {
   }
 
   /**
+   * Long “read terms” panels — thin, low-contrast scrollbars (WebKit + Firefox).
+   * Pair with `TermsScrollAcceptBox` so the scrollable node is the one that receives wheel/drag.
+   */
+  .xolo-terms-scroll {
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(200, 200, 210, 0.35) rgba(0, 0, 0, 0.12);
+  }
+
+  .xolo-terms-scroll::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .xolo-terms-scroll::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.12);
+    border-radius: 4px;
+  }
+
+  .xolo-terms-scroll::-webkit-scrollbar-thumb {
+    background: rgba(200, 200, 210, 0.28);
+    border-radius: 4px;
+  }
+
+  .xolo-terms-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(220, 220, 230, 0.5);
+  }
+
+  /**
    * Password visibility toggle — same tokens as `.xologlobe-map-ctrl-btn`
    * (MapBoxXoloGlobe / MapBoxPinLocation zoom & style controls).
    */
