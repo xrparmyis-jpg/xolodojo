@@ -10,9 +10,13 @@ import {
     faSpinner,
 } from '@fortawesome/free-solid-svg-icons';
 import { GLOBE_DEFAULT_ZOOM, MAP_ZOOM_BUTTON_STEP } from '../constants/xoloGlobeMap';
+import { useAuth } from '../providers/AuthContext';
+import { getSavedGlobePins } from '../services/savedGlobePinsService';
 import type { PinnedNftSocials } from '../services/pinnedNftService';
+import { bindPinPopupActions } from '../utils/pinPopupActions';
 import { buildPinPopupHtml } from '../utils/pinPopupHtml';
 import { bindPinPopupLocalTimeClock } from '../utils/pinLocalTime';
+import { normalizeNfTokenId } from '../utils/nfTokenId';
 import { createGlobeStylePinMarkerElements } from '../utils/globeStyleMapMarker';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || '';
@@ -99,6 +103,9 @@ export default function MapBoxPinLocation({
     markerImageUrl = null,
     popupPreview = null,
 }: MapBoxPinLocationProps) {
+    const { user, loading: authLoading } = useAuth();
+    const savedGlobePinIdsRef = useRef<Set<string>>(new Set());
+    const [savedGlobePinsHydration, setSavedGlobePinsHydration] = useState(0);
     const mapContainerRef = useRef<HTMLDivElement | null>(null);
     const mapRef = useRef<Map | null>(null);
     const markerRef = useRef<mapboxgl.Marker | null>(null);
@@ -106,6 +113,7 @@ export default function MapBoxPinLocation({
     const setMarkerAvatarRef = useRef<((url: string | null) => void) | null>(null);
     const geolocateControlRef = useRef<mapboxgl.GeolocateControl | null>(null);
     const previewLocalTimeDisposeRef = useRef<(() => void) | null>(null);
+    const previewActionsDisposeRef = useRef<(() => void) | null>(null);
     const suppressResultsForQueryRef = useRef<string | null>(null);
     const defaultPinMapViewRef = useRef<{ center: [number, number]; zoom: number }>({
         center: [0, 20],
@@ -127,7 +135,37 @@ export default function MapBoxPinLocation({
     pinUiRef.current.popupPreview = popupPreview ?? null;
     pinUiRef.current.onLocationChange = onLocationChange;
 
+    useEffect(() => {
+        if (authLoading || !user) {
+            savedGlobePinIdsRef.current = new Set();
+            setSavedGlobePinsHydration((h) => h + 1);
+            return;
+        }
+        let cancelled = false;
+        void (async () => {
+            try {
+                const list = await getSavedGlobePins();
+                if (cancelled) {
+                    return;
+                }
+                savedGlobePinIdsRef.current = new Set(
+                    list.map((p) => normalizeNfTokenId(p.token_id)),
+                );
+                setSavedGlobePinsHydration((h) => h + 1);
+            } catch {
+                if (!cancelled) {
+                    savedGlobePinIdsRef.current = new Set();
+                    setSavedGlobePinsHydration((h) => h + 1);
+                }
+            }
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, [authLoading, user]);
+
     const attachOrUpdatePreviewPopup = useCallback((map: Map, marker: mapboxgl.Marker, preview: MapBoxPinPopupPreview) => {
+        void savedGlobePinsHydration; // refresh preview HTML when saved pins load from API
         let popup = popupRef.current;
         if (!popup) {
             popup = new mapboxgl.Popup({
@@ -145,6 +183,10 @@ export default function MapBoxPinLocation({
         }
 
         const ll = marker.getLngLat();
+        const canBookmark = Boolean(!authLoading && user);
+        const isBookmarked = savedGlobePinIdsRef.current.has(
+            normalizeNfTokenId(preview.tokenId),
+        );
         popup.setHTML(
             buildPinPopupHtml({
                 token_id: preview.tokenId,
@@ -153,16 +195,30 @@ export default function MapBoxPinLocation({
                 socials: preview.socials,
                 latitude: ll.lat,
                 longitude: ll.lng,
+                canBookmark,
+                isBookmarked,
             }),
         );
         reinforcePinPreviewPopupChrome(popup);
         previewLocalTimeDisposeRef.current?.();
-        previewLocalTimeDisposeRef.current = bindPinPopupLocalTimeClock(popup.getElement(), () => {
+        previewActionsDisposeRef.current?.();
+        const root = popup.getElement();
+        previewLocalTimeDisposeRef.current = bindPinPopupLocalTimeClock(root, () => {
             const next = marker.getLngLat();
             return { lat: next.lat, lng: next.lng };
         });
+        previewActionsDisposeRef.current = bindPinPopupActions(root, {
+            onBookmarkStateChange: (tokenId, bookmarked) => {
+                const k = normalizeNfTokenId(tokenId);
+                if (bookmarked) {
+                    savedGlobePinIdsRef.current.add(k);
+                } else {
+                    savedGlobePinIdsRef.current.delete(k);
+                }
+            },
+        });
         scheduleReinforcePlacementPinOpacity(marker, popup);
-    }, []);
+    }, [authLoading, user, savedGlobePinsHydration]);
 
     const schedulePinOpacityIfMarker = useCallback(() => {
         const marker = markerRef.current;
@@ -198,6 +254,8 @@ export default function MapBoxPinLocation({
     const removePreviewPopup = useCallback(() => {
         previewLocalTimeDisposeRef.current?.();
         previewLocalTimeDisposeRef.current = null;
+        previewActionsDisposeRef.current?.();
+        previewActionsDisposeRef.current = null;
         const popup = popupRef.current;
         if (popup) {
             popup.remove();
@@ -398,6 +456,8 @@ export default function MapBoxPinLocation({
         return () => {
             previewLocalTimeDisposeRef.current?.();
             previewLocalTimeDisposeRef.current = null;
+            previewActionsDisposeRef.current?.();
+            previewActionsDisposeRef.current = null;
             popupRef.current = null;
             setMarkerAvatarRef.current = null;
             markerRef.current?.remove();
@@ -424,7 +484,7 @@ export default function MapBoxPinLocation({
         } else {
             removePreviewPopup();
         }
-    }, [popupPreview, attachOrUpdatePreviewPopup, removePreviewPopup]);
+    }, [popupPreview, attachOrUpdatePreviewPopup, removePreviewPopup, savedGlobePinsHydration]);
 
     useEffect(() => {
         const normalizedQuery = searchText.trim().toLowerCase();

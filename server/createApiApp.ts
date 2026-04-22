@@ -78,6 +78,7 @@ export async function createApiApp(): Promise<express.Express> {
     walletAssetsModule,
     pinnedNftsModule,
     xoloGlobePinsModule,
+    savedGlobePinsModule,
     nftResourceProxyModule,
     walletsIdModule,
     walletsDisconnectModule,
@@ -97,6 +98,7 @@ export async function createApiApp(): Promise<express.Express> {
     import('./handlers/user/wallet-assets.js'),
     import('./handlers/user/pinned-nfts.js'),
     import('./handlers/user/xologlobe-pins.js'),
+    import('./handlers/user/saved-globe-pins.js'),
     import('./handlers/user/nft-resource-proxy.js'),
     import('./handlers/user/wallets/[walletId].js'),
     import('./handlers/user/wallets/disconnect.js'),
@@ -128,6 +130,7 @@ export async function createApiApp(): Promise<express.Express> {
   app.all('/api/user/wallet-assets', vercelToExpress(walletAssetsModule.default));
   app.all('/api/user/pinned-nfts', vercelToExpress(pinnedNftsModule.default));
   app.all('/api/user/xologlobe-pins', vercelToExpress(xoloGlobePinsModule.default));
+  app.all('/api/user/saved-globe-pins', vercelToExpress(savedGlobePinsModule.default));
   app.all('/api/user/nft-resource-proxy', vercelToExpress(nftResourceProxyModule.default));
   app.all('/api/user/wallets/disconnect', vercelToExpress(walletsDisconnectModule.default));
   app.all('/api/user/wallets/:walletId/connect', vercelToExpress(walletsIdModule.default));
