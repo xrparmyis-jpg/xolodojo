@@ -92,6 +92,7 @@ export async function createApiApp(): Promise<express.Express> {
     authResetPasswordModule,
     authResendVerificationModule,
     authWalletLoginModule,
+    ogXglobePinHtmlModule,
   ] = await Promise.all([
     import('./handlers/user/profile.js'),
     import('./handlers/user/wallets.js'),
@@ -112,6 +113,7 @@ export async function createApiApp(): Promise<express.Express> {
     import('./handlers/auth/reset-password.js'),
     import('./handlers/auth/resend-verification.js'),
     import('./handlers/auth/wallet-login.js'),
+    import('./handlers/og/xglobe-pin-html.js'),
   ]);
 
   app.all('/api/auth/login', vercelToExpress(authLoginModule.default));
@@ -130,6 +132,7 @@ export async function createApiApp(): Promise<express.Express> {
   app.all('/api/user/wallet-assets', vercelToExpress(walletAssetsModule.default));
   app.all('/api/user/pinned-nfts', vercelToExpress(pinnedNftsModule.default));
   app.all('/api/user/xologlobe-pins', vercelToExpress(xoloGlobePinsModule.default));
+  app.get('/api/og/xglobe-pin-html', vercelToExpress(ogXglobePinHtmlModule.default));
   app.all('/api/user/saved-globe-pins', vercelToExpress(savedGlobePinsModule.default));
   app.all('/api/user/nft-resource-proxy', vercelToExpress(nftResourceProxyModule.default));
   app.all('/api/user/wallets/disconnect', vercelToExpress(walletsDisconnectModule.default));
