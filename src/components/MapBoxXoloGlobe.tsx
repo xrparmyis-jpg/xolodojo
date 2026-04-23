@@ -27,7 +27,7 @@ import {
 } from '../constants/xoloGlobeMap';
 import { getSavedGlobePins } from '../services/savedGlobePinsService';
 import { getXoloGlobePins, type XoloGlobePin } from '../services/xoloGlobePinService';
-import { bindPinPopupActions } from '../utils/pinPopupActions';
+import { bindPinPopupActions, syncPinPopupBookmarkButtonsInContainer } from '../utils/pinPopupActions';
 import { buildPinPopupHtml } from '../utils/pinPopupHtml';
 import { bindPinPopupLocalTimeClock } from '../utils/pinLocalTime';
 import { normalizeNfTokenId } from '../utils/nfTokenId';
@@ -63,6 +63,8 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
     const markerElementsRef = useRef<Array<{ marker: mapboxgl.Marker; visualElement: HTMLDivElement }>>([]);
     const pinPopupControllersRef = useRef<Record<string, { open: () => void }>>({});
     const autoOpenedPinTokenIdRef = useRef<string | null>(null);
+    /** True while markers are being torn down/replaced — popup `close` must not restore camera (default center is near Japan). */
+    const remountingGlobeMarkersRef = useRef(false);
     const spinningRef = useRef(true);
     const userInteractingRef = useRef(false);
     const popupFocusActiveRef = useRef(false);
@@ -181,6 +183,14 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
             cancelled = true;
         };
     }, [authLoading, user]);
+
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map) {
+            return;
+        }
+        syncPinPopupBookmarkButtonsInContainer(map.getContainer(), savedGlobePinIdsRef.current);
+    }, [savedGlobePinsHydration]);
 
     const stopRotationIfZoomTooHigh = () => {
         const map = mapRef.current;
@@ -450,6 +460,16 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
             return;
         }
 
+        remountingGlobeMarkersRef.current = true;
+        autoOpenedPinTokenIdRef.current = null;
+        popupFocusActiveRef.current = false;
+        prePopupCameraRef.current = null;
+        spinningBeforePopupRef.current = false;
+        if (popupRestoreTimerRef.current != null) {
+            window.clearTimeout(popupRestoreTimerRef.current);
+            popupRestoreTimerRef.current = null;
+        }
+
         activePinLocalTimeDisposeRef.current?.();
         activePinLocalTimeDisposeRef.current = null;
         activePinActionsDisposeRef.current?.();
@@ -613,6 +633,18 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
                 });
 
                 popup.on('close', () => {
+                    if (remountingGlobeMarkersRef.current) {
+                        if (popupRestoreTimerRef.current != null) {
+                            window.clearTimeout(popupRestoreTimerRef.current);
+                            popupRestoreTimerRef.current = null;
+                        }
+                        activePinLocalTimeDisposeRef.current?.();
+                        activePinLocalTimeDisposeRef.current = null;
+                        activePinActionsDisposeRef.current?.();
+                        activePinActionsDisposeRef.current = null;
+                        markerVisualElement.style.cursor = 'pointer';
+                        return;
+                    }
                     activePinLocalTimeDisposeRef.current?.();
                     activePinLocalTimeDisposeRef.current = null;
                     activePinActionsDisposeRef.current?.();
@@ -711,13 +743,18 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
             markersRef.current = nextMarkers;
             markerElementsRef.current = nextMarkerElements;
             updateMarkerScale();
+            remountingGlobeMarkersRef.current = false;
+            syncPinPopupBookmarkButtonsInContainer(
+                map.getContainer(),
+                savedGlobePinIdsRef.current,
+            );
             openTargetPinFromQuery();
         }, 400);
 
         return () => {
             window.clearTimeout(timeoutId);
         };
-    }, [openTargetPinFromQuery, pins, viewerWalletAddress, savedGlobePinsHydration, authLoading, user]);
+    }, [openTargetPinFromQuery, pins, viewerWalletAddress, authLoading, user]);
 
     if (!hasMapToken) {
         return (
