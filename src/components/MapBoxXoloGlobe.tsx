@@ -105,16 +105,21 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
     const targetPinTokenId = searchParams.get('pin')?.trim() || null;
 
     const openTargetPinFromQuery = useCallback(() => {
-        if (!targetPinTokenId || autoOpenedPinTokenIdRef.current === targetPinTokenId) {
+        if (!targetPinTokenId) {
+            return;
+        }
+        // API / DB use canonical UPPER hex; `?pin=` may match wallet-casing from the link — keys must match.
+        const key = normalizeNfTokenId(targetPinTokenId);
+        if (autoOpenedPinTokenIdRef.current === key) {
             return;
         }
 
-        const controller = pinPopupControllersRef.current[targetPinTokenId];
+        const controller = pinPopupControllersRef.current[key];
         if (!controller) {
             return;
         }
 
-        autoOpenedPinTokenIdRef.current = targetPinTokenId;
+        autoOpenedPinTokenIdRef.current = key;
         controller.open();
     }, [targetPinTokenId]);
 
@@ -427,10 +432,15 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
     }, [accessToken]);
 
     useEffect(() => {
-        if (autoOpenedPinTokenIdRef.current !== targetPinTokenId) {
-            autoOpenedPinTokenIdRef.current = null;
+        if (targetPinTokenId) {
+            const key = normalizeNfTokenId(targetPinTokenId);
+            if (
+                autoOpenedPinTokenIdRef.current != null
+                && autoOpenedPinTokenIdRef.current !== key
+            ) {
+                autoOpenedPinTokenIdRef.current = null;
+            }
         }
-
         openTargetPinFromQuery();
     }, [openTargetPinFromQuery, targetPinTokenId]);
 
@@ -681,7 +691,7 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
                     .setPopup(popup)
                     .addTo(map);
 
-                pinPopupControllersRef.current[pin.token_id] = {
+                pinPopupControllersRef.current[normalizeNfTokenId(pin.token_id)] = {
                     open: () => {
                         if (!popup.isOpen()) {
                             popup.addTo(map);

@@ -32,6 +32,7 @@ interface XoloGlobePinsResponse {
 export async function getXoloGlobePins(): Promise<XoloGlobePin[]> {
   const response = await fetch(`${API_BASE_URL}/user/xologlobe-pins`, {
     method: 'GET',
+    cache: 'no-store',
     headers: {
       'Content-Type': 'application/json',
     },

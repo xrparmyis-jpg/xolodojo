@@ -35,8 +35,8 @@ function setBookmarkButtonState(btn: HTMLButtonElement, bookmarked: boolean) {
 
 export interface PinPopupActionsOptions {
   /**
-   * Called after a successful add/remove so globe state (e.g. ref) can stay in sync
-   * without a full marker pass.
+   * Called when bookmark UI toggles: immediately on click (optimistic), then again
+   * with the previous state if the API call fails. Keeps globe refs in sync.
    */
   onBookmarkStateChange?: (tokenId: string, bookmarked: boolean) => void;
 }
@@ -98,29 +98,37 @@ export function bindPinPopupActions(
 
   const bookmarkBtn = actionsHost.querySelector<HTMLButtonElement>('[data-xolo-action="bookmark"]');
   if (bookmarkBtn) {
+    let bookmarkRequestInFlight = false;
     const onBookmark = async (e: Event) => {
       e.preventDefault();
       e.stopPropagation();
+      if (bookmarkRequestInFlight) {
+        return;
+      }
       const id = getTokenFromActionsRow(actionsHost);
       if (!id) {
         return;
       }
-      const isOn = bookmarkBtn.getAttribute('data-xolo-bookmarked') === '1';
+      const wasOn = bookmarkBtn.getAttribute('data-xolo-bookmarked') === '1';
+      const nextOn = !wasOn;
+      bookmarkRequestInFlight = true;
+      setBookmarkButtonState(bookmarkBtn, nextOn);
+      options?.onBookmarkStateChange?.(id, nextOn);
       try {
-        if (isOn) {
+        if (wasOn) {
           await removeSavedGlobePin(id);
-          setBookmarkButtonState(bookmarkBtn, false);
-          options?.onBookmarkStateChange?.(id, false);
           emitXoloToast('success', 'Removed from saved');
         } else {
           await addSavedGlobePin(id);
-          setBookmarkButtonState(bookmarkBtn, true);
-          options?.onBookmarkStateChange?.(id, true);
           emitXoloToast('success', 'Saved to your profile');
         }
       } catch (err) {
+        setBookmarkButtonState(bookmarkBtn, wasOn);
+        options?.onBookmarkStateChange?.(id, wasOn);
         const msg = err instanceof Error ? err.message : 'Bookmark failed';
         emitXoloToast('error', msg);
+      } finally {
+        bookmarkRequestInFlight = false;
       }
     };
     bookmarkBtn.addEventListener('click', onBookmark, { capture: true, signal });
