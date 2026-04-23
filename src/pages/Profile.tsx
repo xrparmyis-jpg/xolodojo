@@ -43,6 +43,7 @@ import {
   type SavedGlobePinItem,
 } from '../services/savedGlobePinsService';
 import { buildGlobePinShareUrl } from '../utils/globeShareUrl';
+import { normalizeNfTokenId } from '../utils/nfTokenId';
 
 type SocialPlatformKey = keyof ProfileSocials;
 
@@ -83,7 +84,9 @@ function Profile() {
   const [resumeXamanOnMount, setResumeXamanOnMount] = useState(false);
   const [savedGlobePins, setSavedGlobePins] = useState<SavedGlobePinItem[]>([]);
   const [savedGlobePinsLoading, setSavedGlobePinsLoading] = useState(false);
-  const [savedPinsSort, setSavedPinsSort] = useState<'newest' | 'oldest'>('newest');
+  const [savedPinsSort, setSavedPinsSort] = useState<'newest' | 'oldest'>(
+    'newest'
+  );
   const [savedPinsPage, setSavedPinsPage] = useState(0);
   const { showToast } = useToast();
 
@@ -527,7 +530,7 @@ function Profile() {
                           icon={faBookmark}
                           className="shrink-0 text-cyan-300/90"
                         />
-                        Saved globe pins
+                        Bookmarked pins
                       </h4>
                       {!savedGlobePinsLoading && savedGlobePins.length > 0 ? (
                         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
@@ -588,83 +591,88 @@ function Profile() {
                             exit="exit"
                             layout
                           >
-                        {savedPinsPageItems.map(p => {
-                          const short =
-                            p.token_id.length > 14
-                              ? `${p.token_id.slice(0, 8)}…${p.token_id.slice(-4)}`
-                              : p.token_id;
-                          const label =
-                            (p.title && p.title.trim()) || `Pin ${short}`;
-                          const to = `/xglobe?pin=${encodeURIComponent(p.token_id)}`;
-                          return (
-                            <motion.li
-                              key={p.token_id}
-                              role="listitem"
-                              variants={savedPinRowVariants}
-                              className="flex flex-wrap items-center gap-3 rounded-lg border border-white/10 bg-white/5 p-2 pr-2 sm:flex-nowrap"
-                              layout
-                            >
-                              {p.image_url ? (
-                                <img
-                                  src={p.image_url}
-                                  alt=""
-                                  className="h-12 w-12 shrink-0 rounded-md object-cover"
-                                />
-                              ) : (
-                                <div className="h-12 w-12 shrink-0 rounded-md bg-white/10" />
-                              )}
-                              <div className="min-w-0 flex-1">
-                                <Link
-                                  to={to}
-                                  className="text-white/95 font-medium hover:text-cyan-200 transition-colors"
+                            {savedPinsPageItems.map(p => {
+                              const short =
+                                p.token_id.length > 14
+                                  ? `${p.token_id.slice(0, 8)}…${p.token_id.slice(-4)}`
+                                  : p.token_id;
+                              const label =
+                                (p.title && p.title.trim()) || `Pin ${short}`;
+                              const to = `/xglobe?pin=${encodeURIComponent(normalizeNfTokenId(p.token_id))}`;
+                              return (
+                                <motion.li
+                                  key={p.token_id}
+                                  role="listitem"
+                                  variants={savedPinRowVariants}
+                                  className="flex flex-wrap items-center gap-3 rounded-lg border border-white/10 bg-white/5 p-2 pr-2 sm:flex-nowrap"
+                                  layout
                                 >
-                                  {label}
-                                </Link>
-                                <p className="text-white/40 text-xs font-mono truncate mt-0.5">
-                                  {p.token_id}
-                                </p>
-                              </div>
-                              <div className="flex shrink-0 items-center gap-1.5">
-                                <button
-                                  type="button"
-                                  title="Copy share link"
-                                  className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border border-white/15 text-white/70 hover:bg-white/10"
-                                  onClick={async () => {
-                                    try {
-                                      await navigator.clipboard.writeText(
-                                        buildGlobePinShareUrl(p.token_id)
-                                      );
-                                      showToast(
-                                        'success',
-                                        'Link copied to clipboard'
-                                      );
-                                    } catch {
-                                      showToast('error', 'Could not copy link');
-                                    }
-                                  }}
-                                >
-                                  <FontAwesomeIcon
-                                    icon={faShareNodes}
-                                    className="h-3.5 w-3.5"
-                                  />
-                                </button>
-                                <button
-                                  type="button"
-                                  title="Remove from saved"
-                                  className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border border-red-500/30 text-red-300/90 hover:bg-red-950/50"
-                                  onClick={() =>
-                                    void handleRemoveSavedGlobePin(p.token_id)
-                                  }
-                                >
-                                  <FontAwesomeIcon
-                                    icon={faTrash}
-                                    className="h-3.5 w-3.5"
-                                  />
-                                </button>
-                              </div>
-                            </motion.li>
-                          );
-                        })}
+                                  {p.image_url ? (
+                                    <img
+                                      src={p.image_url}
+                                      alt=""
+                                      className="h-12 w-12 shrink-0 rounded-md object-cover"
+                                    />
+                                  ) : (
+                                    <div className="h-12 w-12 shrink-0 rounded-md bg-white/10" />
+                                  )}
+                                  <div className="min-w-0 flex-1">
+                                    <Link
+                                      to={to}
+                                      className="text-white/95 font-medium hover:text-cyan-200 transition-colors"
+                                    >
+                                      {label}
+                                    </Link>
+                                    <p className="text-white/40 text-xs font-mono truncate mt-0.5">
+                                      {p.token_id}
+                                    </p>
+                                  </div>
+                                  <div className="flex shrink-0 items-center gap-1.5">
+                                    <button
+                                      type="button"
+                                      title="Copy share link"
+                                      className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border border-white/15 text-white/70 hover:bg-white/10"
+                                      onClick={async () => {
+                                        try {
+                                          await navigator.clipboard.writeText(
+                                            buildGlobePinShareUrl(p.token_id)
+                                          );
+                                          showToast(
+                                            'success',
+                                            'Link copied to clipboard'
+                                          );
+                                        } catch {
+                                          showToast(
+                                            'error',
+                                            'Could not copy link'
+                                          );
+                                        }
+                                      }}
+                                    >
+                                      <FontAwesomeIcon
+                                        icon={faShareNodes}
+                                        className="h-3.5 w-3.5"
+                                      />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      title="Remove from saved"
+                                      className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border border-red-500/30 text-red-300/90 hover:bg-red-950/50"
+                                      onClick={() =>
+                                        void handleRemoveSavedGlobePin(
+                                          p.token_id
+                                        )
+                                      }
+                                    >
+                                      <FontAwesomeIcon
+                                        icon={faTrash}
+                                        className="h-3.5 w-3.5"
+                                      />
+                                    </button>
+                                  </div>
+                                </motion.li>
+                              );
+                            })}
                           </motion.ul>
                         </AnimatePresence>
                         {showSavedPinsPagination ? (
@@ -676,7 +684,7 @@ function Profile() {
                               }
                               disabled={savedPinsPage <= 0}
                               className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-md border border-white/20 bg-white/5 px-3 text-sm text-white/85 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
-                              aria-label="Previous page of saved pins"
+                              aria-label="Previous page"
                             >
                               <FontAwesomeIcon
                                 icon={faChevronLeft}
@@ -688,17 +696,12 @@ function Profile() {
                               type="button"
                               onClick={() =>
                                 setSavedPinsPage(p =>
-                                  Math.min(
-                                    savedPinsPageCount - 1,
-                                    p + 1
-                                  )
+                                  Math.min(savedPinsPageCount - 1, p + 1)
                                 )
                               }
-                              disabled={
-                                savedPinsPage >= savedPinsPageCount - 1
-                              }
+                              disabled={savedPinsPage >= savedPinsPageCount - 1}
                               className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-md border border-white/20 bg-white/5 px-3 text-sm text-white/85 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
-                              aria-label="Next page of saved pins"
+                              aria-label="Next page"
                             >
                               Next
                               <FontAwesomeIcon
