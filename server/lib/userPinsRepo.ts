@@ -350,3 +350,26 @@ export async function listGlobePins(pool: mysql.Pool): Promise<PinnedNftItem[]> 
     );
   });
 }
+
+/** One globe row by token id (for OG / share previews). */
+export async function getGlobePinByTokenId(
+  pool: mysql.Pool,
+  tokenId: string
+): Promise<PinnedNftItem | null> {
+  const tid = normalizeNfTokenId(tokenId);
+  if (!tid) {
+    return null;
+  }
+  const [rows] = (await pool.execute(
+    `SELECT token_id, wallet_address, issuer, uri, latitude, longitude,
+      image_url, title, collection_name, socials, pin_note, pinned_at
+     FROM user_pins
+     WHERE UPPER(TRIM(token_id)) = ?
+     LIMIT 1`,
+    [tid]
+  )) as [Record<string, unknown>[], unknown];
+  if (!Array.isArray(rows) || rows.length === 0) {
+    return null;
+  }
+  return mapRow(rows[0] as Record<string, unknown>);
+}

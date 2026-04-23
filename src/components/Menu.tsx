@@ -5,6 +5,7 @@ import { faBars, faTimes, faUser, faSignOutAlt } from '@fortawesome/free-solid-s
 import { useAuth } from '../providers/AuthContext';
 import { useLoginModal } from '../providers/LoginModalContext';
 import { disconnectExternalWallets } from '../utils/disconnectExternalWallets';
+import { accountDisplayLabel, truncateWalletAddress } from '../utils/userDisplayLabel';
 
 interface MenuProps {
     onLinkClick?: () => void;
@@ -121,13 +122,23 @@ function Menu({
                     >
                         <div className="flex h-full flex-col overflow-hidden">
                             <div className="flex items-center justify-between border-b border-white/20 px-5 py-5">
-                                <NavLink to="/" onClick={closeMobileMenu} className="no-underline hover:no-underline">
-                                    <img
-                                        src="/white-logo.png"
-                                        alt="logo-img"
-                                        className="h-8 w-auto"
-                                    />
-                                </NavLink>
+                                <div className="min-w-0 flex-1 pr-3">
+                                    {authLoading ? (
+                                        <span className="text-sm text-white/50">…</span>
+                                    ) : user ? (
+                                        user.authMode === 'wallet' && user.walletAddress ? (
+                                            <span className="block truncate font-mono text-sm font-semibold text-white">
+                                                {truncateWalletAddress(user.walletAddress)}
+                                            </span>
+                                        ) : (
+                                            <span className="block truncate text-base font-semibold tracking-tight text-white">
+                                                {accountDisplayLabel(user)}
+                                            </span>
+                                        )
+                                    ) : (
+                                        <span className="text-sm font-medium text-white/90">XoloDojo</span>
+                                    )}
+                                </div>
                                 <button
                                     type="button"
                                     onClick={closeMobileMenu}
