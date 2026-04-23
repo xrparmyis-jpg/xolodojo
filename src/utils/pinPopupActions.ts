@@ -33,6 +33,25 @@ function setBookmarkButtonState(btn: HTMLButtonElement, bookmarked: boolean) {
   }
 }
 
+/** Update open globe popups when saved-ids load without rebuilding Mapbox markers. */
+export function syncPinPopupBookmarkButtonsInContainer(
+  mapContainer: HTMLElement,
+  savedNormalizedIds: Set<string>
+): void {
+  const rows = mapContainer.querySelectorAll<HTMLElement>('.xolo-popup-actions[data-xolo-popup-token]');
+  for (const row of rows) {
+    const raw = row.getAttribute('data-xolo-popup-token');
+    if (!raw) {
+      continue;
+    }
+    const id = normalizeNfTokenId(raw);
+    const btn = row.querySelector<HTMLButtonElement>('[data-xolo-action="bookmark"]');
+    if (btn) {
+      setBookmarkButtonState(btn, savedNormalizedIds.has(id));
+    }
+  }
+}
+
 export interface PinPopupActionsOptions {
   /**
    * Called when bookmark UI toggles: immediately on click (optimistic), then again
