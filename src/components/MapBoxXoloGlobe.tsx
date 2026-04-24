@@ -25,10 +25,14 @@ import {
     MAP_ZOOM_BUTTON_STEP,
     PIN_FOCUS_MIN_ZOOM,
 } from '../constants/xoloGlobeMap';
+import { getSavedGlobePins } from '../services/savedGlobePinsService';
 import { getXoloGlobePins, type XoloGlobePin } from '../services/xoloGlobePinService';
+import { bindPinPopupActions, syncPinPopupBookmarkButtonsInContainer } from '../utils/pinPopupActions';
 import { buildPinPopupHtml } from '../utils/pinPopupHtml';
 import { bindPinPopupLocalTimeClock } from '../utils/pinLocalTime';
+import { normalizeNfTokenId } from '../utils/nfTokenId';
 import { createGlobeStylePinMarkerElements } from '../utils/globeStyleMapMarker';
+import { computeGlobePinDisplayPositions } from '../utils/globePinClusters';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || '';
 
@@ -39,6 +43,8 @@ interface MapBoxXoloGlobeProps {
 export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
     const [searchParams] = useSearchParams();
     const { user, loading: authLoading } = useAuth();
+    const savedGlobePinIdsRef = useRef<Set<string>>(new Set());
+    const [savedGlobePinsHydration, setSavedGlobePinsHydration] = useState(0);
     const { wallets } = useUserContext();
 
     const viewerWalletAddress = useMemo(() => {
@@ -57,6 +63,8 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
     const markerElementsRef = useRef<Array<{ marker: mapboxgl.Marker; visualElement: HTMLDivElement }>>([]);
     const pinPopupControllersRef = useRef<Record<string, { open: () => void }>>({});
     const autoOpenedPinTokenIdRef = useRef<string | null>(null);
+    /** True while markers are being torn down/replaced — popup `close` must not restore camera (default center is near Japan). */
+    const remountingGlobeMarkersRef = useRef(false);
     const spinningRef = useRef(true);
     const userInteractingRef = useRef(false);
     const popupFocusActiveRef = useRef(false);
@@ -71,6 +79,7 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
     /** True when the popup's close button was used; skip camera restore (map-dismiss still restores). */
     const popupClosedViaXRef = useRef(false);
     const activePinLocalTimeDisposeRef = useRef<(() => void) | null>(null);
+    const activePinActionsDisposeRef = useRef<(() => void) | null>(null);
     const [pins, setPins] = useState<XoloGlobePin[]>([]);
     const [isSpinning, setIsSpinning] = useState(true);
     const [lightPreset, setLightPreset] = useState<'day' | 'night'>('night');
@@ -98,16 +107,21 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
     const targetPinTokenId = searchParams.get('pin')?.trim() || null;
 
     const openTargetPinFromQuery = useCallback(() => {
-        if (!targetPinTokenId || autoOpenedPinTokenIdRef.current === targetPinTokenId) {
+        if (!targetPinTokenId) {
+            return;
+        }
+        // API / DB use canonical UPPER hex; `?pin=` may match wallet-casing from the link — keys must match.
+        const key = normalizeNfTokenId(targetPinTokenId);
+        if (autoOpenedPinTokenIdRef.current === key) {
             return;
         }
 
-        const controller = pinPopupControllersRef.current[targetPinTokenId];
+        const controller = pinPopupControllersRef.current[key];
         if (!controller) {
             return;
         }
 
-        autoOpenedPinTokenIdRef.current = targetPinTokenId;
+        autoOpenedPinTokenIdRef.current = key;
         controller.open();
     }, [targetPinTokenId]);
 
@@ -140,6 +154,43 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
             cancelled = true;
         };
     }, []);
+
+    useEffect(() => {
+        if (authLoading || !user) {
+            savedGlobePinIdsRef.current = new Set();
+            setSavedGlobePinsHydration((h) => h + 1);
+            return;
+        }
+        let cancelled = false;
+        void (async () => {
+            try {
+                const list = await getSavedGlobePins();
+                if (cancelled) {
+                    return;
+                }
+                savedGlobePinIdsRef.current = new Set(
+                    list.map((p) => normalizeNfTokenId(p.token_id)),
+                );
+                setSavedGlobePinsHydration((h) => h + 1);
+            } catch {
+                if (!cancelled) {
+                    savedGlobePinIdsRef.current = new Set();
+                    setSavedGlobePinsHydration((h) => h + 1);
+                }
+            }
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, [authLoading, user]);
+
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map) {
+            return;
+        }
+        syncPinPopupBookmarkButtonsInContainer(map.getContainer(), savedGlobePinIdsRef.current);
+    }, [savedGlobePinsHydration]);
 
     const stopRotationIfZoomTooHigh = () => {
         const map = mapRef.current;
@@ -265,6 +316,7 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
         try {
             map.setConfigProperty('basemap', 'lightPreset', preset);
         } catch {
+            void 0; /* Standard style may not expose lightPreset on all Mapbox builds */
         }
         setLightPreset(preset);
     };
@@ -378,6 +430,8 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
         return () => {
             activePinLocalTimeDisposeRef.current?.();
             activePinLocalTimeDisposeRef.current = null;
+            activePinActionsDisposeRef.current?.();
+            activePinActionsDisposeRef.current = null;
             markersRef.current.forEach(marker => marker.remove());
             markersRef.current = [];
             markerElementsRef.current = [];
@@ -388,10 +442,15 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
     }, [accessToken]);
 
     useEffect(() => {
-        if (autoOpenedPinTokenIdRef.current !== targetPinTokenId) {
-            autoOpenedPinTokenIdRef.current = null;
+        if (targetPinTokenId) {
+            const key = normalizeNfTokenId(targetPinTokenId);
+            if (
+                autoOpenedPinTokenIdRef.current != null
+                && autoOpenedPinTokenIdRef.current !== key
+            ) {
+                autoOpenedPinTokenIdRef.current = null;
+            }
         }
-
         openTargetPinFromQuery();
     }, [openTargetPinFromQuery, targetPinTokenId]);
 
@@ -401,16 +460,34 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
             return;
         }
 
+        remountingGlobeMarkersRef.current = true;
+        autoOpenedPinTokenIdRef.current = null;
+        popupFocusActiveRef.current = false;
+        prePopupCameraRef.current = null;
+        spinningBeforePopupRef.current = false;
+        if (popupRestoreTimerRef.current != null) {
+            window.clearTimeout(popupRestoreTimerRef.current);
+            popupRestoreTimerRef.current = null;
+        }
+
         activePinLocalTimeDisposeRef.current?.();
         activePinLocalTimeDisposeRef.current = null;
+        activePinActionsDisposeRef.current?.();
+        activePinActionsDisposeRef.current = null;
         markersRef.current.forEach(marker => marker.remove());
         markersRef.current = [];
         pinPopupControllersRef.current = {};
 
         const timeoutId = window.setTimeout(() => {
             const nextMarkerElements: Array<{ marker: mapboxgl.Marker; visualElement: HTMLDivElement }> = [];
+            const displayPositions = computeGlobePinDisplayPositions(pins);
 
             const nextMarkers: mapboxgl.Marker[] = pins.map((pin) => {
+                const displayPos =
+                    displayPositions.get(pin.token_id) ?? {
+                        lng: pin.longitude,
+                        lat: pin.latitude,
+                    };
                 const { markerElement, markerVisualElement } = createGlobeStylePinMarkerElements(
                     pin.image_url || null,
                 );
@@ -422,7 +499,7 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
                     className: 'xolo-globe-popup',
                     anchor: 'bottom',
                     maxWidth: '320px',
-                }                ).setHTML(
+                }).setHTML(
                     buildPinPopupHtml({
                         token_id: pin.token_id,
                         title: pin.title,
@@ -436,6 +513,10 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
                                 === normalizeXrplAddressForCompare(pin.wallet_address)
                                 ? `/profile?pin=${encodeURIComponent(pin.token_id)}`
                                 : null,
+                        canBookmark: Boolean(!authLoading && user),
+                        isBookmarked: savedGlobePinIdsRef.current.has(
+                            normalizeNfTokenId(pin.token_id),
+                        ),
                     })
                 );
 
@@ -497,7 +578,7 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
                         ),
                     );
                     map.easeTo({
-                        center: [pin.longitude, pin.latitude],
+                        center: [displayPos.lng, displayPos.lat],
                         zoom: targetZoom,
                         duration: pinFocusDuration,
                         easing: (t) => 1 - Math.pow(1 - t, 3),
@@ -508,11 +589,23 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
                 popup.on('open', () => {
                     activePinLocalTimeDisposeRef.current?.();
                     activePinLocalTimeDisposeRef.current = null;
+                    activePinActionsDisposeRef.current?.();
+                    activePinActionsDisposeRef.current = null;
                     const root = popup.getElement();
                     activePinLocalTimeDisposeRef.current = bindPinPopupLocalTimeClock(root, () => ({
                         lat: pin.latitude,
                         lng: pin.longitude,
                     }));
+                    activePinActionsDisposeRef.current = bindPinPopupActions(root, {
+                        onBookmarkStateChange: (tokenId, bookmarked) => {
+                            const k = normalizeNfTokenId(tokenId);
+                            if (bookmarked) {
+                                savedGlobePinIdsRef.current.add(k);
+                            } else {
+                                savedGlobePinIdsRef.current.delete(k);
+                            }
+                        },
+                    });
 
                     focusOnPin();
                     reinforcePopupChrome();
@@ -540,8 +633,22 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
                 });
 
                 popup.on('close', () => {
+                    if (remountingGlobeMarkersRef.current) {
+                        if (popupRestoreTimerRef.current != null) {
+                            window.clearTimeout(popupRestoreTimerRef.current);
+                            popupRestoreTimerRef.current = null;
+                        }
+                        activePinLocalTimeDisposeRef.current?.();
+                        activePinLocalTimeDisposeRef.current = null;
+                        activePinActionsDisposeRef.current?.();
+                        activePinActionsDisposeRef.current = null;
+                        markerVisualElement.style.cursor = 'pointer';
+                        return;
+                    }
                     activePinLocalTimeDisposeRef.current?.();
                     activePinLocalTimeDisposeRef.current = null;
+                    activePinActionsDisposeRef.current?.();
+                    activePinActionsDisposeRef.current = null;
                     // Restore pointer cursor when popup closes
                     markerVisualElement.style.cursor = 'pointer';
                     const closedViaXButton = popupClosedViaXRef.current;
@@ -612,11 +719,11 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
                     rotationAlignment: 'horizon',
                     offset: [0, 7],
                 })
-                    .setLngLat([pin.longitude, pin.latitude])
+                    .setLngLat([displayPos.lng, displayPos.lat])
                     .setPopup(popup)
                     .addTo(map);
 
-                pinPopupControllersRef.current[pin.token_id] = {
+                pinPopupControllersRef.current[normalizeNfTokenId(pin.token_id)] = {
                     open: () => {
                         if (!popup.isOpen()) {
                             popup.addTo(map);
@@ -636,13 +743,18 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
             markersRef.current = nextMarkers;
             markerElementsRef.current = nextMarkerElements;
             updateMarkerScale();
+            remountingGlobeMarkersRef.current = false;
+            syncPinPopupBookmarkButtonsInContainer(
+                map.getContainer(),
+                savedGlobePinIdsRef.current,
+            );
             openTargetPinFromQuery();
         }, 400);
 
         return () => {
             window.clearTimeout(timeoutId);
         };
-    }, [openTargetPinFromQuery, pins, viewerWalletAddress]);
+    }, [openTargetPinFromQuery, pins, viewerWalletAddress, authLoading, user]);
 
     if (!hasMapToken) {
         return (

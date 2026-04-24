@@ -818,6 +818,10 @@ function WalletConnectionContent({
             const err = error instanceof Error ? error : new Error(String(error));
             setConnectedWalletAssets(null);
             setAssetsError(err.message);
+            console.error('[wallet-assets] refresh failed — copy this block for support', {
+                message: err.message,
+                addressPreview: walletAddressPreview(connectedWallet.wallet_address),
+            });
             walletTraceLog('refresh NFT summary failed', {
                 walletType: connectedWallet.wallet_type,
                 addressPreview: walletAddressPreview(connectedWallet.wallet_address),
@@ -828,13 +832,17 @@ function WalletConnectionContent({
                 addressPreview: walletAddressPreview(connectedWallet.wallet_address),
                 message: err.message,
             });
+            showToast(
+                'error',
+                'Could not load NFTs for this wallet. Large wallets or a busy network can cause this. If it happens again, open the browser console (F12) and copy any lines starting with [wallet-assets] to send to us.'
+            );
         } finally {
             setIsAssetsLoading(false);
             setWalletBusyMessage((prev) =>
                 prev === LOADING_WALLET_SUMMARY_MESSAGE ? null : prev
             );
         }
-    }, [connectedWallet, wallets.length]);
+    }, [connectedWallet, wallets.length, showToast]);
 
     useEffect(() => {
         if (!connectedWallet) {

@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import "./App.css";
 import AppLoadingOverlay from "./components/AppLoadingOverlay";
@@ -14,7 +14,12 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Xoloitzquintle from "./pages/Xoloitzquintle";
 import Vision from "./pages/Vision";
 import Team from "./pages/Team";
-import XoloGlobe from "./pages/XoloGlobe";
+import Xglobe from "./pages/Xglobe";
+
+function XologlobeRedirect() {
+  const { search } = useLocation();
+  return <Navigate to={`/xglobe${search}`} replace />;
+}
 
 function AppContent() {
   const location = useLocation();
@@ -48,7 +53,8 @@ function AppContent() {
           <Route path="/xoloitzquintle" element={<Xoloitzquintle />} />
           <Route path="/vision" element={<Vision />} />
           <Route path="/team" element={<Team />} />
-          <Route path="/xologlobe" element={<XoloGlobe />} />
+          <Route path="/xglobe" element={<Xglobe />} />
+          <Route path="/xologlobe" element={<XologlobeRedirect />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
