@@ -1,5 +1,6 @@
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { Analytics } from "@vercel/analytics/react";
 import "./App.css";
 import AppLoadingOverlay from "./components/AppLoadingOverlay";
 import Header from "./components/Header";
@@ -70,6 +71,7 @@ function AppContent() {
         </Routes>
       </main>
       <Footer />
+      <Analytics />
     </div>
   );
 }
