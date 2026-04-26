@@ -14,7 +14,7 @@
       "destination": "/api?p=$1"
     },
     {
-      "source": "/((?!api).*)",
+      "source": "/((?!api/)(?!_vercel/).*)",
       "destination": "/index.html"
     }
   ]
