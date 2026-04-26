@@ -27,7 +27,7 @@ Visit http://localhost:5173
 
 - `npm run dev:full` - Start both API server and frontend
 - `npm run dev` - Frontend only (port 5173)
-- `npm run dev:api` - API server only (port 3000)
+- `npm run dev:api` - API server only (port 3001)
 
 ## Pre-push checks
 
