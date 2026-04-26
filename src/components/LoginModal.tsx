@@ -212,13 +212,13 @@ export default function LoginModal({
           data = JSON.parse(raw) as typeof data;
         } catch {
           setError(
-            `Could not read server response (HTTP ${response.status}). The API may be down: run "npm run dev:api" (port 3000) while using "npm run dev", or use "npm run dev:full".`
+            `Could not read server response (HTTP ${response.status}). The API may be down: run "npm run dev:api" (port 3001) while using "npm run dev", or use "npm run dev:full".`
           );
           return;
         }
       } else if (!response.ok) {
         setError(
-          `Request failed (HTTP ${response.status}). If you see this locally, start the API on port 3000 and ensure MySQL is running with DB_HOST / DB_NAME in .env.local.`
+          `Request failed (HTTP ${response.status}). If you see this locally, start the API on port 3001 and ensure MySQL is running with DB_HOST / DB_NAME in .env.local.`
         );
         return;
       }
@@ -251,7 +251,7 @@ export default function LoginModal({
     } catch (err) {
       if (err instanceof TypeError) {
         setError(
-          'Network error (could not reach the server). For local dev, run the API: npm run dev:api (port 3000) with npm run dev, or npm run dev:full.'
+          'Network error (could not reach the server). For local dev, run the API: npm run dev:api (port 3001) with npm run dev, or npm run dev:full.'
         );
       } else {
         setError(err instanceof Error ? err.message : 'Failed to create account');

@@ -1,6 +1,6 @@
 import { createApiApp } from './server/createApiApp.js';
 
-const PORT = process.env.API_PORT ? parseInt(process.env.API_PORT, 10) : 3000;
+const PORT = process.env.API_PORT ? parseInt(process.env.API_PORT, 10) : 3001;
 
 createApiApp()
   .then((app) => {
@@ -12,7 +12,7 @@ createApiApp()
       if (error.code === 'EADDRINUSE') {
         console.error(`Port ${PORT} is already in use.`);
         console.error(
-          `Stop the process using port ${PORT} or set API_PORT (e.g. API_PORT=3001 npm run dev:api).`
+          `Stop the process using port ${PORT} or set API_PORT (e.g. API_PORT=3000 npm run dev:api).`
         );
         process.exit(1);
       } else {

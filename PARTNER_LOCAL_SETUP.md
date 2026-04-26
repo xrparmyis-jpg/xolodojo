@@ -55,7 +55,7 @@ cp .env.example .env.local
 
 You can remove any old **`VITE_AUTH0_*`** variables; they are unused.
 
-Frontend API calls: leave `VITE_API_BASE_URL` empty for local dev so the Vite dev server proxies `/api` to the API (default **`http://localhost:3000`** when using `npm run dev:full`).
+Frontend API calls: leave `VITE_API_BASE_URL` empty for local dev so the Vite dev server proxies `/api` to the API (default **`http://localhost:3001`** when using `npm run dev:full`).
 
 ---
 
@@ -116,7 +116,7 @@ npm run dev:full
 ```
 
 - Frontend: `http://localhost:5173`  
-- API: `http://localhost:3000` (Express in `server.ts`)
+- API: `http://localhost:3001` (Express in `server.ts`)
 
 ---
 

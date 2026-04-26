@@ -50,7 +50,7 @@ function pinNoteToPlain(text: string | null | undefined, max: number): string {
     .slice(0, max);
 }
 
-const defaultTitle = 'XoloDojo | Xolo Globe';
+const defaultTitle = 'XoloDojo | XGlobe';
 const defaultDescription =
   'The Xoloitzquintle Collection: Ancient Legacy, 10,001 Unique XRPL NFTs — explore the globe.';
 
@@ -86,13 +86,12 @@ export default async function handler(
       const row = await getGlobePinByTokenId(pool, pin);
       if (row) {
         const t = row.title?.trim();
-        pageTitle = t ? `${t} | Xolo Globe` : 'Xolo pin | Xolo Globe';
+        pageTitle = t ? `${t} | XGlobe` : 'Xolo pin | XGlobe';
         const plain = pinNoteToPlain(
           typeof row.pin_note === 'string' ? row.pin_note : null,
           220
         );
-        description =
-          plain || `A Xolo pin on the globe.`;
+        description = plain || `A Xolo pin on the globe.`;
         imageUrl = absoluteOgImage(siteOrigin, row.image_url);
       }
     } catch (e) {
