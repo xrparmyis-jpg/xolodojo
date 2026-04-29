@@ -61,7 +61,8 @@ export interface PinPopupActionsOptions {
 }
 
 /**
- * Binds share (clipboard) and bookmark (API) for `.xolo-popup-actions` inside a Mapbox popup root.
+ * Binds share (native Web Share API with clipboard fallback) and bookmark (API)
+ * for `.xolo-popup-actions` inside a Mapbox popup root.
  * Run on `popup` open; call the disposer on close.
  */
 export function bindPinPopupActions(
@@ -91,6 +92,24 @@ export function bindPinPopupActions(
       return;
     }
     const url = buildGlobePinShareUrl(id);
+    const nativeShareData = {
+      title: 'Xolo Dojo Xglobe',
+      text: 'Check out this Xglobe pin',
+      url,
+    };
+
+    if (typeof navigator.share === 'function') {
+      try {
+        await navigator.share(nativeShareData);
+        return;
+      } catch (err) {
+        // User canceled share sheet: no error toast, no clipboard fallback needed.
+        if (err instanceof DOMException && err.name === 'AbortError') {
+          return;
+        }
+      }
+    }
+
     try {
       await navigator.clipboard.writeText(url);
       emitXoloToast('success', 'Link copied to clipboard');
