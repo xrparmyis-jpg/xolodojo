@@ -98,7 +98,10 @@ function GsapPageSubHeading({ heading, className = "" }: GsapPageSubHeadingProps
     );
 
     return (
-        <div ref={containerRef} className={`mb-4 flex w-full items-center justify-center gap-2 ${className}`}>
+        <div
+            ref={containerRef}
+            className={`mb-4 flex w-full items-center justify-start gap-2 md:items-center md:justify-center ${className}`}
+        >
             <FontAwesomeIcon
                 icon={faAsterisk}
                 className="subheading-icon w-5 h-5 md:w-6 md:h-6 opacity-0 text-[#28aae4]"
@@ -107,7 +110,7 @@ function GsapPageSubHeading({ heading, className = "" }: GsapPageSubHeadingProps
             <h3
                 ref={headingRef}
                 aria-label={heading}
-                className="max-w-full min-w-0 text-balance text-2xl font-bold leading-tight text-center opacity-0 md:text-3xl"
+                className="max-w-full min-w-0 text-balance text-2xl font-bold leading-tight text-left opacity-0 md:text-3xl md:text-center"
             >
                 {headingParts.map((part, partIndex) =>
                     /^\s+$/.test(part) ? (
