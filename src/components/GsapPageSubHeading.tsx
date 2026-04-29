@@ -100,7 +100,7 @@ function GsapPageSubHeading({ heading, className = "" }: GsapPageSubHeadingProps
     return (
         <div
             ref={containerRef}
-            className={`mb-4 flex w-full items-start justify-start gap-2 md:items-center md:justify-center ${className}`}
+            className={`mb-4 flex w-full items-center justify-start gap-2 md:items-center md:justify-center ${className}`}
         >
             <FontAwesomeIcon
                 icon={faAsterisk}
