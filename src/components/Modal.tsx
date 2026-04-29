@@ -17,6 +17,11 @@ interface ModalProps {
      * Use `overflow-x-hidden` only; scroll long content inside children (e.g. a max-height + overflow-y-auto wrapper).
      */
     allowVerticalOverflow?: boolean;
+    /**
+     * When true, the dialog panel does not clip horizontally.
+     * Useful for popovers (e.g. emoji picker) that need to extend beyond the modal's content width.
+     */
+    allowHorizontalOverflow?: boolean;
 }
 
 export default function Modal({
@@ -28,6 +33,7 @@ export default function Modal({
     showCloseButton = true,
     maxWidthClassName = 'max-w-lg',
     allowVerticalOverflow = false,
+    allowHorizontalOverflow = false,
 }: ModalProps) {
     const reduceMotion = useReducedMotion();
     const duration = reduceMotion ? 0.08 : 0.22;
@@ -52,7 +58,11 @@ export default function Modal({
                     }}
                 >
                     <motion.div
-                        className={`relative mx-4 w-full max-h-[90vh] overflow-x-hidden rounded-xl border border-white/10 bg-neutral-900 p-4 shadow-xl ${allowVerticalOverflow ? 'overflow-y-visible' : 'overflow-y-auto'} ${maxWidthClassName}`}
+                        className={`relative mx-4 w-full max-h-[90vh] ${
+                            allowHorizontalOverflow ? 'overflow-x-visible' : 'overflow-x-hidden'
+                        } rounded-xl border border-white/10 bg-neutral-900 p-4 shadow-xl ${
+                            allowVerticalOverflow ? 'overflow-y-visible' : 'overflow-y-auto'
+                        } ${maxWidthClassName}`}
                         role="dialog"
                         aria-modal="true"
                         aria-label={title || 'Modal'}

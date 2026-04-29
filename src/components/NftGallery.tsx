@@ -1792,6 +1792,7 @@ export default function NftGallery({
       <Modal
         isOpen={pinTargetNft != null || pinSuccessState != null}
         allowVerticalOverflow
+        allowHorizontalOverflow
         title={
           pinSuccessState
             ? pinSuccessState.kind === 'updated'
@@ -1857,7 +1858,7 @@ export default function NftGallery({
           pinTargetNft && (
             <div className="space-y-4 text-sm text-white/85">
               {pinFormStep === 1 ? (
-                <div className="max-h-[min(72vh,640px)] space-y-4 overflow-y-auto overflow-x-hidden pr-1">
+                <div className="max-h-[min(72vh,640px)] space-y-4 overflow-y-auto overflow-x-visible md:overflow-x-hidden pr-1">
                   <div className="w-full min-w-0 flex flex-col">
                     <label
                       htmlFor="pin-title"
