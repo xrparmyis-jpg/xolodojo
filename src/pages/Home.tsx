@@ -43,11 +43,11 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
           reverence.{' '}
         </p>
         <p className="mb-4">
-          These principles form the ethical heart of our community — a space of trust, honor, and genuine harmony where every holder is welcomed as family. At the living heart of the XoloDojo is Xglobe, an NFT token-gated global community offering a space to share skills, cultures, and collaborations, forging person-to-person exchanges and adventures across the planet.
+          These principles form the ethical heart of our community - a space of trust, honor, and genuine harmony where every holder is welcomed as family. At the living heart of the XoloDojo is Xglobe, a Xoloitzquintli NFT token-gated global community offering a space to share skills, cultures, and collaborations - forging person-to-person exchanges and adventures across the planet.
         </p>
         <p>
-          XoloDojo community members are represented by their XoloNFT on the Xglobe, Alpha lives in their Pinbox, click on an Xglobe pin to view it, bookmark it, or share it. More than a collection, more than a movement, the XoloDojo is legacy in motion.           
-         <p></p> Own the Xolo. Own the Journey. Own the Destination.
+          XoloDojo community members are represented by their sharable Xglobe Xpins and the alpha that resides within it. On Xglobe, simply click an Xpin to view that alpha, reach out, bookmark it, and/or share it with others. More than a collection, more than a movement, the XoloDojo is legacy in motion.           
+         <br /><br /> Own the Xolo. Own the Journey. Own the Destination.
         </p>
       </>
     ),
@@ -72,16 +72,10 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
         <p className="mb-4">
           Every Xolo carries its own energy--from sacred, sharp, chaotic, and
           calm, to dripped out or quietly legendary. Some have attitude like
-          they know they're gonna get minted first! This is not filler. This is
-          the hunt for your Xolo.
+          they know they're gonna get minted first!
         </p>
         <p className="mb-4">
-          Inside XoloDojo, your Xolo unlocks Xglobe, so when you arrive, your
-          loyal guide and companion will be right there by your side.{' '}
-        </p>
-        <p>
-          Looks like alpha, feels like legacy, sprinkled with a lil degen and
-          prepared with a whole lot of heart.
+          This is the hunt for your Xolo, your guide and companion unlocking Xglobe. Looks like alpha, feels like legacy - sprinkled with a lil degen and prepared with a whole lotta heart.{' '}
         </p>
       </>
     ),
@@ -98,28 +92,19 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     body: (
       <>
         <p className="mb-4">
-          Xgolobe is where the XoloDojo comes alive at full scale--a live
-          token-gated world built for movement, connection, exchange, and
-          adventure. Holders can meet up, share culture, trade skills, promote
-          what they offer, and create real experiences across multiple cities,
-          countries, and time zones.
+          Xglobe is where the XoloDojo comes alive at full scale--a live
+          token-gated world built for networking, connection, exchange, and
+          adventure. Holders share skills and culture, organize meetups, create person-to-person adventures, offer products or services, and build a growing network of like minded individuals across the planet.
         </p>
 
         <p className="mb-4">
-          This is where the collection stops standing still and becomes not just
-          a collectible held in a crypto wallet, but rather a key for a living
-          network with energy, reach, and real human upside.
-        </p>
+          Users can connect directly, organize collaborations, work out costs amongst themselves, and turn introductions into opportunities, built on trust, shared values, and mutual respect.  </p>
 
         <p className="mb-4">
-          Your Xolo gives you a place to land your plane, dock your boat, and
-          park your car, with an agenda to turn travelers into locals, strangers
-          into allies, and foster global connection through person to person
-          networking, utilizing wallet to wallet transactions with XRP on the
-          XRPL.
-        </p>
+          Xglobe is where community starts to stretch across borders and time zones, with an agenda to turn travelers into locals, strangers
+          into allies, and ideas into collaborations.</p>
 
-        <p>One Pin. One Pinbox. One Xglobe.</p>
+        <p>Xglobe is the Omega.</p>
       </>
     ),
   },
