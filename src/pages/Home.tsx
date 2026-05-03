@@ -351,7 +351,7 @@ function Home() {
         </div>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <GsapPageContent delay={0}>
-                        <GsapPageSubHeading heading={`Xolo (ShōLō) "The Guardian", 道 (Dō) "The Pathway", and 場 (Jō) "The Destination"`} />
+                        <GsapPageSubHeading heading={`Xolo (ShōLō) "The Guardian", 道 (Dō) "The Pathway",\n\n and 場 (Jō) "The Destination"`} />
                       </GsapPageContent>
           <div className="mt-4 flex flex-col gap-12 lg:gap-16">
             {LEGACY_STORY_ROWS.map((row, index) => {
