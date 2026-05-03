@@ -84,20 +84,20 @@ npm run dev
 ### 6. Access the App
 
 - Frontend: http://localhost:5173
-- API Server: http://localhost:3000
+- API Server: http://localhost:3001
 
 ## Troubleshooting
 
-### Port 3000 Already in Use
+### Port 3001 Already in Use
 
-If you get an error that port 3000 is in use:
+If you get an error that port 3001 is in use:
 
 ```bash
-# Option 1: Stop the process using port 3000
-lsof -ti:3000 | xargs kill -9
+# Option 1: Stop the process using port 3001
+lsof -ti:3001 | xargs kill -9
 
 # Option 2: Use a different port
-API_PORT=3001 npm run dev:api
+API_PORT=3000 npm run dev:api
 ```
 
 Then update `vite.config.ts` to proxy to the new port.
@@ -163,6 +163,6 @@ docker exec -i donovan-db mysql -udonovan_user -pdonovan_password donovan_db < d
 If you run into issues:
 
 1. Check that Docker is running: `docker ps`
-2. Check that ports 3000 and 5173 are available
+2. Check that ports 3001 and 5173 are available
 3. Verify `.env.local` exists and has correct values
 4. Check the terminal output for error messages

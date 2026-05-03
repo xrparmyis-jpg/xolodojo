@@ -11,12 +11,17 @@ interface GsapPageSubHeadingProps {
     className?: string;
 }
 
+/** Split heading into alternating word / whitespace chunks so wrapping never breaks mid-word (each word is nowrap). */
+function headingPartsForWrapSafeHeading(source: string): string[] {
+    return source.split(/(\s+)/).filter((p) => p.length > 0);
+}
+
 function GsapPageSubHeading({ heading, className = "" }: GsapPageSubHeadingProps) {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const headingRef = useRef<HTMLHeadingElement | null>(null);
     const [hasEnteredView, setHasEnteredView] = useState(false);
 
-    const headingLetters = Array.from(heading);
+    const headingParts = headingPartsForWrapSafeHeading(heading);
 
     useEffect(() => {
         const node = containerRef.current;
@@ -93,18 +98,40 @@ function GsapPageSubHeading({ heading, className = "" }: GsapPageSubHeadingProps
     );
 
     return (
-        <div ref={containerRef} className={`mb-4 flex w-full items-center justify-center gap-2 ${className}`}>
+        <div
+            ref={containerRef}
+            className={`mb-4 flex w-full items-center justify-start gap-2 md:items-center md:justify-center ${className}`}
+        >
             <FontAwesomeIcon
                 icon={faAsterisk}
                 className="subheading-icon w-5 h-5 md:w-6 md:h-6 opacity-0 text-[#28aae4]"
                 aria-label="subheading icon"
             />
-            <h3 ref={headingRef} className="text-2xl md:text-3xl font-bold leading-tight text-center opacity-0">
-                {headingLetters.map((letter, index) => (
-                    <span key={`${letter}-${index}`} className="subheading-letter inline-block opacity-0" aria-hidden="true">
-                        {letter === " " ? "\u00A0" : letter}
-                    </span>
-                ))}
+            <h3
+                ref={headingRef}
+                aria-label={heading}
+                className="max-w-full min-w-0 text-balance text-2xl font-bold leading-tight text-left opacity-0 md:text-3xl md:text-center"
+            >
+                {headingParts.map((part, partIndex) =>
+                    /^\s+$/.test(part) ? (
+                        <span key={`space-${partIndex}`}>{part}</span>
+                    ) : (
+                        <span
+                            key={`word-${partIndex}`}
+                            className="inline-block whitespace-nowrap"
+                        >
+                            {Array.from(part).map((letter, letterIndex) => (
+                                <span
+                                    key={`${partIndex}-${letterIndex}`}
+                                    className="subheading-letter inline-block opacity-0"
+                                    aria-hidden="true"
+                                >
+                                    {letter}
+                                </span>
+                            ))}
+                        </span>
+                    ),
+                )}
             </h3>
         </div>
     );

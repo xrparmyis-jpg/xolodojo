@@ -230,7 +230,7 @@ export default function PinNoteEditor({
           </button>
           {emojiPickerOpen && (
             <div
-              className="emoji-picker-popover absolute left-0 top-[calc(100%+6px)] z-[200] max-h-[min(52vh,380px)] w-[min(calc(100vw-2rem),320px)] overflow-hidden rounded-lg border border-white/20 bg-[#1a1d24] shadow-xl"
+              className="emoji-picker-popover absolute right-0 left-auto top-[calc(100%+6px)] z-[200] max-h-[min(52vh,380px)] w-[min(calc(100vw-2rem),320px)] overflow-hidden rounded-lg border border-white/20 bg-[#1a1d24] shadow-xl md:left-0 md:right-auto"
               role="dialog"
               aria-label="Emoji picker"
             >

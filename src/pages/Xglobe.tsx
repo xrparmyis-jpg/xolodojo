@@ -29,16 +29,6 @@ function Xglobe() {
                 locations, showcase their unique Xolo, and discover fellow
                 members across the planet.
               </p>
-              <p className="mb-7 text-white/90">
-                This isn't just a map — it's where digital ownership turns into
-                real human connection. Find a host for an authentic stay,
-                arrange a home swap, share a meal, join a day adventure, or
-                exchange skills with someone whose pin catches your eye.
-                Exclusive, token-gated, and built on trust, only holders of a
-                Xolo NFT can pin and fully interact. Access is simple and secure
-                — just connect your wallet. No personal data required, just
-                proof of community membership.
-              </p>
             </GsapPageContent>
           </div>
           <GsapPageContent
@@ -63,109 +53,27 @@ function Xglobe() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto [&_p]:text-[#decee9] [&_ul]:text-[#decee9] [&_li]:text-[#decee9] [&_li>span]:text-[#decee9]">
             <GsapPageContent delay={0}>
-              <GsapPageSubHeading heading="The living map of our global community" />
+              <GsapPageSubHeading heading="A platform for more than one community" />
             </GsapPageContent>
 
             <div>
-              <GsapPageContent
-                className="mt-4"
-                delay={0.08}
-                staggerChildren
-                staggerEach={0.08}
-              >
-                <h4 className="text-lg text-center md:text-left md:text-xl font-bold text-[#642ff8] mb-2">
-                  How It Works
-                </h4>
-                <ul className="list-items">
-                  <li>
-                    <span>
-                      <strong className="text-[#28aae4]">
-                        Connect Your Wallet
-                      </strong>{' '}
-                      — Click "Connect Wallet," select your XRPL wallet (Xaman
-                      Wallet, Joey Wallet, etc.), and sign. We verify your Xolo
-                      NFT ownership instantly on the XRP Ledger.
-                    </span>
-                  </li>
-                  <li>
-                    <span>
-                      <strong className="text-[#28aae4]">
-                        Pin Your Location
-                      </strong>{' '}
-                      — Drop your pin anywhere meaningful — your home base,
-                      current travels, or a dream destination you're open to
-                      sharing.
-                    </span>
-                  </li>
-                  <li>
-                    <span>
-                      <strong className="text-[#28aae4]">
-                        Showcase Your Xolo
-                      </strong>{' '}
-                      — Choose which Xolo NFT to feature. Your pin displays its
-                      artwork, letting your personality shine through to the
-                      community.
-                    </span>
-                  </li>
-                  <li>
-                    <span>
-                      <strong className="text-[#28aae4]">
-                        Discover & Connect
-                      </strong>{' '}
-                      — Explore pins worldwide. Click on a pinned Xolo to view
-                      their profile. Reach out directly as needed, a brief chat,
-                      a meetup, a local product exchange, or a collaborative
-                      opportunity.
-                    </span>
-                  </li>
-                </ul>
-              </GsapPageContent>
-              <GsapPageContent
-                className="mt-4"
-                delay={0.16}
-                staggerChildren
-                staggerEach={0.08}
-              >
-                <h4 className="text-lg text-center md:text-left md:text-xl font-bold text-[#642ff8] my-2">
-                  Why the Xglobe Matters
-                </h4>
-                <ul className="list-items">
-                  <li>
-                    <span>
-                      Keeps our community genuine and safe through token-gating
-                    </span>
-                  </li>
-                  <li>
-                    <span>
-                      Lets your Xolo NFT become a beacon for real-world
-                      connection
-                    </span>
-                  </li>
-                  <li>
-                    <span>
-                      Turns strangers into allies, travelers into locals, and
-                      shared pins into shared experiences
-                    </span>
-                  </li>
-                  <li>
-                    <span>
-                      Grows the living Xglobe — one pin, one message, one new
-                      friendship at a time
-                    </span>
-                  </li>
-                </ul>
-              </GsapPageContent>
-
               <GsapPageContent className="mt-4" delay={0.24}>
-                <h4 className="text-lg text-center md:text-left md:text-xl font-bold text-[#642ff8] mb-2">
-                  A platform for more than one community
-                </h4>
-                <p className="text-white/90">
+                <p className="mb-4 text-white/90">
+                  This isn't just a map — it's where digital ownership turns
+                  into real human connection. Find a host for an authentic stay,
+                  arrange a home swap, share a meal, join a day adventure, or
+                  exchange skills with someone whose pin catches your eye.
+                  Exclusive, token-gated, and built on trust, only holders of a
+                  Xolo NFT can pin and fully interact. Access is simple and
+                  secure — just connect your wallet. No personal data required,
+                  just proof of community membership.
+                </p>
+                <p className="mb-4 text-white/90">
                   Over time, the Xglobe will open its doors to other verified,
                   values-aligned NFT communities who share our vision of
                   trust-based human connection.
                 </p>
-                <p className="mt-4 text-white/90">
+                <p className="text-white/90">
                   Just as our Mission states: we're cultivating a global dojo
                   where shared experiences weave a stronger, more connected
                   world. Connect your wallet and join the Xglobe today!
