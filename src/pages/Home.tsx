@@ -8,6 +8,7 @@ import XoloitzquintleSlideshow from '../components/XoloitzquintleSlideshow';
 
 import { useSectionParallaxOffsets } from '../hooks/useSectionParallaxOffsets';
 import MintCountdownSection from '../components/MintCountdownSection';
+import GsapPageSubHeading from '../components/GsapPageSubHeading';
 
 type LegacyStoryRow = {
   id: string;
@@ -31,36 +32,22 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageAlt: 'Ghost Xolo Gecko',
     borderColor: 'border-green-500',
     titleColor: 'text-green-500',
-    eyebrow: 'The XoloDojo',
-    title: (
-      <>
-        The XoloDojo: Xolo (ShoLo) meaning "Guardian" 道 (Dō), meaning "path" or "way," and 場 (Jō), meaning "place"
-      </>
-    ),
+    eyebrow: 'Welcome to the XoloDojo',
+    title: '',
     body: (
       <>
         <p className="mb-4">
-          Welcome to the XoloDojo — a sacred digital sanctuary rooted in the
+          A sacred digital sanctuary rooted in the
           Xoloitzquintli’s timeless values of unwavering loyalty, transformative
           guardianship, deep respect, humility, resilience, and shared
           reverence.{' '}
         </p>
         <p className="mb-4">
-          These principles form the ethical heart of our community — a space of
-          trust, honor, and genuine harmony where every holder is welcomed as
-          family. At the living heart of the XoloDojo is Xglobe, a token-gated
-          global platform where you network wallet-to-wallet, share skills and
-          cultures, and forge real person-to-person adventures across the
-          planet.
+          These principles form the ethical heart of our community — a space of trust, honor, and genuine harmony where every holder is welcomed as family. At the living heart of the XoloDojo is Xglobe, an NFT token-gated global community offering a space to share skills, cultures, and collaborations, forging person-to-person exchanges and adventures across the planet.
         </p>
         <p>
-          XoloDojo members are represented by their XoloNFT pinned on the
-          Xglobe, symbolising a personal talisman and lifelong companion
-          inviting you to step into a growing circle of aligned souls, pin your
-          place in history, and co-create a legacy of connection, community, and
-          future growth. 
-          
-         <p></p> Own your Xolo. Own your Journey. Own your Destination.
+          XoloDojo community members are represented by their XoloNFT on the Xglobe, Alpha lives in their Pinbox, click on an Xglobe pin to view it, bookmark it, or share it. More than a collection, more than a movement, the XoloDojo is legacy in motion.           
+         <p></p> Own the Xolo. Own the Journey. Own the Destination.
         </p>
       </>
     ),
@@ -215,7 +202,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
         </p>
 
         <p className="mb-4">
-            XoloDojo is being built as a living ecosystem fostering community, collaboration, and culture. The Xolos open the door, Xglobe provides the stage, the Pinbox represents your presence of a shared movement, a friendship made along the way, and the mystical journey back home. The mint is just the beginning, not just the finish line.
+            XoloDojo is being built as a living ecosystem fostering community, collaboration, and culture. The Xolos open the door, Xglobe provides the stage, the Pinbox represents your presence of a shared movement, the friendships made along the way, and the mystical journey back home. The mint is just the beginning, not just the finish line.
         </p>
 
         <p>.</p>
@@ -327,13 +314,7 @@ function Home() {
           <GsapPageContent className="mx-auto w-full max-w-4xl">
             <>
               <p>
-                The website is built. The mint comes next. The Xglobe is live.
-                This starts with a mint, but the alpha lives in your Pinbox,
-                lock in and be ready when we flip the switch. When the countdown
-                hits zero, the timer morphs into the mint button and sends you
-                straight to the mint in the xrp.cafe. Your Xolo awaits!! After
-                mint, return to the Dojo, connect your wallet, fill out your
-                Pinbox, and get scene on Xglobe. The collection is straight fire, bringing the heat, and a whole lotta heart.
+                The XoloDojo website is built, the Xpin and Xglobe are live - the mint comes next, starting the journey to your Xpin alpha on Xglobe. When the countdown hits zero, the timer morphs into the mint button sending you straight to the mint in the xrp.cafe. Your Xolo awaits. Lock in and be ready when we flip the switch! After mint, return to the Dojo, click "get started", connect your wallet holding your Xoloitzquintli NFT, fill out your Xpin information, and place your Xpin to be scene on Xglobe. With degen spirit and community at heart, The Xoloitzquintli NFT collection is bringing the heat! Come see what's cooking in the kitchen.
               </p>
             </>
           </GsapPageContent>
@@ -369,7 +350,10 @@ function Home() {
           <img src="/color-bg-shape-2.png" alt="" aria-hidden />
         </div>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col gap-12 lg:gap-16">
+          <GsapPageContent delay={0}>
+                        <GsapPageSubHeading heading={`Xolo (ShōLō) "The Guardian", 道 (Dō) "The Pathway",\n\n and 場 (Jō) "The Destination"`} />
+                      </GsapPageContent>
+          <div className="mt-4 flex flex-col gap-12 lg:gap-16">
             {LEGACY_STORY_ROWS.map((row, index) => {
               const imageLeft = row.imageAtLg === 'left';
               return (
@@ -402,7 +386,7 @@ function Home() {
                       imageLeft ? 'lg:order-2' : 'lg:order-1'
                     }`}
                   >
-                    <div className="flex min-w-0 flex-col text-left mt-4 lg:mt-0">
+                    <div className="flex min-w-0 flex-col text-left mt-8 lg:mt-0">
                       <span
                         className={`mb-5 inline-block w-fit max-w-full self-center rounded-2xl border ${row.borderColor} px-8 py-2 text-center text-[15px] font-bold leading-none`}
                       >
