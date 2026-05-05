@@ -69,7 +69,7 @@ function Xoloitzquintle() {
 
               <GsapPageContent as="p" className="mb-4" delay={0.08}>
                 These two aren't just siblings; they're the original dynamic duo
-                who literally rebuilt humanity after the world got wrecked four
+                who literally rebuilt humanity after the world was wrecked four
                 times (because ancient gods apparently loved a good reset
                 button). Quetzalcoatl, ever the visionary, decides it's time for
                 round five: populate the earth with actual people. But plot
@@ -83,7 +83,7 @@ function Xoloitzquintle() {
                 Quetzalcoatl can't solo this dungeon crawl. Enter Xolotl:
                 dog-faced, shape-shifting, lightning-charged, and 100%
                 ride-or-die. His name literally echoes in the word
-                xoloitzcuintle—the sacred hairless dog bred in his image.
+                xoloitzquintli—the sacred hairless dog bred in his image.
                 Xolotl's like, "Bro, I've been guiding the sun through the
                 underworld every night. I know the shortcuts. Let's go steal
                 some bones."
@@ -112,21 +112,16 @@ function Xoloitzquintle() {
                 doesn't stop there. He becomes the eternal soul-guide: escorting
                 the dead through Mictlan's perils, warding off evil spirits, and
                 making sure no one gets lost in the afterlife. That's why the
-                Aztecs buried real xoloitzcuintles with their loved ones—loyal
+                Aztecs buried real xoloitzquintlis with their loved ones—loyal
                 companions in life, healers (their body heat was legendary), and
                 furry psychopomps in death. One Xolo to rule the journey, one
                 soul to guide.
               </GsapPageContent>
 
               <GsapPageContent as="p" className="mb-4" delay={0.48}>
-                Fast-forward to today: in the Xolo Dojo, we're resurrecting this
-                epic saga on the XRPL. Your XoloNFT isn't just a pretty (or
-                gloriously wrinkly) piece of digital art—it's a sacred guardian
-                reborn, channeling Xolotl's fierce loyalty, trickster smarts,
-                and unbreakable bonds. Mint one, pin it, and unlock Xglobe—where
-                holders reach out P2P, turn strangers into allies, share skills,
-                trade services, or plan real-world adventures. Just like the
-                gods' twin pact: no middleman, no limits, eternal vibes.
+                Fast-forward to today: in the XoloDojo, we're resurrecting this
+                epic saga on the XRPL. Your Xoloitzquintli NFT digital art is a sacred guardian
+                reborn, channeling Xolotl's fierce loyalty, trickster smarts, and unbreakable bonds. Each Xolo is a unique blend of ancient mystique and modern swagger, ready to guide you through the wild world of Web3 with the same devotion Xolotl showed in the underworld. It's not just an NFT; it's a cosmic companion for your digital journey.
               </GsapPageContent>
 
               <GsapPageContent as="p" className="mb-4" delay={0.64}>
