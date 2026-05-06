@@ -195,9 +195,9 @@ function OwnerCard({ owner }: { owner: Owner }) {
 
 function Team() {
   return (
-    <div className="[&_p]:text-[#decee9] [&_ul]:text-[#decee9] [&_li]:text-[#decee9] [&_li>span]:text-[#decee9]">
+    <div>
       <section className="relative bg-[url('/Pattern.png')] bg-cover bg-center bg-no-repeat pt-16 pb-4 md:pt-30 border-b border-[#36e9e424]">
-        <div className="max-w-4xl mx-auto [&_p]:text-[#decee9] [&_ul]:text-[#decee9] [&_li]:text-[#decee9] [&_li>span]:text-[#decee9]">
+        <div className="max-w-4xl mx-auto">
           <GsapPageHeading
             eyebrow="Meet the XoloDojo Team"
             heading="A Sacred Legacy of"

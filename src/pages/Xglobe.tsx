@@ -13,7 +13,7 @@ function Xglobe() {
     <>
       <section className="relative bg-[url('/Pattern.png')] bg-cover bg-center bg-no-repeat pt-16 pb-4 md:pt-30 border-b border-[#36e9e424]">
         <div className="container mx-auto mb-8 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto [&_p]:text-[#decee9] [&_ul]:text-[#decee9] [&_li]:text-[#decee9] [&_li>span]:text-[#decee9]">
+          <div className="max-w-4xl mx-auto">
             <GsapPageHeading
               eyebrow="The Xoloitzquintle's Global Stage"
               heading="A Sacred Legacy of"
@@ -23,7 +23,7 @@ function Xglobe() {
               centered
             />
             <GsapPageContent className="mb-4">
-              <p className="mb-7 text-justify text-white/90">
+              <p className="mb-7 text-justify">
                 Inside the Xolo Dojo, the Xglobe comes alive on an interactive,
                 Mapbox-powered world map. Verified Xolo NFT holders pin their
                 locations, showcase their unique Xolo, and discover fellow
@@ -51,14 +51,14 @@ function Xglobe() {
         />
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto [&_p]:text-[#decee9] [&_ul]:text-[#decee9] [&_li]:text-[#decee9] [&_li>span]:text-[#decee9]">
+          <div className="max-w-4xl mx-auto">
             <GsapPageContent delay={0}>
               <GsapPageSubHeading heading="A platform for more than one community" />
             </GsapPageContent>
 
             <div>
               <GsapPageContent className="mt-4" delay={0.24}>
-                <p className="mb-4 text-white/90">
+                <p>
                   This isn't just a map — it's where digital ownership turns
                   into real human connection. Find a host for an authentic stay,
                   arrange a home swap, share a meal, join a day adventure, or
@@ -68,12 +68,12 @@ function Xglobe() {
                   secure — just connect your wallet. No personal data required,
                   just proof of community membership.
                 </p>
-                <p className="mb-4 text-white/90">
+                <p>
                   Over time, the Xglobe will open its doors to other verified,
                   values-aligned NFT communities who share our vision of
                   trust-based human connection.
                 </p>
-                <p className="text-white/90">
+                <p>
                   Just as our Mission states: we're cultivating a global dojo
                   where shared experiences weave a stronger, more connected
                   world. Connect your wallet and join the Xglobe today!
