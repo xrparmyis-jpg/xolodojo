@@ -9,6 +9,10 @@ gsap.registerPlugin(useGSAP);
 interface GsapPageSubHeadingProps {
     heading: string;
     className?: string;
+    /** Optional color override for the leading asterisk icon. */
+    iconColor?: string;
+    /** Optional final color for heading letters after animation. */
+    headingColor?: string;
 }
 
 /** Split heading into alternating word / whitespace chunks so wrapping never breaks mid-word (each word is nowrap). */
@@ -16,7 +20,12 @@ function headingPartsForWrapSafeHeading(source: string): string[] {
     return source.split(/(\s+)/).filter((p) => p.length > 0);
 }
 
-function GsapPageSubHeading({ heading, className = "" }: GsapPageSubHeadingProps) {
+function GsapPageSubHeading({
+    heading,
+    className = "",
+    iconColor = "#28aae4",
+    headingColor = "#642ff8",
+}: GsapPageSubHeadingProps) {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const headingRef = useRef<HTMLHeadingElement | null>(null);
     const [hasEnteredView, setHasEnteredView] = useState(false);
@@ -86,7 +95,7 @@ function GsapPageSubHeading({ heading, className = "" }: GsapPageSubHeadingProps
                 .to(
                     ".subheading-letter",
                     {
-                        color: "#642ff8",
+                        color: headingColor,
                         duration: 0.34,
                         ease: "power2.out",
                         stagger: 0.018,
@@ -94,7 +103,7 @@ function GsapPageSubHeading({ heading, className = "" }: GsapPageSubHeadingProps
                     "-=0.16"
                 );
         },
-        { scope: containerRef, dependencies: [hasEnteredView] }
+        { scope: containerRef, dependencies: [hasEnteredView, headingColor] }
     );
 
     return (
@@ -104,7 +113,8 @@ function GsapPageSubHeading({ heading, className = "" }: GsapPageSubHeadingProps
         >
             <FontAwesomeIcon
                 icon={faAsterisk}
-                className="subheading-icon w-5 h-5 md:w-6 md:h-6 opacity-0 text-[#28aae4]"
+                className="subheading-icon w-5 h-5 md:w-6 md:h-6 opacity-0"
+                style={{ color: iconColor }}
                 aria-label="subheading icon"
             />
             <h3
