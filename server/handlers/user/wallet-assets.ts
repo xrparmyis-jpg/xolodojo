@@ -457,10 +457,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    // Wallet-only sessions (`user_id IS NULL` pins): do not reconcile pins from ledger here.
-    // The NOT IN (held tokens) delete can drop pins when rippled NFTokenID strings and DB
-    // token_id differ slightly; email+wallet users still get cleanup below.
-    if (auth.kind !== 'wallet') {
+    // Remove DB pins for this wallet when the NFToken is no longer on the ledger (full
+    // `nfts` list, not collection UI filter). Applies to wallet-only and account sessions;
+    // deletes by `wallet_address` so `user_id IS NULL` rows are included.
+    {
       const heldNfTokenIds = new Set(
         nfts
           .map(n => n.NFTokenID)
@@ -469,7 +469,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       try {
         const removed = await deletePinsForWalletNotHeld(
           dbPool,
-          userId,
           accountForRpc,
           heldNfTokenIds,
           nfts.length
@@ -480,6 +479,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             account: accountForRpc,
             removed,
             onChainNftCount: heldNfTokenIds.size,
+            authKind: auth.kind,
           });
         }
       } catch (reconcileErr) {

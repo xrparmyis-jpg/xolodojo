@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import type { Map } from 'mapbox-gl';
 import { useSearchParams } from 'react-router-dom';
+import { useToast } from './ToastProvider';
 import { useAuth } from '../providers/AuthContext';
 import { useUserContext } from '../providers/UserContext';
 import { normalizeXrplAddressForCompare } from '../utils/xrplClassicAddress';
@@ -30,6 +31,12 @@ import { getXoloGlobePins, type XoloGlobePin } from '../services/xoloGlobePinSer
 import { bindPinPopupActions, syncPinPopupBookmarkButtonsInContainer } from '../utils/pinPopupActions';
 import { buildPinPopupHtml } from '../utils/pinPopupHtml';
 import { bindPinPopupLocalTimeClock } from '../utils/pinLocalTime';
+import {
+    buildProfilePinPath,
+    readGlobePinQueryParam,
+    resolveGlobePinQueryToTokenId,
+    stripGlobePinQueryParams,
+} from '../utils/globePinQuery';
 import { normalizeNfTokenId } from '../utils/nfTokenId';
 import { createGlobeStylePinMarkerElements } from '../utils/globeStyleMapMarker';
 import { computeGlobePinDisplayPositions } from '../utils/globePinClusters';
@@ -41,7 +48,8 @@ interface MapBoxXoloGlobeProps {
 }
 
 export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const { showToast } = useToast();
     const { user, loading: authLoading } = useAuth();
     const savedGlobePinIdsRef = useRef<Set<string>>(new Set());
     const [savedGlobePinsHydration, setSavedGlobePinsHydration] = useState(0);
@@ -63,6 +71,7 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
     const markerElementsRef = useRef<Array<{ marker: mapboxgl.Marker; visualElement: HTMLDivElement }>>([]);
     const pinPopupControllersRef = useRef<Record<string, { open: () => void }>>({});
     const autoOpenedPinTokenIdRef = useRef<string | null>(null);
+    const missingSharedPinNotifiedRef = useRef(false);
     /** True while markers are being torn down/replaced — popup `close` must not restore camera (default center is near Japan). */
     const remountingGlobeMarkersRef = useRef(false);
     const spinningRef = useRef(true);
@@ -104,14 +113,54 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
     const spinLockedByZoom = mapZoom >= rotationMaxZoom;
 
     const accessToken = useMemo(() => import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || '', []);
-    const targetPinTokenId = searchParams.get('pin')?.trim() || null;
+    const rawGlobePinQuery = readGlobePinQueryParam(searchParams);
+    const resolvedGlobePinTokenId = useMemo(
+        () => resolveGlobePinQueryToTokenId(rawGlobePinQuery, pins),
+        [rawGlobePinQuery, pins],
+    );
 
-    const openTargetPinFromQuery = useCallback(() => {
-        if (!targetPinTokenId) {
+    useEffect(() => {
+        missingSharedPinNotifiedRef.current = false;
+    }, [rawGlobePinQuery]);
+
+    useEffect(() => {
+        if (!rawGlobePinQuery || isLoading || loadError) {
             return;
         }
-        // API / DB use canonical UPPER hex; `?pin=` may match wallet-casing from the link — keys must match.
-        const key = normalizeNfTokenId(targetPinTokenId);
+        if (resolvedGlobePinTokenId) {
+            missingSharedPinNotifiedRef.current = false;
+            return;
+        }
+        if (missingSharedPinNotifiedRef.current) {
+            return;
+        }
+        missingSharedPinNotifiedRef.current = true;
+        showToast(
+            'info',
+            'This pin is no longer available. It may have been removed or the NFT is no longer pinned.',
+        );
+        setSearchParams(
+            (prev) => {
+                const next = new URLSearchParams(prev);
+                stripGlobePinQueryParams(next);
+                return next;
+            },
+            { replace: true },
+        );
+    }, [
+        rawGlobePinQuery,
+        resolvedGlobePinTokenId,
+        isLoading,
+        loadError,
+        showToast,
+        setSearchParams,
+    ]);
+
+    const openTargetPinFromQuery = useCallback(() => {
+        if (!resolvedGlobePinTokenId) {
+            return;
+        }
+        const key = normalizeNfTokenId(resolvedGlobePinTokenId);
         if (autoOpenedPinTokenIdRef.current === key) {
             return;
         }
@@ -123,7 +172,7 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
 
         autoOpenedPinTokenIdRef.current = key;
         controller.open();
-    }, [targetPinTokenId]);
+    }, [resolvedGlobePinTokenId]);
 
     useEffect(() => {
         let cancelled = false;
@@ -442,8 +491,8 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
     }, [accessToken]);
 
     useEffect(() => {
-        if (targetPinTokenId) {
-            const key = normalizeNfTokenId(targetPinTokenId);
+        if (resolvedGlobePinTokenId) {
+            const key = normalizeNfTokenId(resolvedGlobePinTokenId);
             if (
                 autoOpenedPinTokenIdRef.current != null
                 && autoOpenedPinTokenIdRef.current !== key
@@ -452,7 +501,7 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
             }
         }
         openTargetPinFromQuery();
-    }, [openTargetPinFromQuery, targetPinTokenId]);
+    }, [openTargetPinFromQuery, resolvedGlobePinTokenId]);
 
     useEffect(() => {
         const map = mapRef.current;
@@ -511,7 +560,7 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
                             viewerWalletAddress
                             && normalizeXrplAddressForCompare(viewerWalletAddress)
                                 === normalizeXrplAddressForCompare(pin.wallet_address)
-                                ? `/profile?pin=${encodeURIComponent(pin.token_id)}`
+                                ? buildProfilePinPath(pin.token_id, pin.title)
                                 : null,
                         canBookmark: Boolean(!authLoading && user),
                         isBookmarked: savedGlobePinIdsRef.current.has(

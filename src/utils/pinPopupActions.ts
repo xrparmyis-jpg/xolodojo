@@ -15,6 +15,15 @@ function getTokenFromActionsRow(host: Element | null | undefined): string | null
   return n.length > 0 ? n : null;
 }
 
+function getPinTitleFromActionsRow(host: HTMLElement): string | null {
+  const raw = host.getAttribute('data-xolo-popup-pin-title');
+  if (typeof raw !== 'string') {
+    return null;
+  }
+  const t = raw.trim();
+  return t.length > 0 ? t : null;
+}
+
 function setBookmarkButtonState(btn: HTMLButtonElement, bookmarked: boolean) {
   btn.setAttribute('data-xolo-bookmarked', bookmarked ? '1' : '0');
   btn.setAttribute('aria-pressed', bookmarked ? 'true' : 'false');
@@ -91,7 +100,8 @@ export function bindPinPopupActions(
       emitXoloToast('error', 'Could not read pin id');
       return;
     }
-    const url = buildGlobePinShareUrl(id);
+    const pinTitle = getPinTitleFromActionsRow(actionsHost);
+    const url = buildGlobePinShareUrl(id, pinTitle);
     const nativeShareData = {
       title: 'Xolo Dojo Xglobe',
       text: 'Check out this Xglobe pin',
