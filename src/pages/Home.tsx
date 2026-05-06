@@ -37,17 +37,26 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     body: (
       <>
         <p className="mb-4">
-          A sacred digital sanctuary rooted in the
-          Xoloitzquintli’s timeless values of unwavering loyalty, transformative
-          guardianship, deep respect, humility, resilience, and shared
-          reverence.{' '}
+          A sacred digital sanctuary rooted in the Xoloitzquintli’s timeless
+          values of unwavering loyalty, transformative guardianship, deep
+          respect, humility, resilience, and shared reverence.{' '}
         </p>
         <p className="mb-4">
-          These principles form the ethical heart of our community - a space of trust, honor, and genuine harmony where every holder is welcomed as family. At the living heart of the XoloDojo is Xglobe, a Xoloitzquintli NFT token-gated global community offering a space to share skills, cultures, and collaborations - forging person-to-person exchanges and adventures across the planet.
+          These principles form the ethical heart of our community - a space of
+          trust, honor, and genuine harmony where every holder is welcomed as
+          family. At the living heart of the XoloDojo is Xglobe, a
+          Xoloitzquintli NFT token-gated global community offering a space to
+          share skills, cultures, and collaborations - forging person-to-person
+          exchanges and adventures across the planet.
         </p>
         <p>
-          XoloDojo community members are represented by their sharable Xglobe Xpins and the alpha that resides within it. On Xglobe, simply click an Xpin to view that alpha, reach out, bookmark it, and/or share it with others. More than a collection, more than a movement, the XoloDojo is legacy in motion.           
-         <br /><br /> Own the Xolo. Own the Journey. Own the Destination.
+          XoloDojo community members are represented by their sharable Xglobe
+          Xpins and the alpha that resides within it. On Xglobe, simply click an
+          Xpin to view that alpha, reach out, bookmark it, and/or share it with
+          others. More than a collection, more than a movement, the XoloDojo is
+          legacy in motion.
+          <br />
+          <br /> Own the Xolo. Own the Journey. Own the Destination.
         </p>
       </>
     ),
@@ -75,7 +84,9 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
           they know they're gonna get minted first!
         </p>
         <p className="mb-4">
-          This is the hunt for your Xolo, your guide and companion unlocking Xglobe. Looks like alpha, feels like legacy - sprinkled with a lil degen and prepared with a whole lotta heart.{' '}
+          This is the hunt for your Xolo, your guide and companion unlocking
+          Xglobe. Looks like alpha, feels like legacy - sprinkled with a lil
+          degen and prepared with a whole lotta heart.{' '}
         </p>
       </>
     ),
@@ -94,17 +105,22 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
         <p className="mb-4">
           Xglobe is where the XoloDojo comes alive at full scale--a live
           token-gated world built for networking, connection, exchange, and
-          adventure. Holders share skills and culture, organize meetups, create person-to-person adventures, offer products or services, and build a growing network of like minded individuals across the planet.
+          adventure. Holders share skills and culture, organize meetups, create
+          person-to-person adventures, offer products or services, and build a
+          growing network of like minded individuals across the planet.
         </p>
 
         <p className="mb-4">
-          Users can connect directly, organize collaborations, work out costs amongst themselves, and turn introductions into opportunities, built on trust, shared values, and mutual respect.  
-          </p>
+          Users can connect directly, organize collaborations, work out costs
+          amongst themselves, and turn introductions into opportunities, built
+          on trust, shared values, and mutual respect.
+        </p>
 
         <p className="mb-4">
-          Xglobe is where community starts to stretch across borders and time zones, with an agenda to turn travelers into locals, strangers
-          into allies, and ideas into collaborations.
-          </p>
+          Xglobe is where community starts to stretch across borders and time
+          zones, with an agenda to turn travelers into locals, strangers into
+          allies, and ideas into collaborations.
+        </p>
         <p>Xglobe is the Omega.</p>
       </>
     ),
@@ -121,19 +137,27 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     body: (
       <>
         <p className="mb-4">
-          Your Xpin shares your presence with the world. Think of it as your digital business card - a snapshot of who you are, what you do, what you offer, and what you're seeking.
+          Your Xpin shares your presence with the world. Think of it as your
+          digital business card - a snapshot of who you are, what you do, what
+          you offer, and what you're seeking.
         </p>
         <p className="mb-4">
-          Add your name, bio, links, and socials. Your Xpin shows the location you choose, what you're building, in need of, or the kind of people and opportunities you want to connect with. It can be your intro, your signal, your invition, or your shot at finding like-minded people who move with purpose, curiosity, positive vibes and good energy.
+          Add your name, bio, links, and socials. Your Xpin shows the location
+          you choose, what you're building, in need of, or the kind of people
+          and opportunities you want to connect with. It can be your intro, your
+          signal, your invition, or your shot at finding like-minded people who
+          move with purpose, curiosity, positive vibes and good energy.
         </p>
         <p className="mb-4">
-          Xpins display local date and time and can be shared and bookmarked, making it easier for people to stay connected and revisit the profiles, offers, and opportunities that matter to them most. Each Xolo minted gets an Xpin and a unique networking opportunity. Inside the XoloDojo, powered by Xglobe, community collaboration is just an Xpin away.
+          Xpins display local date and time and can be shared and bookmarked,
+          making it easier for people to stay connected and revisit the
+          profiles, offers, and opportunities that matter to them most. Each
+          Xolo minted gets an Xpin and a unique networking opportunity. Inside
+          the XoloDojo, powered by Xglobe, community collaboration is just an
+          Xpin away.
         </p>
-       <p className="mb-4">
-          Xpin is the Alpha.
-        </p> 
-        <p className="mb-4">
-          .</p>
+        <p className="mb-4">Xpin is the Alpha.</p>
+        <p className="mb-4">.</p>
       </>
     ),
   },
@@ -149,16 +173,27 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     body: (
       <>
         <p className="mb-4">
-          The Xoloitzquintli is an ancient breed rooted in history and tradition. One of the oldest dog breeds in the Americas with a history dating back at least 3,500 years. The Xoloitzquintli was molded and shaped by ancient Mexico, passed from generation to generation, woven through history, tradition, and the symbolism of Aztec and Mayan cultures. Xolos legacy carries centuries of meaning.
+          The Xoloitzquintli is an ancient breed rooted in history and
+          tradition. One of the oldest dog breeds in the Americas with a history
+          dating back at least 3,500 years. The Xoloitzquintli was molded and
+          shaped by ancient Mexico, passed from generation to generation, woven
+          through history, tradition, and the symbolism of Aztec and Mayan
+          cultures. Xolos legacy carries centuries of meaning.
+        </p>
+        <p className="mb-4">
+          Long regarded as more than a companion, the Xolo came to be seen as a
+          guardian, healer, and guide - a symbol of loyalty, protection, and
+          enduring connection. Behind that history lies a deeper quest - the
+          path of the mystical Xolo through the 9 perilous paths of Mictlan.
+          Symbolising the journey of the soul through the afterlife, and the
+          Xolo's role as guide and protector on that journey.
         </p>
 
         <p className="mb-4">
-          Long regarded as more than a companion, the Xolo came to be seen as a guardian, healer, and guide - a symbol of loyalty, protection, and enduring connection. Behind that history lies a deeper quest - the path of the mystical Xolo through the 9 perilous paths of Mictlan. Symbolising the journey of the soul through the afterlife, and the Xolo's role as guide and protector on that journey.
-
-        </p>
-
-        <p className="mb-4">
-          The XoloDojo is built on the foundation of that legacy, with the Xoloitzquintle collection and Xglobe community ecosystem designed to embody those values and bring them to life in a modern, global context.
+          The XoloDojo is built on the foundation of that legacy, with the
+          Xoloitzquintle collection and Xglobe community ecosystem designed to
+          embody those values and bring them to life in a modern, global
+          context.
         </p>
 
         <p></p>
@@ -177,18 +212,27 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     body: (
       <>
         <p className="mb-4">
-          The vision is to provide the tools needed to build a global community rooted in trust, loyalty, and collaboration - helping each other to see where we all are, and connect without the restrictions of borders and time zones.
+          The vision is to provide the tools needed to build a global community
+          rooted in trust, loyalty, and collaboration - helping each other to
+          see where we all are, and connect without the restrictions of borders
+          and time zones.
         </p>
 
         <p className="mb-4">
-          Networking shared skills and services to products, projects, meetups and exchanges that lead to conversation. Conversation that leads to collaboration. Collaboration that leads to building, putting community first, connected through real presence.
+          Networking shared skills and services to products, projects, meetups
+          and exchanges that lead to conversation. Conversation that leads to
+          collaboration. Collaboration that leads to building, putting community
+          first, connected through real presence.
         </p>
 
         <p className="mb-4">
-            XoloDojo was built as a living ecosystem fostering community, collaboration, and culture. The Xolos open the door, Xglobe provides the stage, the Xpin represents your presence of a shared movement, the friendships made along the way, and the mystical journey back home. 
+          XoloDojo was built as a living ecosystem fostering community,
+          collaboration, and culture. The Xolos open the door, Xglobe provides
+          the stage, the Xpin represents your presence of a shared movement, the
+          friendships made along the way, and the mystical journey back home.
         </p>
         <p className="mb-4">
-           The mint is just the beginning, not the finish line. 
+          The mint is just the beginning, not the finish line.
         </p>
       </>
     ),
@@ -205,22 +249,29 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     body: (
       <>
         <p className="mb-4">
-          An unstoppable trio united by freindship, loyalty, and mutual respect perservering together to deliver the XoloDojo Xoloitzquintli NFT Collection -  featuring Xglobe.  Team fire is dedicated to building an inclusive, collaborative, and vibrant community where people can connect, share, and grow.
+          An unstoppable trio united by freindship, loyalty, and mutual respect
+          perservering together to deliver the XoloDojo Xoloitzquintli NFT
+          Collection - featuring Xglobe. Team fire is dedicated to building an
+          inclusive, collaborative, and vibrant community where people can
+          connect, share, and grow.
         </p>
         <p className="mb-4">
           Cryptonite, the project visionary, is the Alaskan spark that ignited
-          the flame. Turning bold, raw ideas and a vision into reality -  driven
-          by the relentless pursuit of building a global community examplifying the exercise of mind, body, and soul. 
+          the flame. Turning bold, raw ideas and a vision into reality - driven
+          by the relentless pursuit of building a global community examplifying
+          the exercise of mind, body, and soul.
         </p>
         <p className="mb-4">
-          Code, the California kid based in the Silicon Valley area, has been writing code since the Commodore 64 days. The github guru is the technical backbone and architect coding the XoloDojo ecosystem.
+          Code, the California kid based in the Silicon Valley area, has been
+          writing code since the Commodore 64 days. The github guru is the
+          technical backbone and architect coding the XoloDojo ecosystem.
         </p>
         <p className="mb-4">
-          RedShadow is the talented artist hailing from Pakistan. The Pakistani Alchemist is the talent behind each hand drawn trait that is the heartbeat of the Xoloitzquintle NFT Collection.
+          RedShadow is the talented artist hailing from Pakistan. The Pakistani
+          Alchemist is the talent behind each hand drawn trait that is the
+          heartbeat of the Xoloitzquintle NFT Collection.
         </p>
-        <p className="mb-4">
-          
-        </p>
+        <p className="mb-4"></p>
       </>
     ),
   },
@@ -298,7 +349,10 @@ function Home() {
           <GsapPageContent className="mx-auto w-full max-w-4xl">
             <>
               <p>
-                The website is built. Xglobe is live. The Xpin is ready. The mint is next. Your Xoloitzquintli NFT awaits. Fused with degen pride and the spirit of community, the collection is prepared to launch. Lock in and be ready when we flip the switch! 
+                The website is built. Xglobe is live. The Xpin is ready. The
+                mint is next. Your Xoloitzquintli NFT awaits. Fused with degen
+                pride and the spirit of community, the collection is prepared to
+                launch. Lock in and be ready when we flip the switch!
               </p>
             </>
           </GsapPageContent>
@@ -335,8 +389,10 @@ function Home() {
         </div>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <GsapPageContent delay={0}>
-                        <GsapPageSubHeading heading={`Xolo (ShōLō) "The Guardian", 道 (Dō) "The Pathway",\n\n and 場 (Jō) "The Destination"`} />
-                      </GsapPageContent>
+            <GsapPageSubHeading
+              heading={`Xolo (ShōLō) "The Guardian", 道 (Dō) "The Pathway",\n\n and 場 (Jō) "The Destination"`}
+            />
+          </GsapPageContent>
           <div className="mt-4 flex flex-col gap-12 lg:gap-16">
             {LEGACY_STORY_ROWS.map((row, index) => {
               const imageLeft = row.imageAtLg === 'left';

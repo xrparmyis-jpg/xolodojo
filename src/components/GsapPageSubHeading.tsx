@@ -86,7 +86,7 @@ function GsapPageSubHeading({ heading, className = "" }: GsapPageSubHeadingProps
                 .to(
                     ".subheading-letter",
                     {
-                        color: "#642ff8",
+                        color: "#ff5bc3",
                         duration: 0.34,
                         ease: "power2.out",
                         stagger: 0.018,

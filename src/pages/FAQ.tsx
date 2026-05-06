@@ -25,13 +25,13 @@ const faqItems = [
     id: 'faq-project-5',
     question: 'What Wallet And Funds Do I Need To Prepare?',
     answer:
-      'You will need an XRPL-compatible wallet like MadLab Pro. Ensure your wallet is funded with XRP, 20 XRP is recommended to cover the XRPL\'s wallet reserve and minimal transaction fees.',
+      "You will need an XRPL-compatible wallet like MadLab Pro. Ensure your wallet is funded with XRP, 20 XRP is recommended to cover the XRPL's wallet reserve and minimal transaction fees.",
   },
   {
     id: 'faq-project-4',
     question: 'When And Where And Where Can I Mint A Xolo NFT?',
     answer:
-      "The mint for The Xoloitzcuintle Collection (10,001 unique XoloNFTs) is coming soon on xrp.cafe, the premier marketplace for XRPL-based NFTs. Built on the eco-friendly XRP Ledger (XRPL), the mint will feature low-cost, fast transactions with no gas wars. Prepare now: set up an XRPL-compatible wallet (like Xaman or Mad Lab), fund it with at least 20 XRP, and stay tuned to xolodojo.io or @XoloDojo for the exact launch announcement and any allowlist details. Get ready to own your sacred Xolo guardian and unlock the Xglobe!",
+      'The mint for The Xoloitzcuintle Collection (10,001 unique XoloNFTs) is coming soon on xrp.cafe, the premier marketplace for XRPL-based NFTs. Built on the eco-friendly XRP Ledger (XRPL), the mint will feature low-cost, fast transactions with no gas wars. Prepare now: set up an XRPL-compatible wallet (like Xaman or Mad Lab), fund it with at least 20 XRP, and stay tuned to xolodojo.io or @XoloDojo for the exact launch announcement and any allowlist details. Get ready to own your sacred Xolo guardian and unlock the Xglobe!',
   },
 ];
 
@@ -47,20 +47,27 @@ function FAQ() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center text-center">
             <div className="mb-8">
-              <img src="/04a.png" alt="" className="max-h-56 w-auto rounded-md object-contain md:max-h-80" />
+              <img
+                src="/04a.png"
+                alt=""
+                className="max-h-56 w-auto rounded-md object-contain md:max-h-80"
+              />
             </div>
           </div>
         </div>
       </section>
 
       <section className="relative overflow-hidden bg-[#1a1a1e] py-8 lg:py-12">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 [&_p]:text-[#decee9]">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6">
           <GsapPageSubHeading heading="Frequently Asked Questions" />
           <div className="mt-8 mb-4 divide-y divide-white/20 overflow-hidden rounded-xl border border-[#decee9]/20 bg-black/70">
-            {faqItems.map((item) => {
+            {faqItems.map(item => {
               const isOpen = openId === item.id;
               return (
-                <div key={item.id} className="bg-black/20 first:rounded-t-xl last:rounded-b-xl overflow-hidden">
+                <div
+                  key={item.id}
+                  className="bg-black/20 first:rounded-t-xl last:rounded-b-xl overflow-hidden"
+                >
                   <h3>
                     <button
                       type="button"
@@ -84,10 +91,14 @@ function FAQ() {
                     role="region"
                     aria-labelledby={`${item.id}-head`}
                     hidden={!isOpen}
-                    className={isOpen ? 'overflow-hidden animate-fade-in-up' : 'overflow-hidden'}
+                    className={
+                      isOpen
+                        ? 'overflow-hidden animate-fade-in-up'
+                        : 'overflow-hidden'
+                    }
                   >
                     <div className="border-t border-white/20 bg-white/5 px-5 pb-4 pt-2">
-                      <p className="text-sm leading-relaxed text-white/90 md:text-base">
+                      <p className="text-sm leading-relaxed md:text-base">
                         {item.answer}
                       </p>
                     </div>
