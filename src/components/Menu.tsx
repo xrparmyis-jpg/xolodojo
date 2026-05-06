@@ -58,7 +58,7 @@ function Menu({
     };
 
     const menuItems = [
-        { path: '/xoloitzquintle', label: 'Xoloitzquintle' },
+        { path: '/xoloitzquintli', label: 'Xoloitzquintli' },
         { path: '/team', label: 'Team' },
         { path: '/vision', label: 'Vision' },
         { path: '/xglobe', label: 'Xglobe' },

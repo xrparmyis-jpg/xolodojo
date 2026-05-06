@@ -5,21 +5,21 @@ import GsapPageSubHeading from '../components/GsapPageSubHeading';
 const faqItems = [
   {
     id: 'faq-project-1',
-    question: 'What Is The Xoloitzquintle?',
+    question: 'What Is The Xoloitzquintli?',
     answer:
-      "The Xoloitzcuintle (Shō-lō eats-kwēnt-lee), also known as Xolo (Shō-lō), is one of the world's oldest breeds, with archaeological evidence dating back over 3,000–3,500 years in Mesoamerican civilizations (including Colima, Toltec, Zapotec, Maya, and Aztec cultures). Revered as a sacred spiritual guide and loyal companion, it was believed to guard homes from evil spirits in life and accompany souls through the dangers of Mictlan (the Aztec underworld/afterlife) to reach eternal rest. Named after the god Xolotl (lightning, death, and transformation) and the Nahuatl word for dog (itzcuintli), the Xolo symbolizes protection, healing, and the journey between worlds.",
+      "The Xoloitzcuintli (Shō-lō eats-kwēnt-lee), also known as Xolo (Shō-lō), is one of the world's oldest breeds, with archaeological evidence dating back over 3,000–3,500 years in Mesoamerican civilizations (including Colima, Toltec, Zapotec, Maya, and Aztec cultures). Revered as a sacred spiritual guide and loyal companion, it was believed to guard homes from evil spirits in life and accompany souls through the dangers of Mictlan (the Aztec underworld/afterlife) to reach eternal rest. Named after the god Xolotl (lightning, death, and transformation) and the Nahuatl word for dog (itzcuintli), the Xolo symbolizes protection, healing, and the journey between worlds.",
   },
   {
     id: 'faq-project-2',
     question: 'Who Is The Creator?',
     answer:
-      "Cryptonite — a nomadic, blockchain-agnostic digital pirate who's been sailing the Cryptocurrenseas since 2016. With footprints in 34 countries shaping a deep appreciation for diverse cultures and meaningful connections, he's a proud XRP Army member building The Xoloitzquintle Collection on the XRPL. Teaming with visionary artist RedShadow, he's creating XoloDojo and Xglobe: a token-gated global community for trust, travel, skill-sharing, and genuine shared experiences. Own a XoloNFT and join the voyage.",
+      "Cryptonite — a nomadic, blockchain-agnostic digital pirate who's been sailing the Cryptocurrenseas since 2016. With footprints in 34 countries shaping a deep appreciation for diverse cultures and meaningful connections, he's a proud XRP Army member building The Xoloitzquintli Collection on the XRPL. Teaming with visionary artist RedShadow, he's creating XoloDojo and Xglobe: a token-gated global community for trust, travel, skill-sharing, and genuine shared experiences. Own a XoloNFT and join the voyage.",
   },
   {
     id: 'faq-project-3',
     question: 'Who Is The Artist?',
     answer:
-      "RedShadow is the visionary artist behind The Xoloitzquintle Collection. With a masterful eye for detail and deep respect for Mesoamerican heritage, RedShadow designs each of the 10,001 unique XoloNFTs as sacred digital guardians — blending timeless cultural symbolism with striking, evocative artwork that honors the Xoloitzquintle's spiritual role as a companion and soul guide. Teaming with Cryptonite, RedShadow's artistry forms the visual foundation of XoloDojo and Xglobe.",
+      "RedShadow is the visionary artist behind The Xoloitzquintli Collection. With a masterful eye for detail and deep respect for Mesoamerican heritage, RedShadow designs each of the 10,001 unique XoloNFTs as sacred digital guardians — blending timeless cultural symbolism with striking, evocative artwork that honors the Xoloitzquintli's spiritual role as a companion and soul guide. Teaming with Cryptonite, RedShadow's artistry forms the visual foundation of XoloDojo and Xglobe.",
   },
   {
     id: 'faq-project-5',
@@ -31,7 +31,7 @@ const faqItems = [
     id: 'faq-project-4',
     question: 'When And Where And Where Can I Mint A Xolo NFT?',
     answer:
-      'The mint for The Xoloitzcuintle Collection (10,001 unique XoloNFTs) is coming soon on xrp.cafe, the premier marketplace for XRPL-based NFTs. Built on the eco-friendly XRP Ledger (XRPL), the mint will feature low-cost, fast transactions with no gas wars. Prepare now: set up an XRPL-compatible wallet (like Xaman or Mad Lab), fund it with at least 20 XRP, and stay tuned to xolodojo.io or @XoloDojo for the exact launch announcement and any allowlist details. Get ready to own your sacred Xolo guardian and unlock the Xglobe!',
+      'The mint for The Xoloitzcuintli Collection (10,001 unique XoloNFTs) is coming soon on xrp.cafe, the premier marketplace for XRPL-based NFTs. Built on the eco-friendly XRP Ledger (XRPL), the mint will feature low-cost, fast transactions with no gas wars. Prepare now: set up an XRPL-compatible wallet (like Xaman or Mad Lab), fund it with at least 20 XRP, and stay tuned to xolodojo.io or @XoloDojo for the exact launch announcement and any allowlist details. Get ready to own your sacred Xolo guardian and unlock the Xglobe!',
   },
 ];
 

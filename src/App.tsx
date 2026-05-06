@@ -12,7 +12,7 @@ import Profile from "./pages/Profile";
 import NotFound from "./pages/404";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
-import Xoloitzquintle from "./pages/Xoloitzquintle";
+import Xoloitzquintli from "./pages/Xoloitzquintli";
 import Vision from "./pages/Vision";
 import Team from "./pages/Team";
 import Xglobe from "./pages/Xglobe";
@@ -51,7 +51,8 @@ function AppContent() {
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/xoloitzquintle" element={<Xoloitzquintle />} />
+          <Route path="/xoloitzquintli" element={<Xoloitzquintli />} />
+          <Route path="/xoloitzquintle" element={<Navigate to="/xoloitzquintli" replace />} />
           <Route path="/vision" element={<Vision />} />
           <Route path="/team" element={<Team />} />
           <Route path="/xglobe" element={<Xglobe />} />
