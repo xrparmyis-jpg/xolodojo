@@ -1,21 +1,21 @@
-import { Routes, Route, useLocation, Navigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { Analytics } from "@vercel/analytics/react";
-import "./App.css";
-import AppLoadingOverlay from "./components/AppLoadingOverlay";
-import Header from "./components/Header";
-import Footer from "./components/Footer";
-import ProtectedRoute from "./components/ProtectedRoute";
-import Home from "./pages/Home";
-import FAQ from "./pages/FAQ";
-import Profile from "./pages/Profile";
-import NotFound from "./pages/404";
-import TermsAndConditions from "./pages/TermsAndConditions";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import Xoloitzquintli from "./pages/Xoloitzquintli";
-import Vision from "./pages/Vision";
-import Team from "./pages/Team";
-import Xglobe from "./pages/Xglobe";
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Analytics } from '@vercel/analytics/react';
+import './App.css';
+import AppLoadingOverlay from './components/AppLoadingOverlay';
+import Header from './components/Header';
+import Footer from './components/Footer';
+import ProtectedRoute from './components/ProtectedRoute';
+import Home from './pages/Home';
+import FAQ from './pages/FAQ';
+import Profile from './pages/Profile';
+import NotFound from './pages/404';
+import TermsAndConditions from './pages/TermsAndConditions';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import Xoloitzquintli from './pages/Xoloitzquintli';
+import Vision from './pages/Vision';
+import Team from './pages/Team';
+import Xglobe from './pages/Xglobe';
 
 function XologlobeRedirect() {
   const { search } = useLocation();
@@ -52,13 +52,19 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/xoloitzquintli" element={<Xoloitzquintli />} />
-          <Route path="/xoloitzquintle" element={<Navigate to="/xoloitzquintli" replace />} />
+          <Route
+            path="/xoloitzquintle"
+            element={<Navigate to="/xoloitzquintli" replace />}
+          />
           <Route path="/vision" element={<Vision />} />
           <Route path="/team" element={<Team />} />
           <Route path="/xglobe" element={<Xglobe />} />
           <Route path="/xologlobe" element={<XologlobeRedirect />} />
           <Route path="/faq" element={<FAQ />} />
-          <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+          <Route
+            path="/terms-and-conditions"
+            element={<TermsAndConditions />}
+          />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route
             path="/profile"

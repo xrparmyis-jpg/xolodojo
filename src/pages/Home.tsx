@@ -73,7 +73,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     titleColor: 'text-fuchsia-400',
     eyebrowTextColor: 'text-fuchsia-400',
     eyebrow: 'The Collection',
-    title: <>The Xoloitzquintle NFT Collection</>,
+    title: <>The Xoloitzquintli NFT Collection</>,
     body: (
       <>
         <p className="mb-4">
@@ -167,14 +167,14 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     ),
   },
   {
-    id: 'TheXoloitzquintleLegacy',
+    id: 'TheXoloitzquintliLegacy',
     imageAtLg: 'left',
     imageSrc: '/home/WetPaintXolo.jpg',
     imageAlt: 'Wet Paint Xolo',
     borderColor: 'border-amber-400',
     titleColor: 'text-amber-400',
     eyebrowTextColor: 'text-amber-400',
-    eyebrow: 'The Xoloitzquintle: A breed of Legacy',
+    eyebrow: 'The Xoloitzquintli: A breed of Legacy',
     title: <>Sacred Legacy, Living Presence</>,
     body: (
       <>
@@ -197,7 +197,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
 
         <p className="mb-4">
           The XoloDojo is built on the foundation of that legacy, with the
-          Xoloitzquintle collection and Xglobe community ecosystem designed to
+          Xoloitzquintli collection and Xglobe community ecosystem designed to
           embody those values and bring them to life in a modern, global
           context.
         </p>
@@ -397,7 +397,9 @@ function Home() {
         </div>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <GsapPageContent delay={0}>
-            <GsapPageSubHeading headingColor="#00ff1e" iconColor="#00bfff"
+            <GsapPageSubHeading
+              headingColor="#00ff1e"
+              iconColor="#00bfff"
               heading={`Xolo (ShōLō) "The Guardian", 道 (Dō) "The Pathway",\n\n and 場 (Jō) "The Destination"`}
             />
           </GsapPageContent>

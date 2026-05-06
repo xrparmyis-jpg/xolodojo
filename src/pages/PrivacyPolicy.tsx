@@ -22,7 +22,7 @@ function PrivacyPolicy() {
                 1. Introduction
               </h2>
               <p className="mb-4 leading-relaxed">
-                Welcome to The Xoloitzquintle Collection (the "Project", "we",
+                Welcome to The Xoloitzquintli Collection (the "Project", "we",
                 "us", or "our"). We operate the website at
                 https://vite-react-neon-beta-24.vercel.app/ (the "Site"), a beta
                 landing page and interface for our collection of 10,001 unique
