@@ -826,3 +826,24 @@ span {
   color: #2563eb !important;
   fill: currentColor !important;
 }
+
+/* NFT gallery: open pinned NFT on Xglobe (cyan accent vs blue thumbtack) */
+button.xologlobe-pin-thumbtack-btn.xologlobe-pin-globe-btn {
+  border-color: rgb(34 211 238 / 0.45) !important;
+  color: #22d3ee !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45) !important;
+}
+
+button.xologlobe-pin-thumbtack-btn.xologlobe-pin-globe-btn:hover,
+button.xologlobe-pin-thumbtack-btn.xologlobe-pin-globe-btn:focus-visible {
+  border-color: rgb(103 232 249 / 0.6) !important;
+  color: #67e8f9 !important;
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45) !important;
+}
+
+button.xologlobe-pin-thumbtack-btn.xologlobe-pin-globe-btn svg,
+button.xologlobe-pin-thumbtack-btn.xologlobe-pin-globe-btn .svg-inline--fa {
+  color: inherit !important;
+  fill: currentColor !important;
+}

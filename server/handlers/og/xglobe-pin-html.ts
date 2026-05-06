@@ -1,7 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getAppMysqlPool } from '../../lib/mysqlPool.js';
-import { getGlobePinByTokenId } from '../../lib/userPinsRepo.js';
-import { normalizeNfTokenId } from '../../../src/utils/nfTokenId.js';
+import { getGlobePinByQueryParam } from '../../lib/userPinsRepo.js';
 
 function escapeHtml(s: string): string {
   return s
@@ -56,7 +55,7 @@ const defaultDescription =
 
 /**
  * Returns minimal HTML with Open Graph tags for a globe pin. Used by Edge middleware
- * when social crawlers request `/xglobe?pin=...`.
+ * when social crawlers request `/xglobe?Xpin=...` (legacy `pin` also accepted).
  */
 export default async function handler(
   req: VercelRequest,
@@ -67,23 +66,29 @@ export default async function handler(
     return;
   }
 
-  const raw = req.query?.pin;
-  const rawPin = Array.isArray(raw) ? raw[0] : raw;
-  const pin = typeof rawPin === 'string' ? rawPin.trim() : '';
+  const pick = (v: string | string[] | undefined): string | undefined => {
+    if (Array.isArray(v)) {
+      return v[0];
+    }
+    return typeof v === 'string' ? v : undefined;
+  };
+  const rawXpin = pick(req.query?.Xpin as string | string[] | undefined);
+  const rawLegacy = pick(req.query?.pin as string | string[] | undefined);
+  const pin = (rawXpin ?? rawLegacy ?? '').trim();
   const siteOrigin = publicSiteOrigin();
 
   let pageTitle = defaultTitle;
   let description = defaultDescription;
   let imageUrl = `${siteOrigin}/team/Cryptonite.jpg`;
-  const canonicalKey = pin ? normalizeNfTokenId(pin) : '';
-  const pageUrl = canonicalKey
-    ? `${siteOrigin}/xglobe?pin=${encodeURIComponent(canonicalKey)}`
+  /** Canonical URL uses `Xpin` (value is the raw query string, title or hex). */
+  const pageUrl = pin
+    ? `${siteOrigin}/xglobe?Xpin=${encodeURIComponent(pin)}`
     : `${siteOrigin}/xglobe`;
 
   if (pin) {
     try {
       const pool = getAppMysqlPool();
-      const row = await getGlobePinByTokenId(pool, pin);
+      const row = await getGlobePinByQueryParam(pool, pin);
       if (row) {
         const t = row.title?.trim();
         pageTitle = t ? `${t} | XGlobe` : 'Xolo pin | XGlobe';

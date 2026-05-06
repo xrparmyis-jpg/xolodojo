@@ -213,7 +213,11 @@ export async function upsertUserPin(
       socials, pin_note, pinned_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON DUPLICATE KEY UPDATE
-      user_id = VALUES(user_id),
+      user_id = CASE
+        WHEN user_pins.user_id IS NULL THEN NULL
+        WHEN VALUES(user_id) IS NOT NULL THEN VALUES(user_id)
+        ELSE user_pins.user_id
+      END,
       issuer = VALUES(issuer),
       uri = VALUES(uri),
       latitude = VALUES(latitude),
@@ -262,6 +266,25 @@ export async function deleteUserPin(
   );
 }
 
+/**
+ * Removes the pin row by wallet + token only (unique key). Used after auth proves the
+ * caller controls this wallet — covers pins created with `user_id IS NULL` (wallet-only)
+ * when the same wallet is later used under an email account.
+ */
+export async function deletePinByWalletAndToken(
+  pool: mysql.Pool,
+  tokenId: string,
+  walletAddress: string
+): Promise<number> {
+  const wa = normalizeWalletAddress(walletAddress);
+  const tid = normalizeNfTokenId(tokenId);
+  const [result] = await pool.execute(
+    `DELETE FROM user_pins WHERE token_id = ? AND wallet_address = ?`,
+    [tid, wa]
+  );
+  return (result as ResultSetHeader).affectedRows;
+}
+
 export async function deletePinsForUserWallet(
   pool: mysql.Pool,
   userId: number,
@@ -274,39 +297,36 @@ export async function deletePinsForUserWallet(
 }
 
 /**
- * Deletes pins for this user+wallet when the NFTokenID is not present in the
- * wallet on-chain (uses full ledger list, not UI collection filter).
- * If the ledger reports zero NFTs for the account, all pins for that wallet row are removed.
+ * Deletes pins for this wallet when the NFTokenID is not present on-chain (uses full ledger
+ * list, not UI collection filter). Rows are matched by `wallet_address` only so pins created
+ * with `user_id IS NULL` (wallet-only) are cleaned up the same as account-linked pins.
+ * If the ledger reports zero NFTs for the account, all pins for that wallet are removed.
  * If `heldNfTokenIds` is empty but `ledgerNftCount > 0`, does nothing (avoids wiping pins when
  * token IDs could not be collected from the RPC response).
  */
 export async function deletePinsForWalletNotHeld(
   pool: mysql.Pool,
-  userId: number | null,
   walletAddress: string,
   heldNfTokenIds: Set<string>,
   ledgerNftCount: number
 ): Promise<number> {
   const wa = normalizeWalletAddress(walletAddress);
-  const userClause =
-    userId == null ? 'user_id IS NULL' : 'user_id = ?';
-  const userParams = userId == null ? [] : [userId];
 
   if (heldNfTokenIds.size === 0) {
     if (ledgerNftCount !== 0) {
       return 0;
     }
     const [result] = await pool.execute(
-      `DELETE FROM user_pins WHERE ${userClause} AND wallet_address = ?`,
-      [...userParams, wa]
+      `DELETE FROM user_pins WHERE wallet_address = ?`,
+      [wa]
     );
     return (result as ResultSetHeader).affectedRows;
   }
   const ids = [...heldNfTokenIds].map(id => normalizeNfTokenId(id));
   const placeholders = ids.map(() => '?').join(', ');
   const [result] = await pool.execute(
-    `DELETE FROM user_pins WHERE ${userClause} AND wallet_address = ? AND UPPER(TRIM(token_id)) NOT IN (${placeholders})`,
-    [...userParams, wa, ...ids]
+    `DELETE FROM user_pins WHERE wallet_address = ? AND UPPER(TRIM(token_id)) NOT IN (${placeholders})`,
+    [wa, ...ids]
   );
   return (result as ResultSetHeader).affectedRows;
 }
@@ -368,6 +388,47 @@ export async function getGlobePinByTokenId(
      LIMIT 1`,
     [tid]
   )) as [Record<string, unknown>[], unknown];
+  if (!Array.isArray(rows) || rows.length === 0) {
+    return null;
+  }
+  return mapRow(rows[0] as Record<string, unknown>);
+}
+
+/**
+ * Resolve `?Xpin=` (or legacy `?pin=`) for OG / previews: 64-char hex NFToken id or pin title (URL-decoded).
+ */
+export async function getGlobePinByQueryParam(
+  pool: mysql.Pool,
+  rawPin: string
+): Promise<PinnedNftItem | null> {
+  const trimmed = typeof rawPin === 'string' ? rawPin.trim() : '';
+  if (!trimmed) {
+    return null;
+  }
+
+  let decoded = trimmed;
+  try {
+    decoded = decodeURIComponent(trimmed.replace(/\+/g, ' '));
+  } catch {
+    decoded = trimmed;
+  }
+
+  const asToken = normalizeNfTokenId(decoded);
+  if (/^[0-9A-F]{64}$/.test(asToken)) {
+    return getGlobePinByTokenId(pool, asToken);
+  }
+
+  const [rows] = (await pool.execute(
+    `SELECT token_id, wallet_address, issuer, uri, latitude, longitude,
+      image_url, title, collection_name, socials, pin_note, pinned_at
+     FROM user_pins
+     WHERE title IS NOT NULL AND CHAR_LENGTH(TRIM(title)) > 0
+       AND LOWER(TRIM(title)) = LOWER(TRIM(?))
+     ORDER BY pinned_at DESC
+     LIMIT 1`,
+    [decoded]
+  )) as [Record<string, unknown>[], unknown];
+
   if (!Array.isArray(rows) || rows.length === 0) {
     return null;
   }

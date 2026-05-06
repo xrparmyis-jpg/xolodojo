@@ -1,8 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheckCircle, faCircleExclamation, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faCheckCircle, faCircleExclamation, faCircleInfo, faXmark } from '@fortawesome/free-solid-svg-icons';
 
-type ToastType = 'success' | 'error';
+type ToastType = 'success' | 'error' | 'info';
 
 interface ToastItem {
     id: number;
@@ -63,8 +63,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
             const timeoutMs = typeof durationMs === 'number'
                 ? durationMs
-                : type === 'success'
-                    ? 3000
+                : type === 'success' || type === 'info'
+                    ? 4000
                     : null;
 
             if (timeoutMs == null) {
@@ -87,7 +87,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         const onBus = (ev: Event) => {
             const d = (ev as CustomEvent<{ type?: string; message?: string }>).detail;
-            if (!d || (d.type !== 'success' && d.type !== 'error')) {
+            if (!d || (d.type !== 'success' && d.type !== 'error' && d.type !== 'info')) {
                 return;
             }
             if (typeof d.message !== 'string' || !d.message) {
@@ -109,13 +109,22 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 {toasts.map((toast) => (
                     <div
                         key={toast.id}
-                        className={`pointer-events-auto flex items-start gap-3 rounded-lg border px-3 py-2 text-sm shadow-lg ${toast.type === 'success'
-                            ? 'border-green-500/30 bg-green-950/90 text-green-100'
-                            : 'border-red-500/30 bg-red-950/90 text-red-100'
+                        className={`pointer-events-auto flex items-start gap-3 rounded-lg border px-3 py-2 text-sm shadow-lg ${
+                            toast.type === 'success'
+                                ? 'border-green-500/30 bg-green-950/90 text-green-100'
+                                : toast.type === 'info'
+                                  ? 'border-sky-500/35 bg-sky-950/90 text-sky-100'
+                                  : 'border-red-500/30 bg-red-950/90 text-red-100'
                             }`}
                     >
                         <FontAwesomeIcon
-                            icon={toast.type === 'success' ? faCheckCircle : faCircleExclamation}
+                            icon={
+                                toast.type === 'success'
+                                    ? faCheckCircle
+                                    : toast.type === 'info'
+                                      ? faCircleInfo
+                                      : faCircleExclamation
+                            }
                             className="mt-0.5"
                         />
                         <p className="flex-1 leading-5">{toast.message}</p>
