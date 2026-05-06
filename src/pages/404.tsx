@@ -1,4 +1,4 @@
-import GsapPageContent from "../components/GsapPageContent";
+import GsapPageContent from '../components/GsapPageContent';
 
 function NotFound() {
   return (
@@ -16,10 +16,10 @@ function NotFound() {
             />
           </GsapPageContent>
         </div>
-        <div className="mx-auto max-w-4xl text-center [&_p]:text-[#decee9]">
+        <div className="mx-auto max-w-4xl text-center">
           <GsapPageContent
             as="h2"
-            className="mb-6 text-2xl font-bold text-[#28aae4] md:text-3xl"
+            className="mb-6 text-2xl font-bold md:text-3xl"
             delay={0.08}
           >
             Page Not Found

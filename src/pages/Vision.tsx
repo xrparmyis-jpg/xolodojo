@@ -22,7 +22,7 @@ function Vision() {
           colorBg2Offset={colorBg2Offset}
         />
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto [&_p]:text-[#decee9] [&_ul]:text-[#decee9] [&_li]:text-[#decee9] [&_li>span]:text-[#decee9]">
+          <div className="max-w-4xl mx-auto">
             <GsapPageHeading
               eyebrow="The Xoloitzquintle Vision"
               heading="A Sacred Legacy of"

@@ -607,13 +607,18 @@ span {
 }
 
 .xologlobe-map-ctrl-group > button.xologlobe-map-ctrl-btn:hover:not(:disabled),
-.xologlobe-map-ctrl-group > button.xologlobe-map-ctrl-btn:focus-visible:not(:disabled) {
+.xologlobe-map-ctrl-group
+  > button.xologlobe-map-ctrl-btn:focus-visible:not(:disabled) {
   background: #12affc8c;
   color: #c9e8e9;
 }
 
-.xologlobe-map-ctrl-group > button.xologlobe-map-ctrl-btn:hover:not(:disabled) svg,
-.xologlobe-map-ctrl-group > button.xologlobe-map-ctrl-btn:focus-visible:not(:disabled) svg {
+.xologlobe-map-ctrl-group
+  > button.xologlobe-map-ctrl-btn:hover:not(:disabled)
+  svg,
+.xologlobe-map-ctrl-group
+  > button.xologlobe-map-ctrl-btn:focus-visible:not(:disabled)
+  svg {
   opacity: 1;
 }
 
@@ -640,12 +645,14 @@ span {
   flex-direction: row;
 }
 
-.xologlobe-map-ctrl-group.xologlobe-map-ctrl-group--row > button.xologlobe-map-ctrl-btn {
+.xologlobe-map-ctrl-group.xologlobe-map-ctrl-group--row
+  > button.xologlobe-map-ctrl-btn {
   border-bottom: 0;
   border-right: 1px solid rgb(0 0 0 / 15%);
 }
 
-.xologlobe-map-ctrl-group.xologlobe-map-ctrl-group--row > button.xologlobe-map-ctrl-btn:last-child {
+.xologlobe-map-ctrl-group.xologlobe-map-ctrl-group--row
+  > button.xologlobe-map-ctrl-btn:last-child {
   border-right: 0;
 }
 
@@ -787,23 +794,35 @@ span {
 }
 
 /* Mapbox popup: `.mapboxgl-popup-content { color: … !important }` — keep pinned chip readable */
-.mapboxgl-popup.xolo-globe-popup .mapboxgl-popup-content a.xologlobe-pin-thumbtack-btn.xologlobe-pin-thumbtack-btn--pinned {
+.mapboxgl-popup.xolo-globe-popup
+  .mapboxgl-popup-content
+  a.xologlobe-pin-thumbtack-btn.xologlobe-pin-thumbtack-btn--pinned {
   border: 1px solid rgb(59 130 246 / 0.45) !important;
   background: #000000 !important;
   color: #2563eb !important;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45) !important;
 }
 
-.mapboxgl-popup.xolo-globe-popup .mapboxgl-popup-content a.xologlobe-pin-thumbtack-btn.xologlobe-pin-thumbtack-btn--pinned:hover,
-.mapboxgl-popup.xolo-globe-popup .mapboxgl-popup-content a.xologlobe-pin-thumbtack-btn.xologlobe-pin-thumbtack-btn--pinned:focus-visible {
+.mapboxgl-popup.xolo-globe-popup
+  .mapboxgl-popup-content
+  a.xologlobe-pin-thumbtack-btn.xologlobe-pin-thumbtack-btn--pinned:hover,
+.mapboxgl-popup.xolo-globe-popup
+  .mapboxgl-popup-content
+  a.xologlobe-pin-thumbtack-btn.xologlobe-pin-thumbtack-btn--pinned:focus-visible {
   border-color: rgb(96 165 250 / 0.6) !important;
   background: #000000 !important;
   color: #2563eb !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45) !important;
 }
 
-.mapboxgl-popup.xolo-globe-popup .mapboxgl-popup-content a.xologlobe-pin-thumbtack-btn.xologlobe-pin-thumbtack-btn--pinned svg,
-.mapboxgl-popup.xolo-globe-popup .mapboxgl-popup-content a.xologlobe-pin-thumbtack-btn.xologlobe-pin-thumbtack-btn--pinned .svg-inline--fa {
+.mapboxgl-popup.xolo-globe-popup
+  .mapboxgl-popup-content
+  a.xologlobe-pin-thumbtack-btn.xologlobe-pin-thumbtack-btn--pinned
+  svg,
+.mapboxgl-popup.xolo-globe-popup
+  .mapboxgl-popup-content
+  a.xologlobe-pin-thumbtack-btn.xologlobe-pin-thumbtack-btn--pinned
+  .svg-inline--fa {
   color: #2563eb !important;
   fill: currentColor !important;
 }
