@@ -185,7 +185,7 @@ export function buildPinPopupHtml(pin: PinPopupContent): string {
 
   const actionsAndSocialsRow =
     showActions
-      ? `<div class="xolo-popup-actions mt-2 flex w-full min-w-0 max-w-full flex-row flex-wrap items-center gap-x-2 gap-y-2" data-xolo-popup-token="${safeToken}">` +
+      ? `<div class="xolo-popup-actions mt-2 flex w-full min-w-0 max-w-full flex-row flex-wrap items-center gap-x-2 gap-y-2" data-xolo-popup-token="${safeToken}" data-xolo-popup-pin-title="${escapeHtml(rawTitle)}">` +
         actionButtonsBlock +
         (socials.length > 0
           ? `<div class="${tailwindSocialsCluster}">${socialsInner}</div>`

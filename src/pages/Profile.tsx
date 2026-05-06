@@ -42,8 +42,7 @@ import {
   removeSavedGlobePin,
   type SavedGlobePinItem,
 } from '../services/savedGlobePinsService';
-import { buildGlobePinShareUrl } from '../utils/globeShareUrl';
-import { normalizeNfTokenId } from '../utils/nfTokenId';
+import { buildGlobePinShareUrl, encodeGlobePinQueryValue } from '../utils/globeShareUrl';
 
 type SocialPlatformKey = keyof ProfileSocials;
 
@@ -598,7 +597,7 @@ function Profile() {
                                   : p.token_id;
                               const label =
                                 (p.title && p.title.trim()) || `Pin ${short}`;
-                              const to = `/xglobe?pin=${encodeURIComponent(normalizeNfTokenId(p.token_id))}`;
+                              const to = `/xglobe?pin=${encodeGlobePinQueryValue(p.token_id, p.title)}`;
                               return (
                                 <motion.li
                                   key={p.token_id}
@@ -635,7 +634,7 @@ function Profile() {
                                       onClick={async () => {
                                         try {
                                           await navigator.clipboard.writeText(
-                                            buildGlobePinShareUrl(p.token_id)
+                                            buildGlobePinShareUrl(p.token_id, p.title)
                                           );
                                           showToast(
                                             'success',

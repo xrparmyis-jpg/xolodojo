@@ -11,7 +11,7 @@ import {
   stripInvisible,
 } from '../../xrplClassicAddress.js';
 import {
-  deleteUserPin,
+  deletePinByWalletAndToken,
   listPinsForUser,
   listPinsForWalletAddress,
   listPinsForWalletOwner,
@@ -265,6 +265,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
       }
 
+      if (auth.kind === 'user' && accountUserId != null) {
+        const [pinWalletRows] = (await pool.execute(
+          'SELECT id FROM user_wallets WHERE user_id = ? AND LOWER(wallet_address) = LOWER(?) LIMIT 1',
+          [accountUserId, pinWalletAddress]
+        )) as [{ id: number }[], unknown];
+        if (!Array.isArray(pinWalletRows) || pinWalletRows.length === 0) {
+          res.status(403).json({ error: 'Wallet not linked to your account' });
+          return;
+        }
+      }
+
       const pinnedNfts = await loadPinnedListForAuth(
         pool,
         auth,
@@ -375,7 +386,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
-    await deleteUserPin(pool, accountUserId, tokenId, walletAddress);
+    if (auth.kind === 'user' && accountUserId != null) {
+      const [walletRows] = (await pool.execute(
+        'SELECT id FROM user_wallets WHERE user_id = ? AND LOWER(wallet_address) = LOWER(?) LIMIT 1',
+        [accountUserId, walletAddress]
+      )) as [{ id: number }[], unknown];
+      if (!Array.isArray(walletRows) || walletRows.length === 0) {
+        res.status(403).json({ error: 'Wallet not linked to your account' });
+        return;
+      }
+    }
+
+    await deletePinByWalletAndToken(pool, tokenId, walletAddress);
 
     const nextPins = await loadPinnedListForAuth(pool, auth, walletAddress);
     const deleteResponsePins =

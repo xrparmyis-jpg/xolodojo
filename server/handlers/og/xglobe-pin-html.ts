@@ -1,7 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getAppMysqlPool } from '../../lib/mysqlPool.js';
-import { getGlobePinByTokenId } from '../../lib/userPinsRepo.js';
-import { normalizeNfTokenId } from '../../../src/utils/nfTokenId.js';
+import { getGlobePinByQueryParam } from '../../lib/userPinsRepo.js';
 
 function escapeHtml(s: string): string {
   return s
@@ -75,15 +74,15 @@ export default async function handler(
   let pageTitle = defaultTitle;
   let description = defaultDescription;
   let imageUrl = `${siteOrigin}/team/Cryptonite.jpg`;
-  const canonicalKey = pin ? normalizeNfTokenId(pin) : '';
-  const pageUrl = canonicalKey
-    ? `${siteOrigin}/xglobe?pin=${encodeURIComponent(canonicalKey)}`
+  /** Preserve the incoming query string for canonical URLs (title-based or legacy hex). */
+  const pageUrl = pin
+    ? `${siteOrigin}/xglobe?pin=${encodeURIComponent(pin)}`
     : `${siteOrigin}/xglobe`;
 
   if (pin) {
     try {
       const pool = getAppMysqlPool();
-      const row = await getGlobePinByTokenId(pool, pin);
+      const row = await getGlobePinByQueryParam(pool, pin);
       if (row) {
         const t = row.title?.trim();
         pageTitle = t ? `${t} | XGlobe` : 'Xolo pin | XGlobe';
