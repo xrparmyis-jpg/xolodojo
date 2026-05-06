@@ -8,6 +8,8 @@ interface GsapPageHeadingProps {
   eyebrow: string;
   heading: string;
   accent?: string;
+  /** Optional text color class or style for the eyebrow text; defaults to the title color. */
+  eyebrowTextColor?: string;
   iconType?: 'star' | 'asterisk' | 'none';
   iconCount?: number;
   centered?: boolean;
@@ -18,6 +20,7 @@ function GsapPageHeading({
   eyebrow,
   heading,
   accent,
+  eyebrowTextColor,
   iconType = 'star',
   iconCount = 1,
   centered = true,
@@ -171,7 +174,7 @@ function GsapPageHeading({
       className={`section-title text-center ${className}`}
     >
       <div
-        className={`text-sm md:text-base font-medium text-gray-300 uppercase tracking-wider mb-2 ${
+        className={`text-sm md:text-base font-medium uppercase tracking-wider mb-2 ${
           centered ? 'justify-center' : 'justify-start'
         } flex items-center gap-2 flex-wrap`}
       >
@@ -185,7 +188,12 @@ function GsapPageHeading({
             className="eyebrow-icon w-4 h-4 md:w-5 md:h-5 opacity-0"
           />
         ) : null}
-        <span aria-label={eyebrow} className="whitespace-nowrap inline-block">
+        <span
+          aria-label={eyebrow}
+          className={`whitespace-nowrap inline-block ${
+            eyebrowTextColor ? eyebrowTextColor : ''
+          }`}
+        >
           {eyebrowLetters.map((letter, index) => (
             <span
               key={`${letter}-${index}`}
