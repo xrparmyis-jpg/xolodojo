@@ -8,6 +8,8 @@ interface GsapPageHeadingProps {
   eyebrow: string;
   heading: string;
   accent?: string;
+  /** Optional text color class or style for the eyebrow text; defaults to the title color. */
+  eyebrowTextColor?: string;
   iconType?: 'star' | 'asterisk' | 'none';
   iconCount?: number;
   centered?: boolean;
@@ -18,6 +20,7 @@ function GsapPageHeading({
   eyebrow,
   heading,
   accent,
+  eyebrowTextColor,
   iconType = 'star',
   iconCount = 1,
   centered = true,
@@ -165,48 +168,78 @@ function GsapPageHeading({
         { scope: containerRef }
     );
 
-    return (
-        <div ref={containerRef} className={`section-title text-center ${className}`}>
-            <div
-                className={`text-sm md:text-base font-medium text-[#ff00d7] uppercase tracking-wider mb-2 ${centered ? "justify-center" : "justify-start"
-                    } flex items-center gap-2 flex-wrap`}
+  return (
+    <div
+      ref={containerRef}
+      className={`section-title text-center ${className}`}
+    >
+      <div
+        className={`text-sm md:text-base font-medium uppercase tracking-wider mb-2 ${
+          centered ? 'justify-center' : 'justify-start'
+        } flex items-center gap-2 flex-wrap`}
+      >
+        {iconType === 'star' && eyebrowIcons ? (
+          <span className="flex items-center gap-1">{eyebrowIcons}</span>
+        ) : null}
+        {iconType === 'asterisk' ? (
+          <img
+            src="/has.png"
+            alt="icon"
+            className="eyebrow-icon w-4 h-4 md:w-5 md:h-5 opacity-0"
+          />
+        ) : null}
+        <span
+          aria-label={eyebrow}
+          className={`whitespace-nowrap inline-block ${
+            eyebrowTextColor ? eyebrowTextColor : ''
+          }`}
+        >
+          {eyebrowLetters.map((letter, index) => (
+            <span
+              key={`${letter}-${index}`}
+              className="eyebrow-letter inline-block opacity-0"
+              aria-hidden="true"
             >
-                {iconType === "star" && eyebrowIcons ? <span className="flex items-center gap-1">{eyebrowIcons}</span> : null}
-                {iconType === "asterisk" ? <img src="/has.png" alt="icon" className="eyebrow-icon w-4 h-4 md:w-5 md:h-5 opacity-0" /> : null}
-                <span aria-label={eyebrow} className="whitespace-nowrap inline-block">
-                    {eyebrowLetters.map((letter, index) => (
-                        <span key={`${letter}-${index}`} className="eyebrow-letter inline-block opacity-0" aria-hidden="true">
-                            {letter === " " ? "\u00A0" : letter}
-                        </span>
-                    ))}
-                </span>
-            </div>
-        <h2 ref={headingRef} className="text-[#00BFFF] text-3xl md:text-5xl lg:text-6xl font-bold mb-4 opacity-0">
-                <span className="block">{heading}</span>
-                {accent ? (
+              {letter === ' ' ? '\u00A0' : letter}
+            </span>
+          ))}
+        </span>
+      </div>
+      <h2
+        ref={headingRef}
+        className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 opacity-0"
+      >
+        <span className="block">{heading}</span>
+        {accent ? (
+          <span
+            className={`mt-1 inline-flex w-full flex-wrap items-center gap-x-2 gap-y-1 ${centered ? 'justify-center' : 'justify-start'}`}
+          >
+            {accentParts.map((part, index) => {
+              const sep = separatorAfterPart(index);
+              return (
+                <span
+                  key={`${part}-${index}`}
+                  className="accent-item inline-flex items-baseline opacity-0 text-[0.8em] md:text-[0.78em]"
+                >
+                  {renderAccentPartBody(part)}
+                  {sep === 'comma' ? (
+                    <span className="accent-comma inline-block">,</span>
+                  ) : sep === 'space' ? (
                     <span
-                        className={`mt-1 inline-flex w-full flex-wrap items-center gap-x-2 gap-y-1 ${centered ? "justify-center" : "justify-start"}`}
+                      className="accent-space-before-amp inline-block"
+                      aria-hidden="true"
                     >
-                        {accentParts.map((part, index) => {
-                            const sep = separatorAfterPart(index);
-                            return (
-                                <span key={`${part}-${index}`} className="accent-item inline-flex items-baseline opacity-0 text-[0.8em] md:text-[0.78em]">
-                                    {renderAccentPartBody(part)}
-                                    {sep === "comma" ? (
-                                        <span className="accent-comma inline-block">,</span>
-                                    ) : sep === "space" ? (
-                                        <span className="accent-space-before-amp inline-block" aria-hidden="true">
-                                            {" "}
-                                        </span>
-                                    ) : null}
-                                </span>
-                            );
-                        })}
+                      {' '}
                     </span>
-                ) : null}
-            </h2>
-        </div>
-    );
+                  ) : null}
+                </span>
+              );
+            })}
+          </span>
+        ) : null}
+      </h2>
+    </div>
+  );
 }
 
 export default GsapPageHeading;

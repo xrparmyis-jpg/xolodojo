@@ -19,6 +19,8 @@ type LegacyStoryRow = {
   borderColor: string;
   /** Tailwind text-color utility for the section title (e.g. `text-cyan-400`) — pair with `borderColor`. */
   titleColor: string;
+  /** Tailwind text-color utility for the eyebrow pill (defaults to `titleColor` when omitted). */
+  eyebrowTextColor?: string;
   eyebrow: string;
   title: ReactNode;
   body: ReactNode;
@@ -32,6 +34,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageAlt: 'Ghost Xolo Gecko',
     borderColor: 'border-green-500',
     titleColor: 'text-green-500',
+    eyebrowTextColor: 'text-green-500',
     eyebrow: 'Welcome to the XoloDojo',
     title: '',
     body: (
@@ -68,6 +71,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageAlt: 'Stained Glass Xolo',
     borderColor: 'border-fuchsia-400',
     titleColor: 'text-fuchsia-400',
+    eyebrowTextColor: 'text-fuchsia-400',
     eyebrow: 'The Collection',
     title: <>The Xoloitzquintle NFT Collection</>,
     body: (
@@ -98,6 +102,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageAlt: 'Postal Xolo',
     borderColor: 'border-amber-400',
     titleColor: 'text-amber-400',
+    eyebrowTextColor: 'text-amber-400',
     eyebrow: 'Unlock Xglobe',
     title: <>Connect on Xglobe</>,
     body: (
@@ -132,6 +137,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageAlt: 'Wet Paint Xolo',
     borderColor: 'border-sky-400',
     titleColor: 'text-sky-400',
+    eyebrowTextColor: 'text-sky-400',
     eyebrow: 'Pin your presence',
     title: <>Seen on Xglobe. Shared with the world.</>,
     body: (
@@ -168,6 +174,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageAlt: 'Wet Paint Xolo',
     borderColor: 'border-amber-400',
     titleColor: 'text-amber-400',
+    eyebrowTextColor: 'text-amber-400',
     eyebrow: 'The Xoloitzquintle: A breed of Legacy',
     title: <>Sacred Legacy, Living Presence</>,
     body: (
@@ -207,6 +214,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageAlt: 'Postal Xolo',
     borderColor: 'border-amber-400',
     titleColor: 'text-amber-400',
+    eyebrowTextColor: 'text-amber-400',
     eyebrow: 'A vision',
     title: <>Built for the long game</>,
     body: (
@@ -244,6 +252,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageAlt: 'Team Fire Xolo',
     borderColor: 'border-orange-400',
     titleColor: 'text-orange-400',
+    eyebrowTextColor: 'text-orange-400',
     eyebrow: 'Cryptonite Labs is Team Fire',
     title: <>Cryptonite, Code &amp; RedShadow</>,
     body: (
@@ -428,7 +437,11 @@ function Home() {
                   >
                     <div className="flex min-w-0 flex-col text-left mt-8 lg:mt-0">
                       <span
-                        className={`mb-5 inline-block w-fit max-w-full self-center rounded-2xl border ${row.borderColor} px-8 py-2 text-center text-[15px] font-bold leading-none`}
+                        className={`mb-5 inline-block w-fit max-w-full self-center rounded-2xl border ${
+                          row.borderColor
+                        } px-8 py-2 text-center text-[15px] font-bold leading-none ${
+                          row.eyebrowTextColor || row.titleColor
+                        }`}
                       >
                         {row.eyebrow}
                       </span>
