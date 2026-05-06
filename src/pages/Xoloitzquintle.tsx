@@ -1,1 +1,143 @@
-export { default } from './Xoloitzquintli';
+import GsapHeroParallax from '../components/GsapHeroParallax';
+import GsapPageHeading from '../components/GsapPageHeading';
+import GsapPageContent from '../components/GsapPageContent';
+import GsapPageSubHeading from '../components/GsapPageSubHeading';
+import SectionParallaxBlobs from '../components/SectionParallaxBlobs';
+
+import { useSectionParallaxOffsets } from '../hooks/useSectionParallaxOffsets';
+
+function Xoloitzquintli() {
+  const { sectionRef, bgShapeOffset, colorBgOffset, colorBg2Offset } =
+    useSectionParallaxOffsets();
+
+  return (
+    <>
+      <section className="relative bg-[url('/Pattern.png')] bg-cover bg-center bg-no-repeat pt-16 pb-4 md:pt-30 border-b border-[#36e9e424]"></section>
+      <section
+        ref={sectionRef}
+        className="relative overflow-hidden py-8 lg:py-12 bg-(--bg)"
+      >
+        <SectionParallaxBlobs
+          bgShapeOffset={bgShapeOffset}
+          colorBgOffset={colorBgOffset}
+          colorBg2Offset={colorBg2Offset}
+        />
+
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto">
+            <GsapPageHeading
+              eyebrow="The Xoloitzquintli Collection"
+              heading="A Sacred Legacy of"
+              accent="Gods, Guardians, & Eternal Bonds"
+              iconType="star"
+              iconCount={1}
+              centered
+            />
+
+            <GsapPageContent as="p" className="mb-4">
+              The name &quot;Xoloitzquintli&quot; carries deep Nahuatl roots and
+              reflects the sacred legacy of this ancient breed. Pronounced
+              roughly &quot;show-low-eats-QUEENT-lee,&quot; it connects our
+              project to the original cultural and mythic lineage of the Xolo as
+              guardian and guide.
+            </GsapPageContent>
+            <div className="container mx-auto max-w-7xl px-4">
+              <div className="flex flex-col items-center text-center">
+                <GsapHeroParallax
+                  imageSrc="/04a.png"
+                  alt="Xoloitzquintli Mint Hero"
+                  className="mb-10"
+                />
+              </div>
+            </div>
+            <div className="space-y-6">
+              <GsapPageSubHeading
+                headingColor="#bb5be7"
+                iconColor="#bfff04"
+                heading="Mystical Journey of the Xolo"
+              />
+              <GsapPageContent as="p" className="mb-4" delay={0.04}>
+                Picture this: the Aztec cosmos is basically a chaotic family
+                reunion that never ends. At the center? The ultimate twin
+                duo—Quetzalcoatl, the chill, feathered-serpent genius of windg,
+                wisdom, creation, and &quot;let&apos;s make everything
+                better,&quot; and his rowdy, dog-headed brother Xolotl, the
+                lightning-fast trickster god of fire, transformation,
+                deformities, and &quot;hold my conch shell while I pull off the
+                impossible.&quot;
+              </GsapPageContent>
+
+              <GsapPageContent as="p" className="mb-4" delay={0.08}>
+                These two aren&apos;t just siblings; they&apos;re the original
+                dynamic duo who literally rebuilt humanity after the world was
+                wrecked four times (because ancient gods apparently loved a good
+                reset button). Quetzalcoatl, ever the visionary, decides
+                it&apos;s time for round five: populate the earth with actual
+                people. But plot twist—he needs the sacred bones from the
+                previous eras, stashed deep in Mictlan, the shadowy, nine-level
+                underworld ruled by the skeletal party-pooper Mictlantecuhtli
+                (the Lord of the Dead) and his queen Mictecacihuatl.
+              </GsapPageContent>
+
+              <GsapPageContent as="p" className="mb-4" delay={0.16}>
+                Quetzalcoatl can&apos;t solo this dungeon crawl. Enter Xolotl:
+                dog-faced, shape-shifting, lightning-charged, and 100%
+                ride-or-die. His name literally echoes in the word
+                xoloitzquintli—the sacred hairless dog bred in his image.
+                Xolotl&apos;s like, &quot;Bro, I&apos;ve been guiding the sun
+                through the underworld every night. I know the shortcuts.
+                Let&apos;s go steal some bones.&quot;
+              </GsapPageContent>
+
+              <GsapPageContent as="p" className="mb-4" delay={0.24}>
+                They descend into Mictlan&apos;s nightmare levels: rivers of
+                blood, screaming winds, mountains of obsidian knives, jaguars
+                that don&apos;t play fetch. Mictlantecuhtli isn&apos;t handing
+                over the goods without a fight. He sets impossible trials—like
+                blowing a conch shell with no holes. Xolotl, being the ultimate
+                degen trickster, summons worms to drill openings.
+                Boom—impossible becomes &quot;done.&quot; They grab the bones
+                and bolt, with the skeletal hordes chasing them like bad exes.
+              </GsapPageContent>
+
+              <GsapPageContent as="p" className="mb-4" delay={0.32}>
+                In the getaway chaos, Quetzalcoatl trips (because even gods have
+                off days), and some bones shatter. That&apos;s why humans come
+                in every shape, size, and weird quirk—thanks, cosmic clumsiness!
+              </GsapPageContent>
+
+              <GsapPageContent as="p" className="mb-4" delay={0.4}>
+                Back topside, Quetzalcoatl mixes the bones with his own divine
+                blood, breathing life into the current era. But Xolotl&apos;s
+                gig doesn&apos;t stop there. He becomes the eternal soul-guide:
+                escorting the dead through Mictlan&apos;s perils, warding off
+                evil spirits, and making sure no one gets lost in the afterlife.
+                That&apos;s why the Aztecs buried real xoloitzquintlis with
+                their loved ones—loyal companions in life, healers (their body
+                heat was legendary), and furry psychopomps in death. One Xolo to
+                rule the journey, one soul to guide.
+              </GsapPageContent>
+
+              <GsapPageContent as="p" className="mb-4" delay={0.48}>
+                Fast-forward to today: in the XoloDojo, we&apos;re resurrecting
+                this epic saga on the XRPL. Your Xoloitzquintli NFT digital art
+                is a sacred guardian reborn, channeling Xolotl&apos;s fierce
+                loyalty, trickster smarts, and unbreakable bonds. Each Xolo is a
+                unique blend of ancient mystique and modern swagger, ready to
+                guide you through the wild world of Web3 with the same devotion
+                Xolotl showed in the underworld. It&apos;s not just an NFT;
+                it&apos;s a cosmic companion for your digital journey.
+              </GsapPageContent>
+
+              <GsapPageContent as="p" className="mb-4" delay={0.64}>
+                Own your Xolo. Own your journey. Own your destination.
+              </GsapPageContent>
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}
+
+export default Xoloitzquintli;

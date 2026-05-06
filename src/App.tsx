@@ -12,7 +12,7 @@ import Profile from './pages/Profile';
 import NotFound from './pages/404';
 import TermsAndConditions from './pages/TermsAndConditions';
 import PrivacyPolicy from './pages/PrivacyPolicy';
-import Xoloitzquintli from './pages/Xoloitzquintli';
+import Xoloitzquintli from './pages/Xoloitzquintle';
 import Vision from './pages/Vision';
 import Team from './pages/Team';
 import Xglobe from './pages/Xglobe';
