@@ -31,7 +31,12 @@ import { getXoloGlobePins, type XoloGlobePin } from '../services/xoloGlobePinSer
 import { bindPinPopupActions, syncPinPopupBookmarkButtonsInContainer } from '../utils/pinPopupActions';
 import { buildPinPopupHtml } from '../utils/pinPopupHtml';
 import { bindPinPopupLocalTimeClock } from '../utils/pinLocalTime';
-import { encodeGlobePinQueryValue, resolveGlobePinQueryToTokenId } from '../utils/globePinQuery';
+import {
+    buildProfilePinPath,
+    readGlobePinQueryParam,
+    resolveGlobePinQueryToTokenId,
+    stripGlobePinQueryParams,
+} from '../utils/globePinQuery';
 import { normalizeNfTokenId } from '../utils/nfTokenId';
 import { createGlobeStylePinMarkerElements } from '../utils/globeStyleMapMarker';
 import { computeGlobePinDisplayPositions } from '../utils/globePinClusters';
@@ -108,7 +113,7 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
     const spinLockedByZoom = mapZoom >= rotationMaxZoom;
 
     const accessToken = useMemo(() => import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || '', []);
-    const rawGlobePinQuery = searchParams.get('pin')?.trim() || null;
+    const rawGlobePinQuery = readGlobePinQueryParam(searchParams);
     const resolvedGlobePinTokenId = useMemo(
         () => resolveGlobePinQueryToTokenId(rawGlobePinQuery, pins),
         [rawGlobePinQuery, pins],
@@ -137,7 +142,7 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
         setSearchParams(
             (prev) => {
                 const next = new URLSearchParams(prev);
-                next.delete('pin');
+                stripGlobePinQueryParams(next);
                 return next;
             },
             { replace: true },
@@ -555,7 +560,7 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
                             viewerWalletAddress
                             && normalizeXrplAddressForCompare(viewerWalletAddress)
                                 === normalizeXrplAddressForCompare(pin.wallet_address)
-                                ? `/profile?pin=${encodeGlobePinQueryValue(pin.token_id, pin.title)}`
+                                ? buildProfilePinPath(pin.token_id, pin.title)
                                 : null,
                         canBookmark: Boolean(!authLoading && user),
                         isBookmarked: savedGlobePinIdsRef.current.has(

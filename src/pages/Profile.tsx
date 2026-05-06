@@ -42,7 +42,8 @@ import {
   removeSavedGlobePin,
   type SavedGlobePinItem,
 } from '../services/savedGlobePinsService';
-import { buildGlobePinShareUrl, encodeGlobePinQueryValue } from '../utils/globeShareUrl';
+import { buildXglobePinPath } from '../utils/globePinQuery';
+import { buildGlobePinShareUrl } from '../utils/globeShareUrl';
 
 type SocialPlatformKey = keyof ProfileSocials;
 
@@ -597,7 +598,7 @@ function Profile() {
                                   : p.token_id;
                               const label =
                                 (p.title && p.title.trim()) || `Pin ${short}`;
-                              const to = `/xglobe?pin=${encodeGlobePinQueryValue(p.token_id, p.title)}`;
+                              const to = buildXglobePinPath(p.token_id, p.title);
                               return (
                                 <motion.li
                                   key={p.token_id}

@@ -20,8 +20,10 @@ import { useAuth } from '../providers/AuthContext';
 import type { WalletAssetSummary } from '../services/walletAssetService';
 import { PIN_NOTE_MAX_LENGTH, PIN_NOTE_MIN_LENGTH } from '../constants/pinNote';
 import {
-  encodeGlobePinQueryValue,
+  buildXglobePinPath,
+  readGlobePinQueryParam,
   resolveGlobePinQueryToTokenId,
+  stripGlobePinQueryParams,
 } from '../utils/globePinQuery';
 import { normalizeNfTokenId } from '../utils/nfTokenId';
 import { legacyPinNoteToHtml } from '../utils/pinNoteHtml';
@@ -846,7 +848,7 @@ export default function NftGallery({
     return () => document.removeEventListener('visibilitychange', onVisibility);
   }, [reloadPinnedNfts, location.pathname]);
 
-  const profilePinTokenParam = searchParams.get('pin')?.trim() ?? null;
+  const profilePinTokenParam = readGlobePinQueryParam(searchParams);
 
   const profilePinResolvePins = useMemo(
     () =>
@@ -902,7 +904,7 @@ export default function NftGallery({
     setSearchParams(
       prev => {
         const next = new URLSearchParams(prev);
-        next.delete('pin');
+        stripGlobePinQueryParams(next);
         return next;
       },
       { replace: true }
@@ -971,7 +973,7 @@ export default function NftGallery({
       setSearchParams(
         prev => {
           const next = new URLSearchParams(prev);
-          next.delete('pin');
+          stripGlobePinQueryParams(next);
           return next;
         },
         { replace: true }
@@ -1437,9 +1439,7 @@ export default function NftGallery({
 
     const tokenId = pinSuccessState.tokenId;
     closePinModal();
-    navigate(
-      `/xglobe?pin=${encodeGlobePinQueryValue(tokenId, pinSuccessState.title)}`
-    );
+    navigate(buildXglobePinPath(tokenId, pinSuccessState.title));
   };
 
   const handleSubmitPin = useCallback(async () => {
@@ -1702,7 +1702,7 @@ export default function NftGallery({
                             ) ||
                             null;
                           navigate(
-                            `/xglobe?pin=${encodeGlobePinQueryValue(nft.token_id, pinQueryTitle)}`
+                            buildXglobePinPath(nft.token_id, pinQueryTitle)
                           );
                         }}
                         title="View Xpin on Xglobe"
