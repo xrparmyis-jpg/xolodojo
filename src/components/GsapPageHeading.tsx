@@ -20,7 +20,7 @@ function GsapPageHeading({
   eyebrow,
   heading,
   accent,
-  eyebrowTextColor,
+  eyebrowTextColor = 'text-[#ff00d7]',
   iconType = 'star',
   iconCount = 1,
   centered = true,
@@ -42,6 +42,7 @@ function GsapPageHeading({
       : null;
 
   const eyebrowLetters = Array.from(eyebrow);
+  const accentColor = '#02abfa';
   const accentParts = accent
     ? accent
         .split(',')
@@ -152,21 +153,21 @@ function GsapPageHeading({
           '-=0.82'
         );
 
-                timeline.fromTo(
-                    ".accent-word",
-                    { color: "#ffffff" },
-                    {
-                        color: "#00BFFF",
-                        duration: 0.36,
-                        ease: "power3.out",
-                        stagger: 0.08,
-                    },
-                    "-=0.82"
-                );
-            }
-        },
-        { scope: containerRef }
-    );
+        timeline.fromTo(
+          '.accent-word, .accent-comma, .accent-amp',
+          { color: accentColor },
+          {
+            color: accentColor,
+            duration: 0.36,
+            ease: 'power3.out',
+            stagger: 0.08,
+          },
+          '-=0.82'
+        );
+      }
+    },
+    { scope: containerRef }
+  );
 
   return (
     <div
@@ -208,6 +209,7 @@ function GsapPageHeading({
       <h2
         ref={headingRef}
         className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 opacity-0"
+        style={{ color: accentColor }}
       >
         <span className="block">{heading}</span>
         {accent ? (

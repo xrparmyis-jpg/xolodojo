@@ -34,7 +34,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageAlt: 'Ghost Xolo Gecko',
     borderColor: 'border-green-500',
     titleColor: 'text-green-500',
-    eyebrowTextColor: 'text-green-500',
+    eyebrowTextColor: 'text-[#00bfff]',
     eyebrow: 'Welcome to the XoloDojo',
     title: '',
     body: (
@@ -163,7 +163,6 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
           Xpin away.
         </p>
         <p className="mb-4">Xpin is the Alpha.</p>
-        <p className="mb-4">.</p>
       </>
     ),
   },
@@ -398,7 +397,7 @@ function Home() {
         </div>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <GsapPageContent delay={0}>
-            <GsapPageSubHeading headingColor="#bb5be7" iconColor="#00ff1e"
+            <GsapPageSubHeading headingColor="#00ff1e" iconColor="#00bfff"
               heading={`Xolo (ShōLō) "The Guardian", 道 (Dō) "The Pathway",\n\n and 場 (Jō) "The Destination"`}
             />
           </GsapPageContent>
