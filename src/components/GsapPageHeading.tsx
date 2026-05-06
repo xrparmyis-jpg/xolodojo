@@ -57,7 +57,7 @@ function GsapPageHeading({
         const rest = part.slice(1).trim();
         return (
             <span className="inline-flex items-baseline gap-x-1.5">
-                <span className="accent-amp inline-block shrink-0 text-white">&</span>
+                <span className="accent-amp inline-block shrink-0">&</span>
                 {rest ? <span className="accent-word inline-block">{rest}</span> : null}
             </span>
         );
@@ -129,7 +129,7 @@ function GsapPageHeading({
                     ".accent-word",
                     { color: "#ffffff" },
                     {
-                        color: "#b7e9f7",
+                        color: "#00BFFF",
                         duration: 0.36,
                         ease: "power3.out",
                         stagger: 0.08,
@@ -144,7 +144,7 @@ function GsapPageHeading({
     return (
         <div ref={containerRef} className={`section-title text-center ${className}`}>
             <div
-                className={`text-sm md:text-base font-medium text-gray-300 uppercase tracking-wider mb-2 ${centered ? "justify-center" : "justify-start"
+                className={`text-sm md:text-base font-medium text-[#ff00d7] uppercase tracking-wider mb-2 ${centered ? "justify-center" : "justify-start"
                     } flex items-center gap-2 flex-wrap`}
             >
                 {iconType === "star" && eyebrowIcons ? <span className="flex items-center gap-1">{eyebrowIcons}</span> : null}
@@ -157,7 +157,7 @@ function GsapPageHeading({
                     ))}
                 </span>
             </div>
-            <h2 ref={headingRef} className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 opacity-0">
+        <h2 ref={headingRef} className="text-[#00BFFF] text-3xl md:text-5xl lg:text-6xl font-bold mb-4 opacity-0">
                 <span className="block">{heading}</span>
                 {accent ? (
                     <span
@@ -169,7 +169,7 @@ function GsapPageHeading({
                                 <span key={`${part}-${index}`} className="accent-item inline-flex items-baseline opacity-0 text-[0.8em] md:text-[0.78em]">
                                     {renderAccentPartBody(part)}
                                     {sep === "comma" ? (
-                                        <span className="accent-comma inline-block text-white">,</span>
+                                        <span className="accent-comma inline-block">,</span>
                                     ) : sep === "space" ? (
                                         <span className="accent-space-before-amp inline-block" aria-hidden="true">
                                             {" "}
