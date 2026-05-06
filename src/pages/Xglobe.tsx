@@ -53,12 +53,12 @@ function Xglobe() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
             <GsapPageContent delay={0}>
-              <GsapPageSubHeading heading="A platform for more than one community" />
+              <GsapPageSubHeading headingColor="#642ff8" heading="A platform for more than one community" />
             </GsapPageContent>
 
             <div>
               <GsapPageContent className="mt-4" delay={0.24}>
-                <p>
+                <p className="mb-4">
                   This isn't just a map — it's where digital ownership turns
                   into real human connection. Find a host for an authentic stay,
                   arrange a home swap, share a meal, join a day adventure, or
@@ -68,7 +68,7 @@ function Xglobe() {
                   secure — just connect your wallet. No personal data required,
                   just proof of community membership.
                 </p>
-                <p>
+                <p className="mb-4">
                   Over time, the Xglobe will open its doors to other verified,
                   values-aligned NFT communities who share our vision of
                   trust-based human connection.

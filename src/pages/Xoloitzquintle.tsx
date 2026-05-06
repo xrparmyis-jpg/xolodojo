@@ -56,11 +56,11 @@ function Xoloitzquintle() {
               </div>
             </div>
             <div className="space-y-6">
-              <GsapPageSubHeading heading="Journey of the Xolo" />
+              <GsapPageSubHeading headingColor="#bb5be7" iconColor="#bfff04" heading="Mystical Journey of the Xolo" />
               <GsapPageContent as="p" className="mb-4" delay={0.04}>
                 Picture this: the Aztec cosmos is basically a chaotic family
                 reunion that never ends. At the center? The ultimate twin
-                duo—Quetzalcoatl, the chill, feathered-serpent genius of wind,
+                duo—Quetzalcoatl, the chill, feathered-serpent genius of windg,
                 wisdom, creation, and "let's make everything better," and his
                 rowdy, dog-headed brother Xolotl, the lightning-fast trickster
                 god of fire, transformation, deformities, and "hold my conch

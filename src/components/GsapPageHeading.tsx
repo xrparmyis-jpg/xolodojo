@@ -20,7 +20,7 @@ function GsapPageHeading({
   eyebrow,
   heading,
   accent,
-  eyebrowTextColor = 'text-[#d470ec]',
+  eyebrowTextColor = 'text-[#ff00d7]',
   iconType = 'star',
   iconCount = 1,
   centered = true,
@@ -58,19 +58,19 @@ function GsapPageHeading({
     return next.startsWith('&') ? 'space' : 'comma';
   };
 
-  /** `&` uses the same white as commas; the rest of the segment stays `.accent-word` for GSAP. */
-  const renderAccentPartBody = (part: string) => {
-    if (!part.startsWith('&')) {
-      return <span className="accent-word inline-block">{part}</span>;
-    }
-    const rest = part.slice(1).trim();
-    return (
-      <span className="inline-flex items-baseline gap-x-1.5">
-        <span className="accent-amp inline-block shrink-0">&</span>
-        {rest ? <span className="accent-word inline-block">{rest}</span> : null}
-      </span>
-    );
-  };
+    /** `&` uses the same white as commas; the rest of the segment stays `.accent-word` for GSAP. */
+    const renderAccentPartBody = (part: string) => {
+        if (!part.startsWith("&")) {
+            return <span className="accent-word inline-block">{part}</span>;
+        }
+        const rest = part.slice(1).trim();
+        return (
+            <span className="inline-flex items-baseline gap-x-1.5">
+                <span className="accent-amp inline-block shrink-0">&</span>
+                {rest ? <span className="accent-word inline-block">{rest}</span> : null}
+            </span>
+        );
+    };
 
   useGSAP(
     () => {
