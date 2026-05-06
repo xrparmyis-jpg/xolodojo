@@ -51,7 +51,7 @@ function pinNoteToPlain(text: string | null | undefined, max: number): string {
 
 const defaultTitle = 'XoloDojo | XGlobe';
 const defaultDescription =
-  'The Xoloitzquintle Collection: Ancient Legacy, 10,001 Unique XRPL NFTs — explore the globe.';
+  'The Xoloitzquintli Collection: Ancient Legacy, 10,001 Unique XRPL NFTs — explore the globe.';
 
 /**
  * Returns minimal HTML with Open Graph tags for a globe pin. Used by Edge middleware

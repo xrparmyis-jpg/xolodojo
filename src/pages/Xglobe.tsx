@@ -15,7 +15,7 @@ function Xglobe() {
         <div className="container mx-auto mb-8 px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
             <GsapPageHeading
-              eyebrow="The Xoloitzquintle's Global Stage"
+              eyebrow="The Xoloitzquintli's Global Stage"
               heading="A Sacred Legacy of"
               accent="Discovery, Adventure, & Shared Experiences"
               iconType="star"
@@ -53,7 +53,10 @@ function Xglobe() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
             <GsapPageContent delay={0}>
-              <GsapPageSubHeading headingColor="#642ff8" heading="A platform for more than one community" />
+              <GsapPageSubHeading
+                headingColor="#642ff8"
+                heading="A platform for more than one community"
+              />
             </GsapPageContent>
 
             <div>

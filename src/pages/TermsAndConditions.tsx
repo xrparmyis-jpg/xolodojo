@@ -12,16 +12,16 @@ function TermsAndConditions() {
             <GsapPageContent as="section" className="mb-10" delay={0}>
               <h2 className="mb-4 text-2xl font-semibold">1. Introduction</h2>
               <p>
-                Welcome to The Xoloitzquintle Collection ("we", "us", "our").
+                Welcome to The Xoloitzquintli Collection ("we", "us", "our").
                 These Terms and Conditions ("Terms") govern your access to and
                 use of https://vite-react-neon-beta-24.vercel.app/ (the "Site"),
                 participation in the minting, purchase, ownership, or use of
-                Xoloitzcuintle NFTs ("NFTs" or "Tokens"), and any related
+                Xoloitzquintli NFTs ("NFTs" or "Tokens"), and any related
                 services.
               </p>
               <p>
                 By accessing the Site, minting, purchasing, or holding any
-                Xoloitzcuintle NFT, you agree to be bound by these Terms. If you
+                Xoloitzquintli NFT, you agree to be bound by these Terms. If you
                 do not agree, do not use the Site or interact with the NFTs.
               </p>
             </GsapPageContent>
@@ -29,7 +29,7 @@ function TermsAndConditions() {
             <GsapPageContent as="section" className="mb-10" delay={0.06}>
               <h2 className="mb-4 text-2xl font-semibold">2. The Collection</h2>
               <p>
-                The Xoloitzcuintle Collection consists of 10,001 algorithmically
+                The Xoloitzquintli Collection consists of 10,001 algorithmically
                 generated unique digital collectibles (NFTs) minted on the XRP
                 Ledger (XRPL). Ownership of an NFT is recorded on the blockchain
                 and confers no additional rights beyond those expressly stated
@@ -42,7 +42,7 @@ function TermsAndConditions() {
                 3. Ownership and License
               </h2>
               <p>
-                Upon acquiring lawful ownership of an Xoloitzcuintle NFT, you
+                Upon acquiring lawful ownership of an Xoloitzquintli NFT, you
                 receive a limited, worldwide, non-exclusive, royalty-free
                 license to display, reproduce, and use the associated artwork
                 for personal, non-commercial purposes (including online display,

@@ -102,7 +102,7 @@ function Footer() {
             intersectionRootMargin="0px"
           >
             <p className="text-center text-sm text-[#cdcdcd] md:text-left">
-              The Xoloitzquintle Collection © 2024. All Rights Reserved.
+              The Xoloitzquintli Collection © 2024. All Rights Reserved.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 md:justify-start">
               <Link to="/faq" className="text-sm text-[#cdcdcd] no-underline transition-all duration-300 ease-in-out hover:text-[#b7e9f7] hover:no-underline">
