@@ -55,7 +55,7 @@ const defaultDescription =
 
 /**
  * Returns minimal HTML with Open Graph tags for a globe pin. Used by Edge middleware
- * when social crawlers request `/xglobe?pin=...`.
+ * when social crawlers request `/xglobe?Xpin=...` (legacy `pin` also accepted).
  */
 export default async function handler(
   req: VercelRequest,
@@ -66,17 +66,23 @@ export default async function handler(
     return;
   }
 
-  const raw = req.query?.pin;
-  const rawPin = Array.isArray(raw) ? raw[0] : raw;
-  const pin = typeof rawPin === 'string' ? rawPin.trim() : '';
+  const pick = (v: string | string[] | undefined): string | undefined => {
+    if (Array.isArray(v)) {
+      return v[0];
+    }
+    return typeof v === 'string' ? v : undefined;
+  };
+  const rawXpin = pick(req.query?.Xpin as string | string[] | undefined);
+  const rawLegacy = pick(req.query?.pin as string | string[] | undefined);
+  const pin = (rawXpin ?? rawLegacy ?? '').trim();
   const siteOrigin = publicSiteOrigin();
 
   let pageTitle = defaultTitle;
   let description = defaultDescription;
   let imageUrl = `${siteOrigin}/team/Cryptonite.jpg`;
-  /** Preserve the incoming query string for canonical URLs (title-based or legacy hex). */
+  /** Canonical URL uses `Xpin` (value is the raw query string, title or hex). */
   const pageUrl = pin
-    ? `${siteOrigin}/xglobe?pin=${encodeURIComponent(pin)}`
+    ? `${siteOrigin}/xglobe?Xpin=${encodeURIComponent(pin)}`
     : `${siteOrigin}/xglobe`;
 
   if (pin) {

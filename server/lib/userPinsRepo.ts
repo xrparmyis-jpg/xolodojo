@@ -395,7 +395,7 @@ export async function getGlobePinByTokenId(
 }
 
 /**
- * Resolve `?pin=` for OG / previews: legacy 64-char hex NFToken id, or pin title (URL-decoded).
+ * Resolve `?Xpin=` (or legacy `?pin=`) for OG / previews: 64-char hex NFToken id or pin title (URL-decoded).
  */
 export async function getGlobePinByQueryParam(
   pool: mysql.Pool,

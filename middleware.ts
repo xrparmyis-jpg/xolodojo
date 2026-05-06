@@ -2,7 +2,7 @@ import { next } from '@vercel/edge';
 
 /**
  * Link previews (Slack, Discord, iMessage, etc.) use these crawlers. Serve OG HTML
- * that includes the pin's NFT image while humans still get the SPA (no ?pin in matcher-only — we check query).
+ * that includes the pin's NFT image while humans still get the SPA (we check `Xpin` / legacy `pin`).
  * @see server/handlers/og/xglobe-pin-html.ts
  */
 const CRAWLER_UA =
@@ -17,7 +17,9 @@ export default async function middleware(request: Request): Promise<Response> {
   if (url.pathname !== '/xglobe') {
     return next();
   }
-  const pin = url.searchParams.get('pin')?.trim();
+  const pin =
+    url.searchParams.get('Xpin')?.trim() ||
+    url.searchParams.get('pin')?.trim();
   if (!pin) {
     return next();
   }
@@ -26,7 +28,7 @@ export default async function middleware(request: Request): Promise<Response> {
     return next();
   }
   const api = new URL('/api/og/xglobe-pin-html', url.origin);
-  api.searchParams.set('pin', pin);
+  api.searchParams.set('Xpin', pin);
   return fetch(api.toString(), {
     method: 'GET',
     headers: { Accept: 'text/html' },
