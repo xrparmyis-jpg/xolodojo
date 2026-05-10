@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 
 import GsapPageContent from '../components/GsapPageContent';
 import GsapPageHeading from '../components/GsapPageHeading';
@@ -24,6 +25,8 @@ type LegacyStoryRow = {
   eyebrow: string;
   title: ReactNode;
   body: ReactNode;
+  /** When set, a CTA link is rendered below the section body (use in-app paths like `/team`). */
+  sectionCta?: { to: string; label: string };
 };
 
 const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
@@ -94,6 +97,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
         </p>
       </>
     ),
+    sectionCta: { to: '/xoloitzquintli', label: 'Explore the collection' },
   },
   {
     id: 'Unlock-Xglobe',
@@ -129,6 +133,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
         <p>Xglobe is the Omega.</p>
       </>
     ),
+    sectionCta: { to: '/xglobe', label: 'Open Xglobe' },
   },
   {
     id: 'Pin Your Presence',
@@ -165,6 +170,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
         <p className="mb-4">Xpin is the Alpha.</p>
       </>
     ),
+    sectionCta: { to: '/xglobe', label: 'Go to Xglobe' },
   },
   {
     id: 'TheXoloitzquintliLegacy',
@@ -205,6 +211,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
         <p></p>
       </>
     ),
+    sectionCta: { to: '/xoloitzquintli', label: 'The Xoloitzquintli page' },
   },
   {
     id: 'The Vision',
@@ -243,6 +250,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
         </p>
       </>
     ),
+    sectionCta: { to: '/vision', label: 'Read the full vision' },
   },
   {
     id: 'The Team',
@@ -282,6 +290,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
         <p className="mb-4"></p>
       </>
     ),
+    sectionCta: { to: '/team', label: 'Meet the team' },
   },
 ];
 
@@ -453,6 +462,19 @@ function Home() {
                       <div className="w-full max-w-none leading-relaxed">
                         {row.body}
                       </div>
+                      {row.sectionCta ? (
+                        <div className="mt-6 flex justify-center lg:justify-start">
+                          <Link
+                            to={row.sectionCta.to}
+                            className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition hover:bg-white/5 ${row.borderColor} ${row.titleColor}`}
+                          >
+                            {row.sectionCta.label}
+                            <span aria-hidden className="opacity-80">
+                              →
+                            </span>
+                          </Link>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 </GsapPageContent>
