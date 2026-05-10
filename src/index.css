@@ -18,6 +18,10 @@
   --color-header: var(--header);
 }
 
+html {
+  overflow-x: hidden;
+}
+
 :root {
   --body: #fff;
   --black: #000;

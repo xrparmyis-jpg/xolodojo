@@ -371,7 +371,10 @@ function Home() {
               </p>
             </>
           </GsapPageContent>
-          <GsapPageContent className="mt-12 flex justify-center" delay={0.72}>
+          <GsapPageContent
+            className="mt-12 flex justify-center max-sm:px-2"
+            delay={0.72}
+          >
             <XoloitzquintleSlideshow />
           </GsapPageContent>
           <GsapPageContent className="mx-auto w-full max-w-4xl">
@@ -385,7 +388,7 @@ function Home() {
 
       <section
         ref={projectSectionRef}
-        className="relative overflow-visible border-t border-[#36e9e424] bg-[var(--bg)] bg-cover py-8"
+        className="relative overflow-x-hidden border-t border-[#36e9e424] bg-[var(--bg)] bg-cover py-8"
         style={{ backgroundImage: "url('/line-shape.png')" }}
       >
         <div
@@ -461,7 +464,7 @@ function Home() {
                         {row.body}
                       </div>
                       {row.sectionCta ? (
-                        <div className="mt-6 flex justify-center lg:justify-start">
+                        <div className="mt-6 flex justify-start">
                           <Link
                             to={row.sectionCta.to}
                             className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition hover:bg-white/5 ${row.borderColor} ${row.titleColor}`}
