@@ -383,14 +383,13 @@ function Home() {
       >
         <div
           ref={projectColorBgRef}
-          className="pointer-events-none absolute -z-10"
+          className="pointer-events-none absolute -z-10 brightness-[0.56] saturate-[0.82] md:brightness-[0.68] md:saturate-[0.88] lg:brightness-[1.2] lg:saturate-100"
           style={{
             top: '-12%',
             right: '-50px',
             transform: `translateY(${projectBlobOffset}px)`,
             willChange: 'transform',
             transition: 'transform 0.1s ease-out',
-            filter: 'brightness(1.2)',
           }}
         >
           <img src="/color-bg-shape-2.png" alt="" aria-hidden />
