@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 
 import GsapPageContent from '../components/GsapPageContent';
 import GsapPageHeading from '../components/GsapPageHeading';
@@ -24,6 +25,8 @@ type LegacyStoryRow = {
   eyebrow: string;
   title: ReactNode;
   body: ReactNode;
+  /** When set, a CTA link is rendered below the section body (use in-app paths like `/team`). */
+  sectionCta?: { to: string; label: string };
 };
 
 const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
@@ -94,6 +97,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
         </p>
       </>
     ),
+    sectionCta: { to: '/xoloitzquintli', label: 'Explore the collection' },
   },
   {
     id: 'Unlock-Xglobe',
@@ -129,6 +133,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
         <p>Xglobe is the Omega.</p>
       </>
     ),
+    sectionCta: { to: '/xglobe', label: 'Open Xglobe' },
   },
   {
     id: 'Pin Your Presence',
@@ -151,8 +156,8 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
           Add your name, bio, links, and socials. Your Xpin shows the location
           you choose, what you're building, in need of, or the kind of people
           and opportunities you want to connect with. It can be your intro, your
-          signal, your invition, or your shot at finding like-minded people who
-          move with purpose, curiosity, positive vibes and good energy.
+          signal, your invitation, or your shot at finding like-minded people
+          who move with purpose, curiosity, positive vibes and good energy.
         </p>
         <p className="mb-4">
           Xpins display local date and time and can be shared and bookmarked,
@@ -165,6 +170,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
         <p className="mb-4">Xpin is the Alpha.</p>
       </>
     ),
+    sectionCta: { to: '/xglobe', label: 'Go to Xglobe' },
   },
   {
     id: 'TheXoloitzquintliLegacy',
@@ -205,6 +211,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
         <p></p>
       </>
     ),
+    sectionCta: { to: '/xoloitzquintli', label: 'The Xoloitzquintli page' },
   },
   {
     id: 'The Vision',
@@ -243,6 +250,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
         </p>
       </>
     ),
+    sectionCta: { to: '/vision', label: 'Read the full vision' },
   },
   {
     id: 'The Team',
@@ -257,8 +265,8 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     body: (
       <>
         <p className="mb-4">
-          An unstoppable trio united by freindship, loyalty, and mutual respect
-          perservering together to deliver the XoloDojo Xoloitzquintli NFT
+          An unstoppable trio united by friendship, loyalty, and mutual respect
+          persevering together to deliver the XoloDojo Xoloitzquintli NFT
           Collection - featuring Xglobe. Team fire is dedicated to building an
           inclusive, collaborative, and vibrant community where people can
           connect, share, and grow.
@@ -266,7 +274,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
         <p className="mb-4">
           Cryptonite, the project visionary, is the Alaskan spark that ignited
           the flame. Turning bold, raw ideas and a vision into reality - driven
-          by the relentless pursuit of building a global community examplifying
+          by the relentless pursuit of building a global community exemplifying
           the exercise of mind, body, and soul.
         </p>
         <p className="mb-4">
@@ -277,11 +285,12 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
         <p className="mb-4">
           RedShadow is the talented artist hailing from Pakistan. The Pakistani
           Alchemist is the talent behind each hand drawn trait that is the
-          heartbeat of the Xoloitzquintle NFT Collection.
+          heartbeat of the Xoloitzquintli NFT Collection.
         </p>
         <p className="mb-4"></p>
       </>
     ),
+    sectionCta: { to: '/team', label: 'Meet the team' },
   },
 ];
 
@@ -453,6 +462,19 @@ function Home() {
                       <div className="w-full max-w-none leading-relaxed">
                         {row.body}
                       </div>
+                      {row.sectionCta ? (
+                        <div className="mt-6 flex justify-center lg:justify-start">
+                          <Link
+                            to={row.sectionCta.to}
+                            className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition hover:bg-white/5 ${row.borderColor} ${row.titleColor}`}
+                          >
+                            {row.sectionCta.label}
+                            <span aria-hidden className="opacity-80">
+                              →
+                            </span>
+                          </Link>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 </GsapPageContent>
