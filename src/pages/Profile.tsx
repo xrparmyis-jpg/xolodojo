@@ -43,7 +43,7 @@ import {
   type SavedGlobePinItem,
 } from '../services/savedGlobePinsService';
 import { buildXglobePinPath } from '../utils/globePinQuery';
-import { buildGlobePinShareUrl } from '../utils/globeShareUrl';
+import { shareGlobePinLink } from '../utils/shareGlobePinLink';
 
 type SocialPlatformKey = keyof ProfileSocials;
 
@@ -630,24 +630,15 @@ function Profile() {
                                   <div className="flex shrink-0 items-center gap-1.5">
                                     <button
                                       type="button"
-                                      title="Copy share link"
+                                      title="Copy link to this pin"
+                                      aria-label="Copy link to this pin"
                                       className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border border-white/15 text-white/70 hover:bg-white/10"
-                                      onClick={async () => {
-                                        try {
-                                          await navigator.clipboard.writeText(
-                                            buildGlobePinShareUrl(p.token_id, p.title)
-                                          );
-                                          showToast(
-                                            'success',
-                                            'Link copied to clipboard'
-                                          );
-                                        } catch {
-                                          showToast(
-                                            'error',
-                                            'Could not copy link'
-                                          );
-                                        }
-                                      }}
+                                      onClick={() =>
+                                        void shareGlobePinLink(
+                                          p.token_id,
+                                          p.title
+                                        )
+                                      }
                                     >
                                       <FontAwesomeIcon
                                         icon={faShareNodes}

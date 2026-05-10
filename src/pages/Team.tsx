@@ -197,34 +197,36 @@ function Team() {
   return (
     <div>
       <section className="relative bg-[url('/Pattern.png')] bg-cover bg-center bg-no-repeat pt-16 pb-4 md:pt-30 border-b border-[#36e9e424]">
-        <div className="max-w-4xl mx-auto">
-          <GsapPageHeading
-            eyebrow="Meet the XoloDojo Team"
-            heading="A Sacred Legacy of"
-            accent="Friendship, Grind, & Perseverance"
-            iconType="star"
-            iconCount={1}
-            centered
-          />
-          <GsapPageContent as="p" className="mb-4">
-            United by culture, art, and crypto, we're forging XoloDojo and
-            Xglobe: a token-gated global community for trust, travel, skill-sharing,
-            and real-world adventures. Together, we're not just minting NFTs —
-            we're building a network of passionate individuals ready to connect,
-            collaborate, and build the future.
-          </GsapPageContent>
-        </div>
-        <div className="container mx-auto max-w-7xl px-4">
-          <GsapPageContent
-            className="my-8 flex flex-col items-center text-center"
-            delay={0}
-          >
-            <div className="mt-4 grid grid-cols-1 gap-8 md:gap-10 lg:grid-cols-3">
-              {owners.map(owner => (
-                <OwnerCard key={owner.id} owner={owner} />
-              ))}
-            </div>
-          </GsapPageContent>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto">
+            <GsapPageHeading
+              eyebrow="Meet the XoloDojo Team"
+              heading="A Sacred Legacy of"
+              accent="Friendship, Grind, & Perseverance"
+              iconType="star"
+              iconCount={1}
+              centered
+            />
+            <GsapPageContent as="p" className="mb-4">
+              United by culture, art, and crypto, we're forging XoloDojo and
+              Xglobe: a token-gated global community for trust, travel, skill-sharing,
+              and real-world adventures. Together, we're not just minting NFTs —
+              we're building a network of passionate individuals ready to connect,
+              collaborate, and build the future.
+            </GsapPageContent>
+          </div>
+          <div className="max-w-7xl mx-auto">
+            <GsapPageContent
+              className="my-8 flex flex-col items-center text-center"
+              delay={0}
+            >
+              <div className="mt-4 grid grid-cols-1 gap-8 md:gap-10 lg:grid-cols-3">
+                {owners.map(owner => (
+                  <OwnerCard key={owner.id} owner={owner} />
+                ))}
+              </div>
+            </GsapPageContent>
+          </div>
         </div>
       </section>
 

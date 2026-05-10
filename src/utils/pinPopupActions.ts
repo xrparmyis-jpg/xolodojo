@@ -1,6 +1,6 @@
 import { addSavedGlobePin, removeSavedGlobePin } from '../services/savedGlobePinsService';
-import { buildGlobePinShareUrl } from './globeShareUrl';
 import { emitXoloToast } from './xoloToastBus';
+import { shareGlobePinLink } from './shareGlobePinLink';
 import { normalizeNfTokenId } from './nfTokenId';
 
 function getTokenFromActionsRow(host: Element | null | undefined): string | null {
@@ -101,44 +101,7 @@ export function bindPinPopupActions(
       return;
     }
     const pinTitle = getPinTitleFromActionsRow(actionsHost);
-    const url = buildGlobePinShareUrl(id, pinTitle);
-    const nativeShareData = {
-      title: 'Xolo Dojo Xglobe',
-      text: 'Check out this Xglobe pin',
-      url,
-    };
-
-    if (typeof navigator.share === 'function') {
-      try {
-        await navigator.share(nativeShareData);
-        return;
-      } catch (err) {
-        // User canceled share sheet: no error toast, no clipboard fallback needed.
-        if (err instanceof DOMException && err.name === 'AbortError') {
-          return;
-        }
-      }
-    }
-
-    try {
-      await navigator.clipboard.writeText(url);
-      emitXoloToast('success', 'Link copied to clipboard');
-    } catch {
-      try {
-        const ta = document.createElement('textarea');
-        ta.value = url;
-        ta.setAttribute('readonly', '');
-        ta.style.position = 'fixed';
-        ta.style.left = '-9999px';
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-        emitXoloToast('success', 'Link copied to clipboard');
-      } catch {
-        emitXoloToast('error', 'Could not copy link');
-      }
-    }
+    await shareGlobePinLink(id, pinTitle);
   };
 
   const shareBtn = actionsHost.querySelector<HTMLButtonElement>('[data-xolo-action="share"]');
