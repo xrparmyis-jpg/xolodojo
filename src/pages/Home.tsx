@@ -151,8 +151,8 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
           Add your name, bio, links, and socials. Your Xpin shows the location
           you choose, what you're building, in need of, or the kind of people
           and opportunities you want to connect with. It can be your intro, your
-          signal, your invition, or your shot at finding like-minded people who
-          move with purpose, curiosity, positive vibes and good energy.
+          signal, your invitation, or your shot at finding like-minded people
+          who move with purpose, curiosity, positive vibes and good energy.
         </p>
         <p className="mb-4">
           Xpins display local date and time and can be shared and bookmarked,
@@ -257,8 +257,8 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     body: (
       <>
         <p className="mb-4">
-          An unstoppable trio united by freindship, loyalty, and mutual respect
-          perservering together to deliver the XoloDojo Xoloitzquintli NFT
+          An unstoppable trio united by friendship, loyalty, and mutual respect
+          persevering together to deliver the XoloDojo Xoloitzquintli NFT
           Collection - featuring Xglobe. Team fire is dedicated to building an
           inclusive, collaborative, and vibrant community where people can
           connect, share, and grow.
@@ -266,7 +266,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
         <p className="mb-4">
           Cryptonite, the project visionary, is the Alaskan spark that ignited
           the flame. Turning bold, raw ideas and a vision into reality - driven
-          by the relentless pursuit of building a global community examplifying
+          by the relentless pursuit of building a global community exemplifying
           the exercise of mind, body, and soul.
         </p>
         <p className="mb-4">
@@ -277,7 +277,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
         <p className="mb-4">
           RedShadow is the talented artist hailing from Pakistan. The Pakistani
           Alchemist is the talent behind each hand drawn trait that is the
-          heartbeat of the Xoloitzquintle NFT Collection.
+          heartbeat of the Xoloitzquintli NFT Collection.
         </p>
         <p className="mb-4"></p>
       </>
