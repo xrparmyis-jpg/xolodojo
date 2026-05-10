@@ -40,9 +40,9 @@ export default function XoloitzquintleSlideshow() {
   const src = urls[index];
 
   return (
-    <div className="flex justify-center">
+    <div className="flex w-full justify-center">
       <div
-        className="h-[360px] w-[360px] shrink-0 overflow-hidden rounded-md bg-black/20 ring-1 ring-white/10"
+        className="aspect-square w-full max-w-[360px] shrink-0 overflow-hidden rounded-md bg-black/20 ring-1 ring-white/10"
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
       >
