@@ -97,7 +97,6 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
         </p>
       </>
     ),
-    sectionCta: { to: '/xoloitzquintli', label: 'Explore the collection' },
   },
   {
     id: 'Unlock-Xglobe',
@@ -170,7 +169,6 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
         <p className="mb-4">Xpin is the Alpha.</p>
       </>
     ),
-    sectionCta: { to: '/xglobe', label: 'Go to Xglobe' },
   },
   {
     id: 'TheXoloitzquintliLegacy',
