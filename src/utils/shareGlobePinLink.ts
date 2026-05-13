@@ -11,8 +11,8 @@ export async function shareGlobePinLink(
 ): Promise<void> {
   const url = buildGlobePinShareUrl(tokenId, pinTitle);
   const nativeShareData = {
-    title: 'Xolo Dojo Xglobe',
-    text: 'Check out this Xglobe pin',
+    title: 'XoloDojo Xglobe',
+    text: 'Check out this Xglobe Xpin',
     url,
   };
 
