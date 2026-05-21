@@ -1,4 +1,3 @@
-import Modal from './Modal';
 import { WalletConnection } from './WalletConnection';
 
 type ConnectWalletAuthModalProps = {
@@ -7,28 +6,28 @@ type ConnectWalletAuthModalProps = {
   onSuccess: () => void;
 };
 
+/**
+ * Wallet sign-in: mounts {@link WalletConnection} and opens the wallet-type picker
+ * immediately (no intermediate “Connect wallet” / “Choose Wallet” modal).
+ */
 export default function ConnectWalletAuthModal({
   isOpen,
   onClose,
   onSuccess,
 }: ConnectWalletAuthModalProps) {
+  if (!isOpen) {
+    return null;
+  }
+
   return (
-    <Modal
-      isOpen={isOpen}
-      title="Connect wallet"
-      onClose={onClose}
-      maxWidthClassName="max-w-lg"
-    >
-      <p className="mb-4 text-sm text-white/70">
-        Choose a wallet and complete connection. You will be signed in without a password account.
-      </p>
-      <WalletConnection
-        variant="wallet_auth"
-        onWalletAuthSuccess={() => {
-          onSuccess();
-          onClose();
-        }}
-      />
-    </Modal>
+    <WalletConnection
+      variant="wallet_auth"
+      autoOpenWalletPicker
+      onWalletPickerDismiss={onClose}
+      onWalletAuthSuccess={() => {
+        onSuccess();
+        onClose();
+      }}
+    />
   );
 }

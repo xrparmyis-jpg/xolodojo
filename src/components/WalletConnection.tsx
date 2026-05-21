@@ -61,6 +61,10 @@ interface WalletConnectionProps {
     onWalletsUpdated?: (wallets: Wallet[]) => void;
     resumeXamanOnMount?: boolean;
     variant?: WalletConnectionVariant;
+    /** Opens the wallet-type picker immediately (wallet sign-in flow; skips the extra “Choose Wallet” step). */
+    autoOpenWalletPicker?: boolean;
+    /** Called when the user closes the wallet picker without finishing sign-in. */
+    onWalletPickerDismiss?: () => void;
     onWalletAuthSuccess?: () => void;
     onWalletSessionDisconnect?: () => Promise<void>;
     sessionWalletAddress?: string;
@@ -73,6 +77,8 @@ function WalletConnectionContent({
     onWalletsUpdated,
     resumeXamanOnMount,
     variant = 'profile',
+    autoOpenWalletPicker = false,
+    onWalletPickerDismiss,
     onWalletAuthSuccess,
     onWalletSessionDisconnect,
     sessionWalletAddress,
@@ -649,6 +655,18 @@ function WalletConnectionContent({
         void handleConnectXaman(undefined, { resumeFromRedirect: true });
     }, [variant, resumeXamanOnMount, hasResumedXamanOnMount, handleConnectXaman]);
 
+    useEffect(() => {
+        if (variant !== 'wallet_auth' || !autoOpenWalletPicker) return;
+        setShowAddWalletModal(true);
+    }, [variant, autoOpenWalletPicker]);
+
+    const dismissWalletPicker = useCallback(() => {
+        setShowAddWalletModal(false);
+        if (variant === 'wallet_auth') {
+            onWalletPickerDismiss?.();
+        }
+    }, [variant, onWalletPickerDismiss]);
+
     const handleDelete = async (walletId: number) => {
         const walletToDelete = wallets.find(w => w.id === walletId);
         if (!walletToDelete) {
@@ -895,8 +913,17 @@ function WalletConnectionContent({
     const isInteractionBlocked = overlayMessage !== null;
     const shouldUseSummaryMinHeight = isAssetsLoading || ((connectedWalletAssets?.nft_count ?? 0) > 0);
 
+    const walletAuthPickerOnly = variant === 'wallet_auth' && autoOpenWalletPicker;
+
     return (
-        <div className="relative w-full p-6 bg-black/30 rounded-lg mt-4">
+        <div
+            className={
+                walletAuthPickerOnly
+                    ? 'sr-only'
+                    : 'relative w-full p-6 bg-black/30 rounded-lg mt-4'
+            }
+            aria-hidden={walletAuthPickerOnly ? true : undefined}
+        >
             {wallets.length > 0 && (
                 <div className="flex justify-between items-center mb-4">
                     <h4 className="text-white text-lg">
@@ -1039,7 +1066,7 @@ function WalletConnectionContent({
                                 </div>
                                 <div className="flex justify-end mt-4">
                                     <Button
-                                        onClick={() => setShowAddWalletModal(false)}
+                                        onClick={dismissWalletPicker}
                                         disabled={walletBusyMessage !== null}
                                         className="bg-gray-600 hover:bg-gray-700 active:bg-gray-800 text-sm"
                                     >
@@ -1060,7 +1087,7 @@ function WalletConnectionContent({
                 onCancel={handleCancelJoeyQr}
             />
 
-            {variant === 'wallet_auth' && (
+            {variant === 'wallet_auth' && !autoOpenWalletPicker && (
                 <Button
                     onClick={() => {
                         clearToasts();
