@@ -3,6 +3,8 @@
  * detect Xaman returns so we do not confuse them with other flows.
  */
 
+import { isXamanDesktopHandoffSearch } from './xamanConnectIntent';
+
 export function isLikelyXummPkceOAuthReturn(search: string): boolean {
 	const q = search.startsWith('?') ? search.slice(1) : search;
 	const p = new URLSearchParams(q);
@@ -16,15 +18,18 @@ export function isLikelyXummPkceOAuthReturn(search: string): boolean {
 }
 
 /**
- * After Xaman mobile redirect back to our app (usually /profile). We must resume
- * `xamanHandler.connect` so new wallets are created in the DB when the user had none.
+ * After Xaman redirect back to our app (`/profile` for logged-in wallet rows, `/` for
+ * wallet-only sign-in). Resume `xamanHandler.connect` so grants finish in the browser.
  *
- * PKCE returns standard `code` + `state` — we never append `xaman_return` from the SDK,
- * so detecting only `xaman_return=1` misses most real returns.
+ * Desktop QR handoffs use `xaman_flow=desktop` on `/` — do not resume there (PC tab polls).
  */
 export function shouldResumeXamanPkceConnect(pathname: string, search: string): boolean {
+	if (isXamanDesktopHandoffSearch(search)) return false;
+
 	const path = pathname.toLowerCase();
-	if (!path.includes('profile')) return false;
+	const onProfile = path.includes('profile');
+	const onHome = path === '/' || path === '';
+	if (!onProfile && !onHome) return false;
 
 	const q = search.startsWith('?') ? search.slice(1) : search;
 	const p = new URLSearchParams(q);

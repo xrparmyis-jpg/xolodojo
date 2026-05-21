@@ -1,6 +1,8 @@
 import { ReactNode } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../providers/AuthContext';
+import { shouldResumeXamanPkceConnect } from '../utils/oauthCallbackGuards';
+import { getXamanConnectIntent } from '../utils/xamanConnectIntent';
 
 interface ProtectedRouteProps {
     children: ReactNode;
@@ -8,6 +10,7 @@ interface ProtectedRouteProps {
 
 function ProtectedRoute({ children }: ProtectedRouteProps) {
     const { user, loading } = useAuth();
+    const location = useLocation();
 
     if (loading) {
         return (
@@ -26,6 +29,12 @@ function ProtectedRoute({ children }: ProtectedRouteProps) {
     }
 
     if (!user) {
+        if (
+            shouldResumeXamanPkceConnect(location.pathname, location.search) &&
+            getXamanConnectIntent() === 'wallet_auth'
+        ) {
+            return <Navigate to={`/${location.search}`} replace />;
+        }
         return <Navigate to="/" replace />;
     }
 

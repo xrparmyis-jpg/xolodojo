@@ -20,6 +20,8 @@ export const REMOVING_WALLET_MESSAGE = 'Removing wallet…';
 
 // --- Xaman (PKCE / sign-in phases) ---
 export const XAMAN_CONNECTING_MESSAGE = 'Connecting to Xaman…';
+/** After Xaman approves; persisting wallet / session on our API. */
+export const FINISHING_XAMAN_SIGN_IN_MESSAGE = 'Finishing Xaman sign-in…';
 export const CONNECTING_YOUR_WALLET_MESSAGE = 'Connecting your wallet…';
 export const RECONNECTING_WALLET_MESSAGE = 'Reconnecting your wallet…';
 export const ADDING_WALLET_AND_CONNECTING_MESSAGE = 'Adding wallet and connecting…';

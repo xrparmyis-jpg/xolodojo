@@ -11,6 +11,12 @@ import { useNavigate } from 'react-router-dom';
 import LoginModal from '../components/LoginModal';
 import ConnectChoiceModal from '../components/ConnectChoiceModal';
 import ConnectWalletAuthModal from '../components/ConnectWalletAuthModal';
+import { shouldResumeXamanPkceConnect } from '../utils/oauthCallbackGuards';
+import {
+  getXamanConnectIntent,
+  isXamanDesktopHandoffSearch,
+} from '../utils/xamanConnectIntent';
+import { stripXamanDesktopHandoffParams } from '../utils/xamanOAuthLanding';
 
 type AuthModalView = 'login' | 'register' | 'forgot-password' | 'forgot-username' | 'reset-password';
 
@@ -27,6 +33,7 @@ export function LoginModalProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
   const [isConnectWalletAuthOpen, setIsConnectWalletAuthOpen] = useState(false);
+  const [resumeXamanWalletAuth, setResumeXamanWalletAuth] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [initialView, setInitialView] = useState<AuthModalView>('login');
   const [resetToken, setResetToken] = useState<string | null>(null);
@@ -34,6 +41,21 @@ export function LoginModalProvider({ children }: { children: ReactNode }) {
     variant: 'success' | 'error';
     message: string;
   } | null>(null);
+
+  useEffect(() => {
+    const { pathname, search } = window.location;
+    if (isXamanDesktopHandoffSearch(search)) {
+      stripXamanDesktopHandoffParams();
+      return;
+    }
+    if (shouldResumeXamanPkceConnect(pathname, search)) {
+      const intent = getXamanConnectIntent();
+      if (intent === 'wallet_auth') {
+        setIsConnectWalletAuthOpen(true);
+        setResumeXamanWalletAuth(true);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -158,12 +180,15 @@ export function LoginModalProvider({ children }: { children: ReactNode }) {
       />
       <ConnectWalletAuthModal
         isOpen={isConnectWalletAuthOpen}
+        resumeXamanOnMount={resumeXamanWalletAuth}
         onClose={() => {
           setIsConnectWalletAuthOpen(false);
+          setResumeXamanWalletAuth(false);
           setIsConnectModalOpen(false);
         }}
         onSuccess={() => {
           setIsConnectWalletAuthOpen(false);
+          setResumeXamanWalletAuth(false);
           setIsConnectModalOpen(false);
           navigate('/profile');
         }}

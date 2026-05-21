@@ -4,8 +4,17 @@ import type { IWalletHandler } from './IWalletHandler';
 import { stripXamanReturnQueryParam } from '../utils/xamanOAuthLanding';
 import { isLikelyXummPkceOAuthReturn } from '../utils/oauthCallbackGuards';
 import {
+	clearXamanConnectIntent,
+	getXamanConnectIntent,
+	isXamanDesktopHandoffSearch,
+	resolveXamanConnectIntent,
+	setXamanConnectIntent,
+	type XamanConnectIntent,
+} from '../utils/xamanConnectIntent';
+import {
 	ADDING_WALLET_AND_CONNECTING_MESSAGE,
 	CONNECTING_YOUR_WALLET_MESSAGE,
+	FINISHING_XAMAN_SIGN_IN_MESSAGE,
 	LOADING_WALLET_SUMMARY_MESSAGE,
 	RECONNECTING_WALLET_MESSAGE,
 	XAMAN_CONNECTING_MESSAGE,
@@ -18,46 +27,135 @@ const xamanApiKey = (
 	''
 ).trim();
 const configuredRedirectUrl = (import.meta.env.VITE_XAMAN_REDIRECT_URL || '').trim();
+const configuredDesktopHandoffUrl = (import.meta.env.VITE_XAMAN_DESKTOP_HANDOFF_URL || '').trim();
+const configuredSiteUrl = (import.meta.env.VITE_SITE_URL || '').trim();
 const rememberXamanJwt = import.meta.env.VITE_XAMAN_REMEMBER_JWT !== 'false';
 let xamanPkce: XummPkce | null = null;
+let warnedLocalhostDesktopHandoff = false;
 
 function isXamanConfigured() {
 	return Boolean(xamanApiKey);
 }
 
-/**
- * OAuth redirect_uri must exactly match a URL allowed in the Xaman Developer Console.
- * When `VITE_XAMAN_REDIRECT_URL` is unset:
- * - Local dev uses `origin/` (typical http://localhost:5173/ registration).
- * - Deployed sites use `origin/profile?xaman_return=1` so production matches common
- *   console entries like https://xolodojo.vercel.app/profile?xaman_return=1
- *   (root-only registration would mismatch and yield access_denied / invalid redirect).
- */
-function getDefaultXamanRedirectUrl(): string {
-	const origin = window.location.origin;
+function isLocalDevHost(): boolean {
 	const host = window.location.hostname;
-	const isLocal =
+	return (
 		host === 'localhost' ||
 		host === '127.0.0.1' ||
 		host === '[::1]' ||
-		host.endsWith('.local');
-	if (isLocal) {
-		return `${origin}/`;
-	}
-	return `${origin}/profile?xaman_return=1`;
+		host.endsWith('.local')
+	);
 }
 
-function getXamanRedirectUrl() {
-	if (typeof window === 'undefined') {
-		return configuredRedirectUrl;
+/**
+ * Public origin for desktop QR redirect when dev runs on localhost (phone cannot open localhost).
+ * Register `${origin}/?xaman_flow=desktop` in the Xaman Developer Console.
+ */
+function getDesktopHandoffOrigin(): string | null {
+	const explicit = configuredDesktopHandoffUrl.replace(/\/$/, '');
+	if (explicit) return explicit;
+	if (isLocalDevHost()) {
+		const site = configuredSiteUrl.replace(/\/$/, '');
+		if (site) return site;
+		return null;
+	}
+	return null;
+}
+
+function getXamanDesktopRedirectUrl(): string {
+	const handoff = getDesktopHandoffOrigin();
+	const base = (handoff ?? window.location.origin).replace(/\/$/, '');
+	return `${base}/?xaman_flow=desktop`;
+}
+
+function warnIfLocalhostDesktopWithoutHandoff(intent: XamanConnectIntent): void {
+	if (intent !== 'desktop' || warnedLocalhostDesktopHandoff || !isLocalDevHost()) return;
+	if (getDesktopHandoffOrigin()) return;
+	warnedLocalhostDesktopHandoff = true;
+	// eslint-disable-next-line no-console
+	console.warn(
+		'[Xaman] Desktop QR on localhost: set VITE_SITE_URL or VITE_XAMAN_DESKTOP_HANDOFF_URL to your deployed site (e.g. https://xolodojo.vercel.app) so the phone does not open http://localhost:5173 after sign-in.'
+	);
+}
+
+/**
+ * OAuth redirect_uri must exactly match a URL allowed in the Xaman Developer Console.
+ * When env overrides are unset we pick per intent:
+ * - desktop QR: public `/?xaman_flow=desktop` (on localhost, use VITE_SITE_URL — not localhost)
+ * - wallet sign-in: `/?xaman_return=1`
+ * - profile wallets (mobile prod): `/profile?xaman_return=1`
+ */
+function getXamanRedirectUrlForIntent(intent: XamanConnectIntent): string {
+	const origin = window.location.origin;
+	switch (intent) {
+		case 'desktop':
+			return getXamanDesktopRedirectUrl();
+		case 'wallet_auth':
+			return `${origin}/?xaman_return=1`;
+		case 'profile_wallets':
+			if (isLocalDevHost()) {
+				return `${origin}/?xaman_return=1`;
+			}
+			return `${origin}/profile?xaman_return=1`;
+	}
+}
+
+/** Match redirect_uri to the URL the user landed on after Xaman. */
+function inferXamanRedirectUrlFromLocation(): string | null {
+	if (typeof window === 'undefined') return null;
+	const url = new URL(window.location.href);
+	if (url.searchParams.get('xaman_flow') === 'desktop') {
+		return getXamanDesktopRedirectUrl();
+	}
+	const path = url.pathname.toLowerCase();
+	const hasOAuth =
+		isLikelyXummPkceOAuthReturn(url.search) || url.searchParams.get('xaman_return') === '1';
+	if (!hasOAuth) return null;
+	if (path.includes('profile')) {
+		return getXamanRedirectUrlForIntent('profile_wallets');
+	}
+	if (path === '/' || path === '') {
+		const intent = getXamanConnectIntent();
+		if (intent === 'wallet_auth') {
+			return getXamanRedirectUrlForIntent('wallet_auth');
+		}
+		if (intent === 'desktop') {
+			return getXamanRedirectUrlForIntent('desktop');
+		}
+		return getXamanRedirectUrlForIntent('profile_wallets');
+	}
+	return null;
+}
+
+function resolveXamanRedirectUrl(intent?: XamanConnectIntent): string {
+	const resolvedIntent = intent ?? getXamanConnectIntent() ?? 'profile_wallets';
+	if (resolvedIntent === 'desktop') {
+		return getXamanRedirectUrlForIntent('desktop');
 	}
 	if (configuredRedirectUrl) {
 		return configuredRedirectUrl;
 	}
-	return getDefaultXamanRedirectUrl();
+	if (typeof window === 'undefined') {
+		return getXamanRedirectUrlForIntent(resolvedIntent);
+	}
+	if (intent) {
+		return getXamanRedirectUrlForIntent(intent);
+	}
+	return (
+		inferXamanRedirectUrlFromLocation() ??
+		getXamanRedirectUrlForIntent('profile_wallets')
+	);
 }
 
-export function getXamanClient() {
+function createXamanPkceInstance(redirectUrl: string): XummPkce {
+	return new XummPkce(xamanApiKey, {
+		redirectUrl,
+		implicit: true,
+		rememberJwt: rememberXamanJwt,
+	});
+}
+
+export function getXamanClient(options?: { redirectUrl?: string; recreate?: boolean }) {
 	if (!xamanApiKey) {
 		throw new Error(
 			'Xaman is not configured. Set VITE_XAMAN_API_KEY and restart the app.'
@@ -66,12 +164,16 @@ export function getXamanClient() {
 	if (typeof window === 'undefined') {
 		throw new Error('Xaman can only be used in a browser environment.');
 	}
-	if (!xamanPkce) {
-		xamanPkce = new XummPkce(xamanApiKey, {
-			redirectUrl: getXamanRedirectUrl(),
-			implicit: true,
-			rememberJwt: rememberXamanJwt,
-		});
+	const redirectUrl = options?.redirectUrl ?? resolveXamanRedirectUrl();
+	if (!xamanPkce || options?.recreate) {
+		if (xamanPkce) {
+			try {
+				xamanPkce.logout();
+			} catch {
+				/* ignore */
+			}
+		}
+		xamanPkce = createXamanPkceInstance(redirectUrl);
 	}
 	return xamanPkce;
 }
@@ -104,10 +206,18 @@ function resetXamanPkceSilently(): void {
 export function primeXamanPkceIfOAuthLanding(): void {
 	if (typeof window === 'undefined' || !xamanApiKey) return;
 	try {
-		if (!isLikelyXummPkceOAuthReturn(window.location.search)) return;
-		getXamanClient();
+		if (isXamanDesktopHandoffSearch(window.location.search)) {
+			// eslint-disable-next-line no-console
+			console.log('[Xaman][prime] Skipping PKCE prime (desktop QR handoff on phone)');
+			return;
+		}
+		const redirectUrl = inferXamanRedirectUrlFromLocation();
+		if (!redirectUrl && !isLikelyXummPkceOAuthReturn(window.location.search)) return;
+		getXamanClient({ redirectUrl: redirectUrl ?? undefined, recreate: true });
 		// eslint-disable-next-line no-console
-		console.log('[Xaman][prime] XummPkce constructed at startup (OAuth params present)');
+		console.log('[Xaman][prime] XummPkce constructed at startup (OAuth params present)', {
+			redirectUrl: redirectUrl ?? resolveXamanRedirectUrl(),
+		});
 	} catch {
 		// ignore
 	}
@@ -258,12 +368,25 @@ export const xamanHandler: IWalletHandler = {
 			// After OAuth redirect, React state can still list a wallet row we just deleted — match against API instead.
 			const oauthReturnRecover = resumeFromRedirect === true || urlStillHasReturnFlag;
 
+			const connectIntent = resolveXamanConnectIntent({
+				completeWalletAuth: typeof completeWalletAuth === 'function',
+			});
+			warnIfLocalhostDesktopWithoutHandoff(connectIntent);
+
 			// Fresh PKCE client for normal "Add wallet" / connect — avoids stale "request rejected" from a prior attempt.
 			if (!oauthReturnRecover) {
+				setXamanConnectIntent(connectIntent);
 				resetXamanPkceSilently();
 			}
 
-			const client = getXamanClient();
+			const redirectUrl = oauthReturnRecover
+				? inferXamanRedirectUrlFromLocation() ?? resolveXamanRedirectUrl(connectIntent)
+				: resolveXamanRedirectUrl(connectIntent);
+
+			const client = getXamanClient({
+				redirectUrl,
+				recreate: oauthReturnRecover,
+			});
 			try {
 				const thread = (
 					window as unknown as { _XummPkce?: { authorizeUrl: () => string } }
@@ -291,12 +414,14 @@ export const xamanHandler: IWalletHandler = {
 			client.on('success', () => {
 				// eslint-disable-next-line no-console
 				console.log('[Xaman][SDK] event: success');
+				setWalletBusyMessage?.(FINISHING_XAMAN_SIGN_IN_MESSAGE);
 			});
 
 			// eslint-disable-next-line no-console
 			console.log('[Xaman][connect] start', {
 				href: typeof window !== 'undefined' ? window.location.href : 'n/a',
-				redirectUrl: getXamanRedirectUrl(),
+				redirectUrl,
+				connectIntent,
 				rememberJwt: rememberXamanJwt,
 				urlStillHasReturnFlag,
 				resumeFromRedirect: resumeFromRedirect === true,
@@ -389,8 +514,21 @@ export const xamanHandler: IWalletHandler = {
 			// eslint-disable-next-line no-console
 			console.log('[Xaman][connect] resolved XRPL address', resolvedXrplAddress);
 
+			const existingWallet = walletsForMatch.find(
+				(wallet: Wallet) =>
+					normalizeXrplAddress(wallet.wallet_address) === normalizeXrplAddress(resolvedXrplAddress)
+			);
 			if (typeof completeWalletAuth === 'function' && walletIdToConnect == null) {
-				setWalletBusyMessage?.(LOADING_WALLET_SUMMARY_MESSAGE);
+				setWalletBusyMessage?.(FINISHING_XAMAN_SIGN_IN_MESSAGE);
+			} else if (walletIdToConnect != null) {
+				setWalletBusyMessage?.(CONNECTING_YOUR_WALLET_MESSAGE);
+			} else if (existingWallet) {
+				setWalletBusyMessage?.(RECONNECTING_WALLET_MESSAGE);
+			} else {
+				setWalletBusyMessage?.(ADDING_WALLET_AND_CONNECTING_MESSAGE);
+			}
+
+			if (typeof completeWalletAuth === 'function' && walletIdToConnect == null) {
 				try {
 					const jwt = typeof flow?.jwt === 'string' ? flow.jwt.trim() : '';
 					if (!jwt) {
@@ -399,6 +537,7 @@ export const xamanHandler: IWalletHandler = {
 					}
 					await completeWalletAuth(resolvedXrplAddress, { jwt });
 					connectSucceeded = true;
+					clearXamanConnectIntent();
 				} catch (e) {
 					setShowToast?.(
 						'error',
@@ -416,19 +555,6 @@ export const xamanHandler: IWalletHandler = {
 			}
 
 			let currentConnectedWallet = walletsForMatch.find((wallet: Wallet) => wallet.is_connected);
-
-			// Phased copy: signing is done; now we persist / connect on the server (can take several seconds).
-			const existingWallet = walletsForMatch.find(
-				(wallet: Wallet) =>
-					normalizeXrplAddress(wallet.wallet_address) === normalizeXrplAddress(resolvedXrplAddress)
-			);
-			if (walletIdToConnect != null) {
-				setWalletBusyMessage?.(CONNECTING_YOUR_WALLET_MESSAGE);
-			} else if (existingWallet) {
-				setWalletBusyMessage?.(RECONNECTING_WALLET_MESSAGE);
-			} else {
-				setWalletBusyMessage?.(ADDING_WALLET_AND_CONNECTING_MESSAGE);
-			}
 
 			if (walletIdToConnect != null) {
 				// eslint-disable-next-line no-console
@@ -453,6 +579,7 @@ export const xamanHandler: IWalletHandler = {
 				await loadWallets({ silent: true });
 				setShowToast?.('success', 'Xaman wallet connected');
 				connectSucceeded = true;
+				clearXamanConnectIntent();
 				return;
 			}
 			if (existingWallet) {
@@ -469,6 +596,7 @@ export const xamanHandler: IWalletHandler = {
 				await loadWallets({ silent: true });
 				setShowToast?.('success', 'Xaman wallet connected');
 				connectSucceeded = true;
+				clearXamanConnectIntent();
 				return;
 			}
 			// eslint-disable-next-line no-console
@@ -494,6 +622,7 @@ export const xamanHandler: IWalletHandler = {
 				result.already_exists && result.message ? result.message : 'Xaman wallet added and connected!'
 			);
 			connectSucceeded = true;
+			clearXamanConnectIntent();
 		} catch (error) {
 			const readableMessage = toReadableErrorMessage(error);
 			console.error('[Xaman][connect] Failed:', error);

@@ -4,6 +4,8 @@ type ConnectWalletAuthModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  /** Resume PKCE after Xaman redirected back to `/?xaman_return=1`. */
+  resumeXamanOnMount?: boolean;
 };
 
 /**
@@ -14,6 +16,7 @@ export default function ConnectWalletAuthModal({
   isOpen,
   onClose,
   onSuccess,
+  resumeXamanOnMount = false,
 }: ConnectWalletAuthModalProps) {
   if (!isOpen) {
     return null;
@@ -22,7 +25,8 @@ export default function ConnectWalletAuthModal({
   return (
     <WalletConnection
       variant="wallet_auth"
-      autoOpenWalletPicker
+      resumeXamanOnMount={resumeXamanOnMount}
+      autoOpenWalletPicker={!resumeXamanOnMount}
       onWalletPickerDismiss={onClose}
       onWalletAuthSuccess={() => {
         onSuccess();
