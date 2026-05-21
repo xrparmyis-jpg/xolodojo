@@ -158,9 +158,13 @@ export function LoginModalProvider({ children }: { children: ReactNode }) {
       />
       <ConnectWalletAuthModal
         isOpen={isConnectWalletAuthOpen}
-        onClose={() => setIsConnectWalletAuthOpen(false)}
+        onClose={() => {
+          setIsConnectWalletAuthOpen(false);
+          setIsConnectModalOpen(false);
+        }}
         onSuccess={() => {
           setIsConnectWalletAuthOpen(false);
+          setIsConnectModalOpen(false);
           navigate('/profile');
         }}
       />
