@@ -648,12 +648,11 @@ function WalletConnectionContent({
     );
 
     useEffect(() => {
-        if (variant === 'wallet_auth') return;
         if (!resumeXamanOnMount || hasResumedXamanOnMount) return;
         setHasResumedXamanOnMount(true);
 
         void handleConnectXaman(undefined, { resumeFromRedirect: true });
-    }, [variant, resumeXamanOnMount, hasResumedXamanOnMount, handleConnectXaman]);
+    }, [resumeXamanOnMount, hasResumedXamanOnMount, handleConnectXaman]);
 
     useEffect(() => {
         if (variant !== 'wallet_auth' || !autoOpenWalletPicker) return;

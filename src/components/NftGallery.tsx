@@ -270,6 +270,8 @@ export default function NftGallery({
   );
   const [copiedFieldKey, setCopiedFieldKey] = useState<string | null>(null);
   const [pinnedNftItems, setPinnedNftItems] = useState<PinnedNftItem[]>([]);
+  /** False until the first pinned-NFT fetch for this wallet finishes (success or error). */
+  const [pinnedNftsSettled, setPinnedNftsSettled] = useState(false);
   const [pinTargetTokenId, setPinTargetTokenId] = useState<string | null>(null);
   const [pinFormMode, setPinFormMode] = useState<PinFormMode>('create');
   const [pinFormStep, setPinFormStep] = useState<1 | 2>(1);
@@ -781,6 +783,7 @@ export default function NftGallery({
     }
     if (!canLoadPinnedNfts) {
       setPinnedNftItems([]);
+      setPinnedNftsSettled(true);
       return;
     }
     try {
@@ -791,6 +794,8 @@ export default function NftGallery({
         error: error instanceof Error ? error.message : String(error),
       });
       setPinnedNftItems([]);
+    } finally {
+      setPinnedNftsSettled(true);
     }
   }, [authLoading, canLoadPinnedNfts, debugNft, walletQueryForPinnedApi]);
 
@@ -800,10 +805,12 @@ export default function NftGallery({
     }
     if (!canLoadPinnedNfts) {
       setPinnedNftItems([]);
+      setPinnedNftsSettled(true);
       return;
     }
 
     let cancelled = false;
+    setPinnedNftsSettled(false);
 
     const loadPinned = async () => {
       try {
@@ -817,6 +824,10 @@ export default function NftGallery({
         });
         if (!cancelled) {
           setPinnedNftItems([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setPinnedNftsSettled(true);
         }
       }
     };
@@ -850,14 +861,26 @@ export default function NftGallery({
 
   const profilePinTokenParam = readGlobePinQueryParam(searchParams);
 
-  const profilePinResolvePins = useMemo(
-    () =>
-      nfts.map(n => ({
+  /** Titles for `?Xpin=` — include pin titles (globe edit links use pin.title, not NFT metadata). */
+  const profilePinResolvePins = useMemo(() => {
+    const byToken = new Map<string, { token_id: string; title?: string | null }>();
+    for (const n of nfts) {
+      byToken.set(normalizeNfTokenId(n.token_id), {
         token_id: n.token_id,
         title: lookupResolvedStringField(resolvedNftTitles, n.token_id),
-      })),
-    [nfts, resolvedNftTitles]
-  );
+      });
+    }
+    for (const p of pinnedNftItems) {
+      const key = normalizeNfTokenId(p.token_id);
+      const existing = byToken.get(key);
+      const pinTitle = typeof p.title === 'string' ? p.title.trim() : '';
+      byToken.set(key, {
+        token_id: p.token_id,
+        title: pinTitle || existing?.title || null,
+      });
+    }
+    return Array.from(byToken.values());
+  }, [nfts, resolvedNftTitles, pinnedNftItems]);
 
   const resolvedProfilePinTokenId = useMemo(
     () =>
@@ -869,10 +892,12 @@ export default function NftGallery({
   );
 
   const profilePinMissingNotifiedRef = useRef(false);
+  const profilePinDeepLinkOpenedRef = useRef(false);
 
   useEffect(() => {
     profilePinMissingNotifiedRef.current = false;
-  }, [profilePinTokenParam]);
+    profilePinDeepLinkOpenedRef.current = false;
+  }, [profilePinTokenParam, walletQueryForPinnedApi]);
 
   useEffect(() => {
     if (
@@ -880,7 +905,8 @@ export default function NftGallery({
       !profilePinTokenParam ||
       !walletQueryForPinnedApi ||
       isLoading ||
-      authLoading
+      authLoading ||
+      !pinnedNftsSettled
     ) {
       return;
     }
@@ -916,6 +942,7 @@ export default function NftGallery({
     walletQueryForPinnedApi,
     isLoading,
     authLoading,
+    pinnedNftsSettled,
     nfts,
     showToast,
     setSearchParams,
@@ -943,54 +970,6 @@ export default function NftGallery({
     isLoading,
     nfts,
     currentNftPage,
-  ]);
-
-  useEffect(() => {
-    if (!resolvedProfilePinTokenId || !walletQueryForPinnedApi || isLoading) {
-      return;
-    }
-    const normalizedTarget = resolvedProfilePinTokenId;
-    const idx = nfts.findIndex(
-      n => normalizeNfTokenId(n.token_id) === normalizedTarget
-    );
-    if (idx < 0) {
-      return;
-    }
-    const targetPage = Math.floor(idx / NFTS_PER_PAGE) + 1;
-    if (currentNftPage !== targetPage) {
-      return;
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      const cards = document.querySelectorAll('[data-nft-token-id]');
-      for (const c of cards) {
-        const id = c.getAttribute('data-nft-token-id');
-        if (id && normalizeNfTokenId(id) === normalizedTarget) {
-          c.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          break;
-        }
-      }
-      setSearchParams(
-        prev => {
-          const next = new URLSearchParams(prev);
-          stripGlobePinQueryParams(next);
-          return next;
-        },
-        { replace: true }
-      );
-    }, 280);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [
-    NFTS_PER_PAGE,
-    resolvedProfilePinTokenId,
-    walletQueryForPinnedApi,
-    isLoading,
-    nfts,
-    currentNftPage,
-    setSearchParams,
   ]);
 
   const pinnedTokenIdSet = useMemo(
@@ -1378,45 +1357,126 @@ export default function NftGallery({
     setPinSocialsUiFromDraft(getPinSocialsSeed());
   };
 
-  const openPinModalForEdit = (tokenId: string) => {
-    const idKey = normalizeNfTokenId(tokenId);
-    const existing = pinnedNftItems.find(
-      p => normalizeNfTokenId(p.token_id) === idKey
-    );
-    if (!existing) {
-      showToast('error', 'Could not load this pin. Try refreshing.');
+  const openPinModalForEdit = useCallback(
+    (tokenId: string) => {
+      const idKey = normalizeNfTokenId(tokenId);
+      const existing = pinnedNftItems.find(
+        p => normalizeNfTokenId(p.token_id) === idKey
+      );
+      if (!existing) {
+        showToast('error', 'Could not load this pin. Try refreshing.');
+        return;
+      }
+      setPinFormMode('edit');
+      setPinFormStep(1);
+      setPinSuccessState(null);
+      setPinTargetTokenId(tokenId);
+      const lat = existing.latitude;
+      const lng = existing.longitude;
+      if (
+        lat != null &&
+        lng != null &&
+        Number.isFinite(lat) &&
+        Number.isFinite(lng)
+      ) {
+        setPinLocation({ lng, lat });
+      } else {
+        setPinLocation(null);
+      }
+      const fallbackTitle =
+        lookupResolvedStringField(resolvedNftTitles, tokenId) ??
+        `NFT ${tokenId.slice(0, 8)}...`;
+      setPinTitleInput(
+        (existing.title && existing.title.trim()) || fallbackTitle
+      );
+      const noteVal = existing.pin_note;
+      setPinNoteInput(
+        legacyPinNoteToHtml(typeof noteVal === 'string' ? noteVal : '')
+      );
+      setPinSocialsUiFromDraft(
+        applyPinSocialsSeedWithOptionalPin(existing.socials ?? null)
+      );
+    },
+    [
+      applyPinSocialsSeedWithOptionalPin,
+      pinnedNftItems,
+      resolvedNftTitles,
+      setPinSocialsUiFromDraft,
+      showToast,
+    ]
+  );
+
+  useEffect(() => {
+    if (
+      location.pathname !== '/profile' ||
+      !profilePinTokenParam ||
+      !resolvedProfilePinTokenId ||
+      !walletQueryForPinnedApi ||
+      isLoading ||
+      authLoading ||
+      !pinnedNftsSettled
+    ) {
       return;
     }
-    setPinFormMode('edit');
-    setPinFormStep(1);
-    setPinSuccessState(null);
-    setPinTargetTokenId(tokenId);
-    const lat = existing.latitude;
-    const lng = existing.longitude;
-    if (
-      lat != null &&
-      lng != null &&
-      Number.isFinite(lat) &&
-      Number.isFinite(lng)
-    ) {
-      setPinLocation({ lng, lat });
-    } else {
-      setPinLocation(null);
+    const normalizedTarget = resolvedProfilePinTokenId;
+    const nftRow = nfts.find(
+      n => normalizeNfTokenId(n.token_id) === normalizedTarget
+    );
+    if (!nftRow) {
+      return;
     }
-    const fallbackTitle =
-      lookupResolvedStringField(resolvedNftTitles, tokenId) ??
-      `NFT ${tokenId.slice(0, 8)}...`;
-    setPinTitleInput(
-      (existing.title && existing.title.trim()) || fallbackTitle
+    const idx = nfts.findIndex(
+      n => normalizeNfTokenId(n.token_id) === normalizedTarget
     );
-    const noteVal = existing.pin_note;
-    setPinNoteInput(
-      legacyPinNoteToHtml(typeof noteVal === 'string' ? noteVal : '')
-    );
-    setPinSocialsUiFromDraft(
-      applyPinSocialsSeedWithOptionalPin(existing.socials ?? null)
-    );
-  };
+    const targetPage = Math.floor(idx / NFTS_PER_PAGE) + 1;
+    if (currentNftPage !== targetPage) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      const cards = document.querySelectorAll('[data-nft-token-id]');
+      for (const c of cards) {
+        const id = c.getAttribute('data-nft-token-id');
+        if (id && normalizeNfTokenId(id) === normalizedTarget) {
+          c.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          break;
+        }
+      }
+      if (
+        pinnedTokenIdSet.has(normalizedTarget) &&
+        !profilePinDeepLinkOpenedRef.current
+      ) {
+        profilePinDeepLinkOpenedRef.current = true;
+        openPinModalForEdit(nftRow.token_id);
+      }
+      setSearchParams(
+        prev => {
+          const next = new URLSearchParams(prev);
+          stripGlobePinQueryParams(next);
+          return next;
+        },
+        { replace: true }
+      );
+    }, 280);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [
+    NFTS_PER_PAGE,
+    authLoading,
+    currentNftPage,
+    isLoading,
+    location.pathname,
+    nfts,
+    openPinModalForEdit,
+    pinnedNftsSettled,
+    pinnedTokenIdSet,
+    profilePinTokenParam,
+    resolvedProfilePinTokenId,
+    setSearchParams,
+    walletQueryForPinnedApi,
+  ]);
 
   const closePinModal = () => {
     setPinSuccessState(null);
@@ -1910,8 +1970,8 @@ export default function NftGallery({
               ? 'Pin updated on Xglobe'
               : 'Pin added to Xglobe'
             : pinFormMode === 'edit'
-              ? 'Edit your Xglobe pin'
-              : 'Choose your Xglobe pin location on the globe'
+              ? 'Edit your Xglobe Xpin'
+              : 'Choose your Xglobe Xpin location on the globe'
         }
         onClose={closePinModal}
         closeOnOverlayClick

@@ -114,6 +114,38 @@ export function prepareXamanOAuthLanding(): void {
 	purgeStaleXummPkceJwtIfOauthCallback();
 }
 
+/**
+ * Phone opened the desktop QR redirect (`/?xaman_flow=desktop&…`). Strip OAuth params
+ * without priming PKCE so the desktop tab keeps the grant.
+ */
+export function stripXamanDesktopHandoffParams(): void {
+	if (typeof window === 'undefined') return;
+	try {
+		const u = new URL(window.location.href);
+		if (u.searchParams.get('xaman_flow') !== 'desktop') return;
+		const keys = [
+			'xaman_flow',
+			'xaman_return',
+			'code',
+			'state',
+			'scope',
+			'access_token',
+			'authorization_code',
+			'error',
+			'error_description',
+		];
+		for (const key of keys) {
+			u.searchParams.delete(key);
+		}
+		const next = `${u.pathname}${u.search}${u.hash}`;
+		window.history.replaceState({}, '', next);
+		// eslint-disable-next-line no-console
+		console.log('[Xaman][landing] Stripped desktop handoff OAuth params from URL');
+	} catch {
+		// ignore
+	}
+}
+
 /** Remove only our `xaman_return` flag (SDK clears OAuth params separately). */
 export function stripXamanReturnQueryParam(): void {
 	if (typeof window === 'undefined') return;

@@ -62,7 +62,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error));
-    console.error('Error loading Xglobe pins:', err);
+    console.error('Error loading Xglobe Xpins:', err);
     res
       .status(500)
       .json({ error: 'Internal server error', details: err.message });
