@@ -5,7 +5,17 @@
  *
  * We merge hash OAuth params into the query **once** at startup (before React / XummPkce).
  */
-const XUMM_PKCE_JWT_KEY = 'XummPkceJwt';
+import { isWalletDebugEnabled } from './walletDebugLog';
+
+function shouldLogXamanLanding(): boolean {
+	if (isWalletDebugEnabled()) {
+		return true;
+	}
+	if (typeof window === 'undefined') {
+		return false;
+	}
+	return isXummOauthCallbackUrl(window.location.href);
+}
 
 function parseHashParams(hash: string): URLSearchParams {
 	if (!hash || hash === '#') return new URLSearchParams();
@@ -57,10 +67,12 @@ export function normalizeXummOauthHashToSearchParams(): boolean {
 
 		url.hash = '';
 		window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
-		// eslint-disable-next-line no-console
-		console.log('[Xaman][landing] Moved OAuth params from #hash into ?query for xumm-oauth2-pkce', {
-			mergedKeys: merged,
-		});
+		if (shouldLogXamanLanding()) {
+			// eslint-disable-next-line no-console
+			console.log('[Xaman][landing] Moved OAuth params from #hash into ?query for xumm-oauth2-pkce', {
+				mergedKeys: merged,
+			});
+		}
 		return true;
 	} catch {
 		return false;
@@ -72,12 +84,14 @@ export function purgeStaleXummPkceJwtIfOauthCallback(): void {
 	if (!isXummOauthCallbackUrl(window.location.href)) return;
 	try {
 		window.localStorage.removeItem(XUMM_PKCE_JWT_KEY);
-		// eslint-disable-next-line no-console
-		console.log(
-			'[Xaman][landing] OAuth callback URL — cleared stale',
-			XUMM_PKCE_JWT_KEY,
-			'(rememberJwt race guard)'
-		);
+		if (shouldLogXamanLanding()) {
+			// eslint-disable-next-line no-console
+			console.log(
+				'[Xaman][landing] OAuth callback URL — cleared stale',
+				XUMM_PKCE_JWT_KEY,
+				'(rememberJwt race guard)'
+			);
+		}
 	} catch {
 		// private mode / blocked storage
 	}
@@ -85,7 +99,7 @@ export function purgeStaleXummPkceJwtIfOauthCallback(): void {
 
 /** One-line diagnostics so mobile debugging always shows *something* useful. */
 export function logXamanLandingDiagnostics(phase: 'before-normalize' | 'after-prepare'): void {
-	if (typeof window === 'undefined') return;
+	if (!shouldLogXamanLanding()) return;
 	try {
 		const url = new URL(window.location.href);
 		const hp = parseHashParams(url.hash);
@@ -139,8 +153,10 @@ export function stripXamanDesktopHandoffParams(): void {
 		}
 		const next = `${u.pathname}${u.search}${u.hash}`;
 		window.history.replaceState({}, '', next);
-		// eslint-disable-next-line no-console
-		console.log('[Xaman][landing] Stripped desktop handoff OAuth params from URL');
+		if (shouldLogXamanLanding()) {
+			// eslint-disable-next-line no-console
+			console.log('[Xaman][landing] Stripped desktop handoff OAuth params from URL');
+		}
 	} catch {
 		// ignore
 	}
@@ -155,8 +171,10 @@ export function stripXamanReturnQueryParam(): void {
 		u.searchParams.delete('xaman_return');
 		const next = `${u.pathname}${u.search}${u.hash}`;
 		window.history.replaceState({}, '', next);
-		// eslint-disable-next-line no-console
-		console.log('[Xaman][landing] Stripped xaman_return from URL');
+		if (shouldLogXamanLanding()) {
+			// eslint-disable-next-line no-console
+			console.log('[Xaman][landing] Stripped xaman_return from URL');
+		}
 	} catch {
 		// ignore
 	}

@@ -13,6 +13,7 @@ import {
   login as loginApi,
   logout as logoutApi,
 } from '../lib/authApi';
+import { getSupabaseClient } from '../lib/supabaseClient';
 
 type AuthContextValue = {
   user: AuthUser | null;
@@ -41,6 +42,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     void refreshUser();
+
+    try {
+      const supabase = getSupabaseClient();
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange(() => {
+        void refreshUser();
+      });
+      return () => {
+        subscription.unsubscribe();
+      };
+    } catch {
+      return undefined;
+    }
   }, [refreshUser]);
 
   const login = useCallback(async (email: string, password: string) => {

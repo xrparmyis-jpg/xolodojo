@@ -1,8 +1,8 @@
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Analytics } from '@vercel/analytics/react';
+import { useXamanOAuthReturnRouting } from './hooks/useXamanOAuthReturnRouting';
 import './App.css';
-import AppLoadingOverlay from './components/AppLoadingOverlay';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -16,6 +16,7 @@ import Xoloitzquintli from './pages/Xoloitzquintle';
 import Vision from './pages/Vision';
 import Team from './pages/Team';
 import Xglobe from './pages/Xglobe';
+import AuthCallback from './pages/AuthCallback';
 
 function XologlobeRedirect() {
   const { search } = useLocation();
@@ -24,7 +25,7 @@ function XologlobeRedirect() {
 
 function AppContent() {
   const location = useLocation();
-  const [isInitialLoading, setIsInitialLoading] = useState(import.meta.env.DEV);
+  useXamanOAuthReturnRouting();
 
   useEffect(() => {
     window.scrollTo({
@@ -34,19 +35,8 @@ function AppContent() {
     });
   }, [location.pathname]);
 
-  useEffect(() => {
-    if (!import.meta.env.DEV) return;
-
-    const timeoutId = window.setTimeout(() => {
-      setIsInitialLoading(false);
-    }, 780);
-
-    return () => window.clearTimeout(timeoutId);
-  }, []);
-
   return (
     <div className="min-h-screen flex flex-col">
-      <AppLoadingOverlay isVisible={isInitialLoading} />
       <Header />
       <main className="min-w-0 flex-1">
         <Routes>
@@ -60,6 +50,7 @@ function AppContent() {
           <Route path="/team" element={<Team />} />
           <Route path="/xglobe" element={<Xglobe />} />
           <Route path="/xologlobe" element={<XologlobeRedirect />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/faq" element={<FAQ />} />
           <Route
             path="/terms-and-conditions"
@@ -78,7 +69,7 @@ function AppContent() {
         </Routes>
       </main>
       <Footer />
-      <Analytics />
+      {import.meta.env.PROD ? <Analytics /> : <Analytics debug={false} />}
     </div>
   );
 }

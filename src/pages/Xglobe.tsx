@@ -1,11 +1,16 @@
+import { useState } from 'react';
 import SectionParallaxBlobs from '../components/SectionParallaxBlobs';
 import MapBoxXoloGlobe from '../components/MapBoxXoloGlobe';
 import { useSectionParallaxOffsets } from '../hooks/useSectionParallaxOffsets';
 import GsapPageContent from '../components/GsapPageContent';
 import GsapPageSubHeading from '../components/GsapPageSubHeading';
 import GsapPageHeading from '../components/GsapPageHeading';
+import { useAppLoadingTask } from '../providers/AppLoadingProvider';
 
 function Xglobe() {
+  const [isGlobeBootstrapping, setIsGlobeBootstrapping] = useState(true);
+  useAppLoadingTask('xglobe', isGlobeBootstrapping);
+
   const { sectionRef, bgShapeOffset, colorBgOffset, colorBg2Offset } =
     useSectionParallaxOffsets();
 
@@ -35,7 +40,10 @@ function Xglobe() {
             className="mx-auto my-4 w-full max-w-7xl"
             delay={0.06}
           >
-            <MapBoxXoloGlobe className="relative h-90 w-full overflow-hidden rounded-lg sm:h-107.5 md:h-130 lg:h-155 xl:h-175" />
+            <MapBoxXoloGlobe
+              className="relative h-90 w-full overflow-hidden rounded-lg sm:h-107.5 md:h-130 lg:h-155 xl:h-175"
+              onBootstrapComplete={() => setIsGlobeBootstrapping(false)}
+            />
           </GsapPageContent>
         </div>
       </section>

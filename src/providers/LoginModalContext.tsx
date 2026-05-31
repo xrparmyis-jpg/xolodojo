@@ -59,6 +59,16 @@ export function LoginModalProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    if (params.get('reset') === '1') {
+      setResetToken(null);
+      setInitialView('reset-password');
+      setIsOpen(true);
+      params.delete('reset');
+      const q = params.toString();
+      window.history.replaceState({}, '', q ? `${window.location.pathname}?${q}` : window.location.pathname);
+      return;
+    }
+
     const token = params.get('resetToken');
     if (token) {
       setResetToken(token);

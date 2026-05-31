@@ -10,8 +10,8 @@ export const PIN_FOCUS_MIN_ZOOM = 16.5 - 2 * MAP_ZOOM_BUTTON_STEP;
 /** XoloGlobe initial zoom (map constructor). */
 export const GLOBE_DEFAULT_ZOOM = 1.15;
 
-/** XoloGlobe initial center [lng, lat]. */
-export const GLOBE_DEFAULT_CENTER: [number, number] = [130, 35];
+/** Default map center [lng, lat] — geographic center of the contiguous United States. */
+export const GLOBE_DEFAULT_CENTER: [number, number] = [-98.5795, 39.8282];
 
 /**
  * Pins within this ground distance (meters) are treated as one cluster and spread in a ring.

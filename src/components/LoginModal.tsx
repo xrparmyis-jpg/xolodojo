@@ -3,7 +3,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import Modal from './Modal';
 import { useAuth } from '../providers/AuthContext';
-import { LoginError, resendVerificationEmail } from '../lib/authApi';
+import { useAppLoadingTask } from '../providers/AppLoadingProvider';
+import { LoginError, requestPasswordResetByUsername, resendVerificationEmail, resetPasswordWithSupabase } from '../lib/authApi';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
@@ -100,6 +101,8 @@ export default function LoginModal({
   const [successMessage, setSuccessMessage] = useState('');
   const skipLoginRegisterClearOnce = useRef(false);
 
+  useAppLoadingTask('login-modal', isOpen && isLoading);
+
   useEffect(() => {
     if (resetTokenProp) {
       setView('reset-password');
@@ -166,7 +169,7 @@ export default function LoginModal({
     setSuccessMessage('');
     setResendLoading(true);
     try {
-      const { message, emailSent } = await resendVerificationEmail(email, password);
+      const { message, emailSent } = await resendVerificationEmail(email);
       if (emailSent) {
         setSuccessMessage(message);
         setNeedsVerification(false);
@@ -218,7 +221,7 @@ export default function LoginModal({
         }
       } else if (!response.ok) {
         setError(
-          `Request failed (HTTP ${response.status}). If you see this locally, start the API on port 3001 and ensure MySQL is running with DB_HOST / DB_NAME in .env.local.`
+          `Request failed (HTTP ${response.status}). If you see this locally, start the API on port 3001 with "npm run dev:full".`
         );
         return;
       }
@@ -267,20 +270,8 @@ export default function LoginModal({
     setSuccessMessage('');
     setIsLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: forgotPasswordUsername.trim() }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Failed to send reset email' }));
-        throw new Error(errorData.error || 'Failed to send reset email');
-      }
-      const data = await response.json();
-      setSuccessMessage(
-        data.message ||
-          'If an account exists for that username, check your inbox for a reset password link.'
-      );
+      const data = await requestPasswordResetByUsername(forgotPasswordUsername.trim());
+      setSuccessMessage(data.message);
       setForgotPasswordUsername('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to send reset email');
@@ -331,27 +322,8 @@ export default function LoginModal({
     }
     setIsLoading(true);
     try {
-      const token =
-        resetTokenProp ||
-        new URLSearchParams(window.location.search).get('resetToken') ||
-        '';
-      if (!token) {
-        throw new Error('Reset token is missing');
-      }
-      const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, newPassword }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Failed to reset password' }));
-        throw new Error(errorData.error || 'Failed to reset password');
-      }
-      const data = await response.json();
-      setSuccessMessage(
-        data.message ||
-          'Password has been reset successfully. You can now sign in with your new password.'
-      );
+      await resetPasswordWithSupabase(newPassword);
+      setSuccessMessage('Password has been reset successfully. You can now sign in with your new password.');
       setView('login');
       setNewPassword('');
       setConfirmPassword('');

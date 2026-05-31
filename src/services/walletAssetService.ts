@@ -1,6 +1,5 @@
 import { walletAddressPreview, walletDebugLog, walletTraceLog } from '../utils/walletDebugLog';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+import { apiFetch, API_BASE_URL } from '../lib/apiFetch';
 
 const XRPL_CLASSIC_ADDRESS = /^r[1-9A-HJ-NP-Za-km-z]{24,34}$/;
 
@@ -35,10 +34,9 @@ export async function getWalletAssetSummary(walletAddress: string): Promise<Wall
     addressLen: walletAddress.trim().length,
   });
 
-  const response = await fetch(url, {
+  const response = await apiFetch(url, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
   });
 
   if (!response.ok) {

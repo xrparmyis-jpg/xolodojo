@@ -44,6 +44,7 @@ import {
 } from '../services/savedGlobePinsService';
 import { buildXglobePinPath } from '../utils/globePinQuery';
 import { shareGlobePinLink } from '../utils/shareGlobePinLink';
+import { useAppLoadingTask } from '../providers/AppLoadingProvider';
 
 type SocialPlatformKey = keyof ProfileSocials;
 
@@ -89,6 +90,8 @@ function Profile() {
   );
   const [savedPinsPage, setSavedPinsPage] = useState(0);
   const { showToast } = useToast();
+
+  useAppLoadingTask('profile', isLoadingProfile || savedGlobePinsLoading);
 
   const sortedSavedGlobePins = useMemo(() => {
     const list = [...savedGlobePins];

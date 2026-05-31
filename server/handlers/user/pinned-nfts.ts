@@ -1,11 +1,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import type { Pool } from 'mysql2/promise';
 import { PIN_NOTE_MAX_LENGTH, PIN_NOTE_MIN_LENGTH } from '../../../src/constants/pinNote.js';
 import { normalizeNfTokenId } from '../../../src/utils/nfTokenId.js';
 import { plainTextLengthFromHtml } from '../../../src/utils/pinNotePlainText.js';
 import { sanitizePinNoteHtmlServer } from '../../lib/sanitizePinNoteHtml.js';
-import { getAppMysqlPool } from '../../lib/mysqlPool.js';
-import { getRequestAuth, type RequestAuthState } from '../../lib/sessionAuth.js';
+import { getRequestAuth, type RequestAuthState } from '../../lib/requestAuth.js';
+import { getServiceRoleClient } from '../../lib/supabaseAdmin.js';
 import {
   resolveCanonicalClassicAddress,
   stripInvisible,
@@ -144,7 +143,6 @@ function resolveWalletParamForCompare(raw: string | undefined): string | undefin
  * then use Profile with email + connected wallet see an empty list and broken edit.
  */
 async function loadPinnedListForAuth(
-  pool: Pool,
   auth: RequestAuthState,
   walletForMerge: string | undefined
 ): Promise<PinnedNftItem[]> {
@@ -156,11 +154,11 @@ async function loadPinnedListForAuth(
       : null;
 
   if (accountUserId != null) {
-    const userPins = await listPinsForUser(pool, accountUserId);
+    const userPins = await listPinsForUser(accountUserId);
     if (!walletForMerge) {
       return userPins;
     }
-    const walletOnly = await listPinsForWalletOwner(pool, walletForMerge);
+    const walletOnly = await listPinsForWalletOwner(walletForMerge);
     const seen = new Set(
       userPins.map(
         p => `${normalizeNfTokenId(p.token_id)}|${p.wallet_address}`
@@ -178,7 +176,7 @@ async function loadPinnedListForAuth(
   }
 
   if (sessionWallet) {
-    return listPinsForWalletAddress(pool, sessionWallet);
+    return listPinsForWalletAddress(sessionWallet);
   }
 
   return [];
@@ -206,7 +204,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const walletAddress = walletAddressInput
       ? resolveWalletParamForCompare(walletAddressInput)
       : undefined;
-    const pool = getAppMysqlPool();
+    const supabase = getServiceRoleClient();
 
     const accountUserId = auth.kind === 'user' ? auth.userId : null;
     const sessionWallet =
@@ -216,7 +214,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         : null;
 
     if (req.method === 'GET') {
-      const pinnedNfts = await loadPinnedListForAuth(pool, auth, walletAddress);
+      const pinnedNfts = await loadPinnedListForAuth(auth, walletAddress);
       const scopedPinnedNfts =
         auth.kind === 'wallet'
           ? pinnedNfts
@@ -266,18 +264,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       if (auth.kind === 'user' && accountUserId != null) {
-        const [pinWalletRows] = (await pool.execute(
-          'SELECT id FROM user_wallets WHERE user_id = ? AND LOWER(wallet_address) = LOWER(?) LIMIT 1',
-          [accountUserId, pinWalletAddress]
-        )) as [{ id: number }[], unknown];
-        if (!Array.isArray(pinWalletRows) || pinWalletRows.length === 0) {
+        const { data: pinWalletRows } = await supabase
+          .from('user_wallets')
+          .select('id')
+          .eq('user_id', accountUserId)
+          .ilike('wallet_address', pinWalletAddress)
+          .limit(1);
+        if (!pinWalletRows?.length) {
           res.status(403).json({ error: 'Wallet not linked to your account' });
           return;
         }
       }
 
       const pinnedNfts = await loadPinnedListForAuth(
-        pool,
         auth,
         walletAddress ?? pinWalletAddress
       );
@@ -330,7 +329,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return;
       }
 
-      await upsertUserPin(pool, {
+      await upsertUserPin({
         userId: accountUserId,
         tokenId,
         walletAddress: pinWalletAddress,
@@ -350,7 +349,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
 
       const nextPins = await loadPinnedListForAuth(
-        pool,
         auth,
         walletAddress ?? pinWalletAddress
       );
@@ -387,19 +385,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (auth.kind === 'user' && accountUserId != null) {
-      const [walletRows] = (await pool.execute(
-        'SELECT id FROM user_wallets WHERE user_id = ? AND LOWER(wallet_address) = LOWER(?) LIMIT 1',
-        [accountUserId, walletAddress]
-      )) as [{ id: number }[], unknown];
-      if (!Array.isArray(walletRows) || walletRows.length === 0) {
+      const { data: walletRows } = await supabase
+        .from('user_wallets')
+        .select('id')
+        .eq('user_id', accountUserId)
+        .ilike('wallet_address', walletAddress)
+        .limit(1);
+      if (!walletRows?.length) {
         res.status(403).json({ error: 'Wallet not linked to your account' });
         return;
       }
     }
 
-    await deletePinByWalletAndToken(pool, tokenId, walletAddress);
+    await deletePinByWalletAndToken(tokenId, walletAddress);
 
-    const nextPins = await loadPinnedListForAuth(pool, auth, walletAddress);
+    const nextPins = await loadPinnedListForAuth(auth, walletAddress);
     const deleteResponsePins =
       auth.kind === 'wallet'
         ? nextPins

@@ -1,138 +1,47 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getAppMysqlPool } from '../../lib/mysqlPool.js';
 import { getGlobePinByQueryParam } from '../../lib/userPinsRepo.js';
 
-function escapeHtml(s: string): string {
-  return s
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    const rawPin = Array.isArray(req.query.Xpin)
+      ? req.query.Xpin[0]
+      : req.query.Xpin ?? req.query.pin;
+    const pin = typeof rawPin === 'string' ? rawPin : '';
+    const item = await getGlobePinByQueryParam(pin);
+    if (!item) {
+      res.status(404).send('Pin not found');
+      return;
+    }
+
+    const title = item.title?.trim() || 'XoloGlobe Pin';
+    const description = item.pin_note?.replace(/<[^>]+>/g, ' ').trim() || title;
+    const image = item.image_url?.startsWith('http')
+      ? item.image_url
+      : item.image_url
+        ? `${process.env.APP_PUBLIC_URL || 'https://xolodojo.vercel.app'}${item.image_url}`
+        : '';
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.status(200).send(`<!DOCTYPE html>
+<html><head>
+<meta property="og:title" content="${escapeHtml(title)}" />
+<meta property="og:description" content="${escapeHtml(description.slice(0, 200))}" />
+${image ? `<meta property="og:image" content="${escapeHtml(image)}" />` : ''}
+</head><body></body></html>`);
+  } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    res.status(500).send(err.message);
+  }
+}
+
+function escapeHtml(value: string): string {
+  return value
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
-}
-
-function publicSiteOrigin(): string {
-  const v =
-    process.env.SITE_URL ||
-    process.env.APP_PUBLIC_URL ||
-    process.env.VITE_SITE_URL ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '') ||
-    'https://xolodojo.vercel.app';
-  return v.replace(/\/$/, '');
-}
-
-function absoluteOgImage(
-  siteOrigin: string,
-  imageUrl: string | null | undefined
-): string {
-  const fallback = `${siteOrigin}/team/Cryptonite.jpg`;
-  if (typeof imageUrl !== 'string' || !imageUrl.trim()) {
-    return fallback;
-  }
-  const u = imageUrl.trim();
-  if (/^https?:\/\//i.test(u)) {
-    return u;
-  }
-  if (u.startsWith('/')) {
-    return `${siteOrigin}${u}`;
-  }
-  return `${siteOrigin}/${u}`;
-}
-
-function pinNoteToPlain(text: string | null | undefined, max: number): string {
-  if (!text) {
-    return '';
-  }
-  return text
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, max);
-}
-
-const defaultTitle = 'XoloDojo | XGlobe';
-const defaultDescription =
-  'The Xoloitzquintli Collection: Ancient Legacy, 10,001 Unique XRPL NFTs — explore the globe.';
-
-/**
- * Returns minimal HTML with Open Graph tags for a globe pin. Used by Edge middleware
- * when social crawlers request `/xglobe?Xpin=...` (legacy `pin` also accepted).
- */
-export default async function handler(
-  req: VercelRequest,
-  res: VercelResponse
-): Promise<void> {
-  if (req.method !== 'GET') {
-    res.status(405).end('Method not allowed');
-    return;
-  }
-
-  const pick = (v: string | string[] | undefined): string | undefined => {
-    if (Array.isArray(v)) {
-      return v[0];
-    }
-    return typeof v === 'string' ? v : undefined;
-  };
-  const rawXpin = pick(req.query?.Xpin as string | string[] | undefined);
-  const rawLegacy = pick(req.query?.pin as string | string[] | undefined);
-  const pin = (rawXpin ?? rawLegacy ?? '').trim();
-  const siteOrigin = publicSiteOrigin();
-
-  let pageTitle = defaultTitle;
-  let description = defaultDescription;
-  let imageUrl = `${siteOrigin}/team/Cryptonite.jpg`;
-  /** Canonical URL uses `Xpin` (value is the raw query string, title or hex). */
-  const pageUrl = pin
-    ? `${siteOrigin}/xglobe?Xpin=${encodeURIComponent(pin)}`
-    : `${siteOrigin}/xglobe`;
-
-  if (pin) {
-    try {
-      const pool = getAppMysqlPool();
-      const row = await getGlobePinByQueryParam(pool, pin);
-      if (row) {
-        const t = row.title?.trim();
-        pageTitle = t ? `${t} | XGlobe` : 'Xolo pin | XGlobe';
-        const plain = pinNoteToPlain(
-          typeof row.pin_note === 'string' ? row.pin_note : null,
-          220
-        );
-        description = plain || `A Xolo pin on the globe.`;
-        imageUrl = absoluteOgImage(siteOrigin, row.image_url);
-      }
-    } catch (e) {
-      console.error('og xglobe-pin-html:', e);
-    }
-  }
-
-  const safeTitle = escapeHtml(pageTitle);
-  const safeDesc = escapeHtml(description);
-  const safeImage = escapeHtml(imageUrl);
-  const safePageUrl = escapeHtml(pageUrl);
-
-  const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>${safeTitle}</title>
-<meta name="description" content="${safeDesc}" />
-<link rel="canonical" href="${safePageUrl}" />
-<meta property="og:type" content="website" />
-<meta property="og:site_name" content="XoloDojo" />
-<meta property="og:locale" content="en_US" />
-<meta property="og:url" content="${safePageUrl}" />
-<meta property="og:title" content="${safeTitle}" />
-<meta property="og:description" content="${safeDesc}" />
-<meta property="og:image" content="${safeImage}" />
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="${safeTitle}" />
-<meta name="twitter:description" content="${safeDesc}" />
-<meta name="twitter:image" content="${safeImage}" />
-</head>
-<body></body>
-</html>`;
-
-  res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300');
-  res.status(200).send(html);
 }

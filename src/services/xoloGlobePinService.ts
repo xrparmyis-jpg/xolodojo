@@ -29,22 +29,79 @@ interface XoloGlobePinsResponse {
   pins: XoloGlobePin[];
 }
 
-export async function getXoloGlobePins(): Promise<XoloGlobePin[]> {
-  const response = await fetch(`${API_BASE_URL}/user/xologlobe-pins`, {
-    method: 'GET',
-    cache: 'no-store',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+function formatApiErrorDetails(details: unknown): string | null {
+  if (typeof details === 'string' && details.trim()) {
+    return details.trim();
+  }
+  if (details && typeof details === 'object') {
+    const record = details as Record<string, unknown>;
+    const parts = [record.message, record.code, record.details, record.hint].filter(
+      (part): part is string => typeof part === 'string' && part.length > 0
+    );
+    if (parts.length > 0) {
+      return parts.join(' — ');
+    }
+  }
+  return null;
+}
 
-  if (!response.ok) {
-    const error = await response
-      .json()
-      .catch(() => ({ error: 'Unknown error' }));
-    throw new Error(error.error || `HTTP error! status: ${response.status}`);
+function parseApiErrorBody(
+  text: string,
+  status: number
+): { error?: string; details?: unknown } {
+  if (!text.trim()) {
+    if (status === 502 || status === 503 || status === 504) {
+      return {
+        error:
+          'API server is not running. Start it with npm run dev:api or npm run dev:full.',
+      };
+    }
+    return { error: `Request failed (HTTP ${status})` };
   }
 
-  const data = (await response.json()) as XoloGlobePinsResponse;
+  try {
+    return JSON.parse(text) as { error?: string; details?: unknown };
+  } catch {
+    if (status === 502 || status === 503 || status === 504) {
+      return {
+        error:
+          'API server is not running. Start it with npm run dev:api or npm run dev:full.',
+      };
+    }
+    return { error: `Request failed (HTTP ${status})` };
+  }
+}
+
+export async function getXoloGlobePins(): Promise<XoloGlobePin[]> {
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}/user/xologlobe-pins`, {
+      method: 'GET',
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  } catch {
+    throw new Error(
+      'Could not reach the API. If you are developing locally, run npm run dev:full (or npm run dev:api in a second terminal).'
+    );
+  }
+
+  const text = await response.text();
+  if (!response.ok) {
+    const error = parseApiErrorBody(text, response.status);
+    const message = error.error || `HTTP error! status: ${response.status}`;
+    const details = formatApiErrorDetails(error.details);
+    throw new Error(details ? `${message}: ${details}` : message);
+  }
+
+  let data: XoloGlobePinsResponse;
+  try {
+    data = (text ? JSON.parse(text) : { success: true, pins: [] }) as XoloGlobePinsResponse;
+  } catch {
+    throw new Error('API returned an invalid response while loading pins.');
+  }
+
   return data.pins || [];
 }

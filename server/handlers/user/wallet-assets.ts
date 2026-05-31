@@ -1,36 +1,15 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import mysql from 'mysql2/promise';
 import { readFile } from 'node:fs/promises';
 import { deletePinsForWalletNotHeld } from '../../lib/userPinsRepo.js';
+import { getServiceRoleClient } from '../../lib/supabaseAdmin.js';
 import {
 	isResolvableLedgerAccount,
 	resolveCanonicalClassicAddress,
 	stripInvisible,
 } from '../../xrplClassicAddress.js';
-import { getRequestAuth } from '../../lib/sessionAuth.js';
+import { getRequestAuth } from '../../lib/requestAuth.js';
 
-let pool: mysql.Pool | null = null;
 let cachedCollectionAddress: string | null | undefined;
-
-function getPool(): mysql.Pool {
-  if (!pool) {
-    pool = mysql.createPool({
-      host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT || '3308'),
-      database: process.env.DB_NAME || 'donovan_db',
-      user: process.env.DB_USER || 'donovan_user',
-      password: process.env.DB_PASSWORD || 'donovan_password',
-      ssl:
-        process.env.NODE_ENV === 'production'
-          ? { rejectUnauthorized: false }
-          : undefined,
-      waitForConnections: true,
-      connectionLimit: 1,
-      queueLimit: 0,
-    });
-  }
-  return pool;
-}
 
 function isLikelyClassicShape(address: string) {
   return /^r[1-9A-HJ-NP-Za-km-z]{24,34}$/.test(address);
@@ -297,9 +276,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    const dbPool = getPool();
+    const supabase = getServiceRoleClient();
 
-    let userId: number | null = null;
+    let userId: string | null = null;
     let storedWalletAddress: string;
     let accountWalletRowId: number | null = null;
 
@@ -310,16 +289,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       storedWalletAddress = auth.walletAddress;
     } else {
       userId = auth.userId;
-      const [walletResult] = (await dbPool.execute(
-        'SELECT id, wallet_address FROM user_wallets WHERE user_id = ? AND LOWER(wallet_address) = LOWER(?)',
-        [userId, walletAddress]
-      )) as [any[], any];
+      const { data: walletResult } = await supabase
+        .from('user_wallets')
+        .select('id, wallet_address')
+        .eq('user_id', userId)
+        .ilike('wallet_address', String(walletAddress))
+        .limit(1);
 
-      if (!Array.isArray(walletResult) || walletResult.length === 0) {
+      if (!walletResult?.length) {
         return res.status(404).json({ error: 'Wallet not found for user' });
       }
 
-      const walletRow = walletResult[0] as { id: number; wallet_address: string };
+      const walletRow = walletResult[0];
       accountWalletRowId = walletRow.id;
       storedWalletAddress = String(walletRow.wallet_address ?? '');
     }
@@ -347,13 +328,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       accountForRpc !== storedWalletAddress &&
       isLikelyClassicShape(accountForRpc)
     ) {
-      void dbPool
-        .execute(
-          'UPDATE user_wallets SET wallet_address = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?',
-          [accountForRpc, accountWalletRowId, userId]
-        )
-        .catch((e: unknown) => {
-          console.warn('[wallet-assets] Could not upgrade wallet_address checksum casing:', e);
+      void supabase
+        .from('user_wallets')
+        .update({ wallet_address: accountForRpc, updated_at: new Date().toISOString() })
+        .eq('id', accountWalletRowId)
+        .eq('user_id', userId)
+        .then(({ error: e }) => {
+          if (e) console.warn('[wallet-assets] Could not upgrade wallet_address checksum casing:', e);
         });
     }
 
@@ -468,7 +449,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       );
       try {
         const removed = await deletePinsForWalletNotHeld(
-          dbPool,
           accountForRpc,
           heldNfTokenIds,
           nfts.length

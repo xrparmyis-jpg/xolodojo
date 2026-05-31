@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../providers/AuthContext';
+import { useAppLoadingTask } from '../providers/AppLoadingProvider';
 import { shouldResumeXamanPkceConnect } from '../utils/oauthCallbackGuards';
 import { getXamanConnectIntent } from '../utils/xamanConnectIntent';
 
@@ -12,20 +13,10 @@ function ProtectedRoute({ children }: ProtectedRouteProps) {
     const { user, loading } = useAuth();
     const location = useLocation();
 
+    useAppLoadingTask('auth-session', loading);
+
     if (loading) {
-        return (
-            <div
-                style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    minHeight: '50vh',
-                    color: 'white',
-                }}
-            >
-                Loading...
-            </div>
-        );
+        return null;
     }
 
     if (!user) {

@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import {
-  buildSessionSetCookie,
+  buildWalletSessionSetCookie,
   createWalletSession,
-} from '../../lib/sessionAuth.js';
+} from '../../lib/walletSession.js';
 import { getXamanAccountFromUserJwt } from '../../lib/xamanUserJwt.js';
 import { resolveCanonicalClassicAddress } from '../../xrplClassicAddress.js';
 
@@ -22,7 +22,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       return;
     }
 
-    const classic = resolveCanonicalClassicAddress(rawAddress) ?? resolveCanonicalClassicAddress(rawAddress.toLowerCase());
+    const classic =
+      resolveCanonicalClassicAddress(rawAddress) ??
+      resolveCanonicalClassicAddress(rawAddress.toLowerCase());
     if (!classic) {
       res.status(400).json({ error: 'Invalid XRPL wallet address' });
       return;
@@ -54,7 +56,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       createdAt: new Date().toISOString(),
     };
 
-    res.setHeader('Set-Cookie', buildSessionSetCookie(token, expiresAt));
+    res.setHeader('Set-Cookie', buildWalletSessionSetCookie(token, expiresAt));
     res.status(200).json({ user, message: 'Wallet session created' });
   } catch (error) {
     console.error('auth/wallet-login:', error);

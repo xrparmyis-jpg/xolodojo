@@ -1,4 +1,4 @@
-import { addSavedGlobePin, removeSavedGlobePin } from '../services/savedGlobePinsService';
+import { saveGlobePin, removeSavedGlobePin } from '../services/savedGlobePinsService';
 import { emitXoloToast } from './xoloToastBus';
 import { shareGlobePinLink } from './shareGlobePinLink';
 import { normalizeNfTokenId } from './nfTokenId';
@@ -130,7 +130,7 @@ export function bindPinPopupActions(
           await removeSavedGlobePin(id);
           emitXoloToast('success', 'Removed from saved');
         } else {
-          await addSavedGlobePin(id);
+          await saveGlobePin(id);
           emitXoloToast('success', 'Saved to your profile');
         }
       } catch (err) {

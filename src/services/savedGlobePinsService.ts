@@ -1,10 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
-
-const cred = (init?: RequestInit) => ({
-  ...init,
-  credentials: 'include' as const,
-  headers: { 'Content-Type': 'application/json', ...init?.headers },
-});
+import { apiFetch, API_BASE_URL } from '../lib/apiFetch';
 
 export interface SavedGlobePinItem {
   token_id: string;
@@ -14,37 +8,38 @@ export interface SavedGlobePinItem {
 }
 
 export async function getSavedGlobePins(): Promise<SavedGlobePinItem[]> {
-  const r = await credFetch(`${API_BASE_URL}/user/saved-globe-pins`, { method: 'GET' });
-  if (!r.ok) {
-    const e = await r.json().catch(() => ({}));
-    throw new Error((e as { error?: string }).error || 'Failed to load saved pins');
+  const response = await apiFetch(`${API_BASE_URL}/user/saved-globe-pins`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(error.error || `HTTP error! status: ${response.status}`);
   }
-  const d = (await r.json()) as { success?: boolean; pins?: SavedGlobePinItem[] };
-  return d.pins || [];
+  const data = (await response.json()) as { success?: boolean; pins?: SavedGlobePinItem[] };
+  return Array.isArray(data.pins) ? data.pins : [];
 }
 
-export async function addSavedGlobePin(tokenId: string): Promise<void> {
-  const r = await credFetch(`${API_BASE_URL}/user/saved-globe-pins`, {
+export async function saveGlobePin(tokenId: string): Promise<void> {
+  const response = await apiFetch(`${API_BASE_URL}/user/saved-globe-pins`, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ token_id: tokenId }),
   });
-  if (!r.ok) {
-    const e = await r.json().catch(() => ({}));
-    throw new Error((e as { error?: string }).error || 'Failed to save pin');
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(error.error || `HTTP error! status: ${response.status}`);
   }
 }
 
 export async function removeSavedGlobePin(tokenId: string): Promise<void> {
-  const r = await credFetch(`${API_BASE_URL}/user/saved-globe-pins`, {
+  const response = await apiFetch(`${API_BASE_URL}/user/saved-globe-pins`, {
     method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ token_id: tokenId }),
   });
-  if (!r.ok) {
-    const e = await r.json().catch(() => ({}));
-    throw new Error((e as { error?: string }).error || 'Failed to remove pin');
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(error.error || `HTTP error! status: ${response.status}`);
   }
-}
-
-function credFetch(input: string, init?: RequestInit) {
-  return fetch(input, cred(init));
 }

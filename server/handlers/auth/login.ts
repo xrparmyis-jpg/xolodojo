@@ -1,12 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import {
-  buildSessionSetCookie,
-  createSession,
-  getUserByEmail,
-  isEmailVerifiedRow,
-  mapSessionUser,
-  verifyPassword,
-} from '../../lib/sessionAuth.js';
+import { getAnonClient } from '../../lib/supabaseAdmin.js';
+import { getProfileByEmail, mapProfileToSessionUser } from '../../lib/requestAuth.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   if (req.method !== 'POST') {
@@ -25,19 +19,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       return;
     }
 
-    const userRow = await getUserByEmail(email);
-    if (!userRow || typeof userRow.password !== 'string') {
+    const supabase = getAnonClient();
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error || !data.user) {
       res.status(401).json({ error: 'Invalid credentials' });
       return;
     }
 
-    if (!verifyPassword(password, userRow.password)) {
-      res.status(401).json({ error: 'Invalid credentials' });
-      return;
-    }
-
-    const role = typeof userRow.role === 'string' ? userRow.role : 'user';
-    if (role === 'user' && !isEmailVerifiedRow(userRow)) {
+    if (!data.user.email_confirmed_at) {
       res.status(403).json({
         error:
           'Please verify your email before signing in. Check your inbox and spam folder for the verification link we sent when you registered.',
@@ -46,12 +36,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       return;
     }
 
-    const userId = Number(userRow.id);
-    const { token, expiresAt } = await createSession(userId);
-    const user = mapSessionUser(userRow);
+    const profile = await getProfileByEmail(email);
+    if (!profile) {
+      res.status(401).json({ error: 'Invalid credentials' });
+      return;
+    }
 
-    res.setHeader('Set-Cookie', buildSessionSetCookie(token, expiresAt));
-    res.status(200).json({ user, message: 'Login successful' });
+    const user = mapProfileToSessionUser(profile, {
+      email: data.user.email,
+      email_confirmed_at: data.user.email_confirmed_at,
+      created_at: data.user.created_at,
+    });
+
+    res.status(200).json({
+      user: { ...user, authMode: 'password' },
+      session: data.session,
+      message: 'Login successful',
+    });
   } catch (error) {
     console.error('auth/login:', error);
     res.status(500).json({ error: 'Internal server error' });
