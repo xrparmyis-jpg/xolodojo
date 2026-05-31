@@ -417,7 +417,7 @@ function WalletConnectionContent({
             setWallets([
                 {
                     id: 0,
-                    user_id: 0,
+                    user_id: '0',
                     wallet_address: sessionWalletAddress,
                     wallet_type: sessionWalletType || 'wallet',
                     is_connected: true,

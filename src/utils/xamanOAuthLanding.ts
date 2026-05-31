@@ -7,6 +7,8 @@
  */
 import { isWalletDebugEnabled } from './walletDebugLog';
 
+const XUMM_PKCE_JWT_KEY = 'XummPkceJwt';
+
 function shouldLogXamanLanding(): boolean {
 	if (isWalletDebugEnabled()) {
 		return true;
