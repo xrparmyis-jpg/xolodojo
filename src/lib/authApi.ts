@@ -1,4 +1,5 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+import { getSupabaseClient } from './supabaseClient';
+import { apiFetch, API_BASE_URL } from './apiFetch';
 
 export type AuthMode = 'password' | 'wallet';
 
@@ -27,8 +28,7 @@ export class LoginError extends Error {
 }
 
 export async function getCurrentUser(): Promise<AuthUser | null> {
-  const response = await fetch(`${API_BASE_URL}/auth/me`, {
-    credentials: 'include',
+  const response = await apiFetch(`${API_BASE_URL}/auth/me`, {
     cache: 'no-store',
   });
 
@@ -85,7 +85,6 @@ export async function login(email: string, password: string): Promise<AuthUser> 
   const response = await fetch(`${API_BASE_URL}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
     body: JSON.stringify({ email, password }),
   });
 
@@ -93,6 +92,7 @@ export async function login(email: string, password: string): Promise<AuthUser> 
     error?: string;
     code?: string;
     user?: AuthUser;
+    session?: { access_token: string; refresh_token: string };
   };
 
   if (!response.ok) {
@@ -100,6 +100,14 @@ export async function login(email: string, password: string): Promise<AuthUser> 
       data.error || `Login failed: ${response.statusText}`,
       typeof data.code === 'string' ? data.code : undefined
     );
+  }
+
+  if (data.session) {
+    const supabase = getSupabaseClient();
+    await supabase.auth.setSession({
+      access_token: data.session.access_token,
+      refresh_token: data.session.refresh_token,
+    });
   }
 
   if (!data.user) {
@@ -110,6 +118,12 @@ export async function login(email: string, password: string): Promise<AuthUser> 
 }
 
 export async function logout(): Promise<void> {
+  try {
+    const supabase = getSupabaseClient();
+    await supabase.auth.signOut();
+  } catch {
+    // ignore if supabase not configured
+  }
   await fetch(`${API_BASE_URL}/auth/logout`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -117,14 +131,11 @@ export async function logout(): Promise<void> {
   });
 }
 
-export async function resendVerificationEmail(
-  email: string,
-  password: string
-): Promise<{ message: string; emailSent: boolean }> {
+export async function resendVerificationEmail(email: string): Promise<{ message: string; emailSent: boolean }> {
   const response = await fetch(`${API_BASE_URL}/auth/resend-verification`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email }),
   });
   const data = (await response.json().catch(() => ({}))) as {
     error?: string;
@@ -140,5 +151,30 @@ export async function resendVerificationEmail(
         ? data.message
         : 'Check your inbox for the verification link.',
     emailSent: data.emailSent !== false,
+  };
+}
+
+export async function resetPasswordWithSupabase(newPassword: string): Promise<void> {
+  const supabase = getSupabaseClient();
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export async function requestPasswordResetByUsername(username: string): Promise<{ message: string }> {
+  const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: username.trim() }),
+  });
+  const data = (await response.json().catch(() => ({}))) as { error?: string; message?: string };
+  if (!response.ok) {
+    throw new Error(typeof data.error === 'string' ? data.error : 'Failed to send reset email');
+  }
+  return {
+    message:
+      data.message ||
+      'If an account exists for that username, check your inbox for a reset password link.',
   };
 }

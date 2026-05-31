@@ -34,3 +34,16 @@ export const CONNECTING_JOEY_WALLET_MESSAGE = 'Connecting to Joey Wallet…';
 export const CONNECTING_WITH_WALLETCONNECT_MESSAGE = 'Connecting with WalletConnect…';
 export const OPENING_WALLETCONNECT_MESSAGE = 'Opening WalletConnect…';
 export const CONNECTING_WALLET_GENERIC_MESSAGE = 'Connecting wallet…';
+
+const CANCELLABLE_WALLET_OVERLAY_MESSAGES = new Set([
+  XAMAN_CONNECTING_MESSAGE,
+  JOEY_WAITING_FOR_WALLET_MESSAGE,
+  CONNECTING_JOEY_WALLET_MESSAGE,
+  OPENING_WALLETCONNECT_MESSAGE,
+  CONNECTING_WALLET_GENERIC_MESSAGE,
+  CONNECTING_WITH_WALLETCONNECT_MESSAGE,
+]);
+
+export function isCancellableWalletOverlayMessage(message: string | null): boolean {
+  return message != null && CANCELLABLE_WALLET_OVERLAY_MESSAGES.has(message);
+}

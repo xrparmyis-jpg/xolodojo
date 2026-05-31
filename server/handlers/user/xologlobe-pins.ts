@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getAppMysqlPool } from '../../lib/mysqlPool.js';
-import { listGlobePins, type PinnedNftItem } from '../../lib/userPinsRepo.js';
+import { formatUnknownError } from '../../lib/supabaseErrors.js';
+import { listGlobePins } from '../../lib/userPinsRepo.js';
 
 interface XoloGlobePin {
   token_id: string;
@@ -12,21 +12,12 @@ interface XoloGlobePin {
   image_url: string | null;
   title: string | null;
   collection_name: string | null;
-  socials?: XoloGlobePinSocials | null;
+  socials?: Record<string, string> | null;
   pin_note?: string | null;
   pinned_at: string;
 }
 
-interface XoloGlobePinSocials {
-  twitter?: string;
-  discord?: string;
-  tiktok?: string;
-  instagram?: string;
-  telegram?: string;
-  linkedin?: string;
-}
-
-function toGlobePin(item: PinnedNftItem): XoloGlobePin {
+function toGlobePin(item: Awaited<ReturnType<typeof listGlobePins>>[number]): XoloGlobePin {
   const lat = item.latitude;
   const lng = item.longitude;
   return {
@@ -51,21 +42,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const pool = getAppMysqlPool();
-    const items = await listGlobePins(pool);
-    const pins = items.map(toGlobePin);
-
-    res.status(200).json({
-      success: true,
-      pins,
-    });
-    return;
+    const items = await listGlobePins();
+    res.status(200).json({ success: true, pins: items.map(toGlobePin) });
   } catch (error) {
-    const err = error instanceof Error ? error : new Error(String(error));
-    console.error('Error loading Xglobe Xpins:', err);
-    res
-      .status(500)
-      .json({ error: 'Internal server error', details: err.message });
-    return;
+    const message = formatUnknownError(error);
+    console.error('Error loading Xglobe Xpins:', message, error);
+    res.status(500).json({ error: 'Internal server error', details: message });
   }
 }

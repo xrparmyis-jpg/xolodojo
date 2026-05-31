@@ -1,10 +1,7 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
-
-const credFetch = (input: string, init?: RequestInit) =>
-  fetch(input, { ...init, credentials: 'include' });
+import { apiFetch, API_BASE_URL } from '../lib/apiFetch';
 
 export interface UserProfile {
-  id: number;
+  id: string;
   email: string;
   username: string;
   name: string | null;
@@ -31,7 +28,7 @@ interface ProfileResponse {
 }
 
 export async function getUserProfile(): Promise<ProfileResponse> {
-  const response = await credFetch(`${API_BASE_URL}/user/profile`, {
+  const response = await apiFetch(`${API_BASE_URL}/user/profile`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
   });
@@ -54,7 +51,7 @@ export async function updateUserProfile(payload: {
   bio?: string;
   socials?: ProfileSocials;
 }): Promise<ProfileResponse> {
-  const response = await credFetch(`${API_BASE_URL}/user/profile`, {
+  const response = await apiFetch(`${API_BASE_URL}/user/profile`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

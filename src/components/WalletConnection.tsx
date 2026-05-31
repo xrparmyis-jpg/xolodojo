@@ -17,7 +17,7 @@ import Button from './Button';
 import ModalConfirm from './ModalConfirm';
 import NftGallery from './NftGallery';
 import { useToast } from './ToastProvider';
-import { xamanHandler } from '../walletHandlers/xaman';
+import { xamanHandler, cancelXamanConnectAttempt } from '../walletHandlers/xaman';
 import type { Wallet } from '../services/walletService';
 import {
     addWallet,
@@ -32,7 +32,12 @@ import {
     getWalletAssetSummary,
     type WalletAssetSummary,
 } from '../services/walletAssetService';
-import { useJoeyWalletConnect } from '../hooks/useJoeyWalletConnect';
+import {
+    JoeyWalletConnectBridgeHost,
+    JoeyWalletConnectLazyRoot,
+    useJoeyStackRequest,
+    useJoeyWalletConnectApi,
+} from '../wallets/joey/joeyWalletConnectLazy';
 import { useJoeyWalletPersistence } from '../hooks/useJoeyWalletPersistence';
 import { JoeyWalletQrModal } from './joey/JoeyWalletQrModal';
 import { WalletBusyOverlay } from './WalletBusyOverlay';
@@ -41,6 +46,7 @@ import {
     CONNECTING_WALLET_GENERIC_MESSAGE,
     CONNECTING_WITH_WALLETCONNECT_MESSAGE,
     DISCONNECTING_WALLET_MESSAGE,
+    isCancellableWalletOverlayMessage,
     JOEY_WAITING_FOR_WALLET_MESSAGE,
     LOADING_WALLETS_MESSAGE,
     LOADING_WALLET_SUMMARY_MESSAGE,
@@ -110,6 +116,8 @@ function WalletConnectionContent({
     const walletBusyMessageRef = useRef(walletBusyMessage);
     walletBusyMessageRef.current = walletBusyMessage;
 
+    const joeyStack = useJoeyStackRequest();
+
     const {
         isJoeyConnectPending,
         showJoeyQrModal,
@@ -120,15 +128,29 @@ function WalletConnectionContent({
         account: joeyAccount,
         session: joeySession,
         disconnectFromProvider: disconnectJoeyFromProvider,
-    } = useJoeyWalletConnect({
-        showToast,
-        onConnectStart: () => setWalletBusyMessage(JOEY_WAITING_FOR_WALLET_MESSAGE),
-        onConnectError: () => setWalletBusyMessage(null),
-    });
+    } = useJoeyWalletConnectApi();
+
+    const joeyHookParams = useMemo(
+        () => ({
+            showToast,
+            onConnectStart: () => setWalletBusyMessage(JOEY_WAITING_FOR_WALLET_MESSAGE),
+            onConnectError: () => setWalletBusyMessage(null),
+        }),
+        [showToast]
+    );
 
     const clearWalletToasts = useCallback(() => {
         clearToasts();
     }, [clearToasts]);
+
+    const cancelWalletConnectionAttempt = useCallback(() => {
+        setWalletBusyMessage(null);
+        setIsWalletConnectPending(false);
+        setPendingWalletConnectId(null);
+        cancelXamanConnectAttempt();
+        handleCancelJoeyQr();
+        showToast('info', 'Wallet connection cancelled.');
+    }, [showToast, handleCancelJoeyQr]);
 
     const repairWalletAddressIfNeeded = useCallback(async (
         wallet: Wallet,
@@ -197,6 +219,9 @@ function WalletConnectionContent({
                 );
                 setWallets(validWallets);
                 onWalletsUpdated?.(validWallets);
+                if (validWallets.some((wallet) => wallet.wallet_type === 'joey')) {
+                    joeyStack?.requestJoeyStack();
+                }
             }
         } catch (error) {
             console.error('Failed to load wallets:', error);
@@ -207,7 +232,7 @@ function WalletConnectionContent({
                 setWalletBusyMessage(null);
             }
         }
-    }, [variant, onWalletsUpdated, showToast]);
+    }, [variant, onWalletsUpdated, showToast, joeyStack]);
 
     const applyConnectedWalletFromApi = useCallback(
         (connectedRow: Wallet) => {
@@ -392,7 +417,7 @@ function WalletConnectionContent({
             setWallets([
                 {
                     id: 0,
-                    user_id: 0,
+                    user_id: '0',
                     wallet_address: sessionWalletAddress,
                     wallet_type: sessionWalletType || 'wallet',
                     is_connected: true,
@@ -558,13 +583,13 @@ function WalletConnectionContent({
         async (walletIdToConnect?: number, opts?: { resumeFromRedirect?: boolean }) => {
             clearToasts();
             const resumeFromRedirect = opts?.resumeFromRedirect === true;
-            // eslint-disable-next-line no-console
-            console.log('[WalletConnection][Xaman] handleConnectXaman', {
+            walletDebugLog('handleConnectXaman', {
                 walletIdToConnect: walletIdToConnect ?? null,
                 resumeFromRedirect,
             });
             await xamanHandler.connect({
                 ...xamanHandlerArgs,
+                fromProfile: variant === 'profile' || variant === 'wallet_session',
                 walletIdToConnect,
                 resumeFromRedirect,
                 completeWalletAuth:
@@ -1168,13 +1193,24 @@ function WalletConnectionContent({
                 </div>
             )}
 
-            <WalletBusyOverlay message={isInteractionBlocked ? overlayMessage : null} />
+            <WalletBusyOverlay
+                message={isInteractionBlocked ? overlayMessage : null}
+                dismissible={isCancellableWalletOverlayMessage(overlayMessage)}
+                onDismiss={cancelWalletConnectionAttempt}
+            />
+            {joeyStack?.joeyStackActive ? (
+                <JoeyWalletConnectBridgeHost hookParams={joeyHookParams} />
+            ) : null}
         </div>
     );
 }
 
 export function WalletConnection(props: WalletConnectionProps) {
-    return <WalletConnectionContent {...props} />;
+    return (
+        <JoeyWalletConnectLazyRoot>
+            <WalletConnectionContent {...props} />
+        </JoeyWalletConnectLazyRoot>
+    );
 }
 
 export default WalletConnection;

@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getUserByEmail } from '../../lib/sessionAuth.js';
+import { getProfileByEmail } from '../../lib/requestAuth.js';
+import { getServiceRoleClient } from '../../lib/supabaseAdmin.js';
 import { sendMail } from '../../lib/mail.js';
 
 const GENERIC_MESSAGE =
@@ -21,15 +22,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       return;
     }
 
-    const row = await getUserByEmail(email);
-    if (row) {
-      const to = typeof row.email === 'string' ? row.email : email;
-      const username =
-        typeof row.username === 'string' ? row.username.trim() : '';
-
-      if (to && username) {
+    const profile = await getProfileByEmail(email);
+    if (profile) {
+      const username = profile.username.trim();
+      if (username) {
         await sendMail({
-          to,
+          to: email,
           subject: 'Your XoloDojo username',
           text: [
             'You asked for a reminder of the username for your XoloDojo account.',

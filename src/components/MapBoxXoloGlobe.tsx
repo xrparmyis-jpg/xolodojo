@@ -17,7 +17,6 @@ import {
     faPlay,
     faPlus,
     faSatellite,
-    faSpinner,
     faSun,
 } from '@fortawesome/free-solid-svg-icons';
 import {
@@ -45,9 +44,10 @@ mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || '';
 
 interface MapBoxXoloGlobeProps {
     className?: string;
+    onBootstrapComplete?: () => void;
 }
 
-export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
+export default function MapBoxXoloGlobe({ className, onBootstrapComplete }: MapBoxXoloGlobeProps) {
     const [searchParams, setSearchParams] = useSearchParams();
     const { showToast } = useToast();
     const { user, loading: authLoading } = useAuth();
@@ -72,6 +72,7 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
     const pinPopupControllersRef = useRef<Record<string, { open: () => void }>>({});
     const autoOpenedPinTokenIdRef = useRef<string | null>(null);
     const missingSharedPinNotifiedRef = useRef(false);
+    const pinsLoadErrorNotifiedRef = useRef(false);
     /** True while markers are being torn down/replaced — popup `close` must not restore camera (default center is near Japan). */
     const remountingGlobeMarkersRef = useRef(false);
     const spinningRef = useRef(true);
@@ -94,6 +95,8 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
     const [lightPreset, setLightPreset] = useState<'day' | 'night'>('night');
     const [mapStyleMode, setMapStyleMode] = useState<'street' | 'satellite'>('satellite');
     const [isLoading, setIsLoading] = useState(true);
+    const [mapReady, setMapReady] = useState(false);
+    const bootstrapCompleteRef = useRef(false);
     const [hasMapToken, setHasMapToken] = useState(true);
     const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -187,8 +190,13 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
                 }
             } catch (error) {
                 if (!cancelled) {
-                    setLoadError(error instanceof Error ? error.message : String(error));
+                    const message = error instanceof Error ? error.message : String(error);
+                    setLoadError(message);
                     setPins([]);
+                    if (!pinsLoadErrorNotifiedRef.current) {
+                        pinsLoadErrorNotifiedRef.current = true;
+                        showToast('error', `Failed to load pins: ${message}`);
+                    }
                 }
             } finally {
                 if (!cancelled) {
@@ -202,7 +210,16 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [showToast]);
+
+    useEffect(() => {
+        const bootstrapReady = !hasMapToken || (mapReady && !isLoading);
+        if (!bootstrapReady || bootstrapCompleteRef.current) {
+            return;
+        }
+        bootstrapCompleteRef.current = true;
+        onBootstrapComplete?.();
+    }, [hasMapToken, isLoading, mapReady, onBootstrapComplete]);
 
     useEffect(() => {
         if (authLoading || !user) {
@@ -405,6 +422,7 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
 
         if (!accessToken) {
             setHasMapToken(false);
+            setMapReady(true);
             return;
         }
 
@@ -432,6 +450,7 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
         });
 
         map.on('load', () => {
+            setMapReady(true);
             setMapZoom(map.getZoom());
             if (spinningRef.current) {
                 spinGlobe();
@@ -487,6 +506,8 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
             pinPopupControllersRef.current = {};
             map.remove();
             mapRef.current = null;
+            setMapReady(false);
+            bootstrapCompleteRef.current = false;
         };
     }, [accessToken]);
 
@@ -916,21 +937,6 @@ export default function MapBoxXoloGlobe({ className }: MapBoxXoloGlobeProps) {
                     <FontAwesomeIcon icon={faSatellite} />
                 </button>
             </div>
-
-            {isLoading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[1px]">
-                    <div className="inline-flex items-center gap-2 rounded-md bg-black/65 px-3 py-2 text-sm text-white/90">
-                        <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
-                        Loading pins...
-                    </div>
-                </div>
-            )}
-
-            {!isLoading && loadError && (
-                <div className="absolute bottom-3 left-3 right-3 rounded-md border border-red-400/40 bg-red-950/70 px-3 py-2 text-xs text-red-100">
-                    Failed to load pins: {loadError}
-                </div>
-            )}
 
             {!isLoading && !loadError && pins.length === 0 && (
                 <div className="absolute bottom-3 left-3 right-3 rounded-md border border-white/20 bg-black/65 px-3 py-2 text-xs text-white/80">

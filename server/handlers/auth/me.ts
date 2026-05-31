@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getRequestAuth } from '../../lib/sessionAuth.js';
+import { getRequestAuth } from '../../lib/requestAuth.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   if (req.method !== 'GET') {
@@ -17,7 +17,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     if (auth.kind === 'wallet') {
       res.status(200).json({
         user: {
-          id: `wallet:${auth.walletAddress}`,
+          id: `wallet:${auth.walletAddress.toLowerCase()}`,
           authMode: 'wallet',
           email: '',
           username: '',
@@ -29,10 +29,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       return;
     }
 
-    const u = auth.sessionUser;
     res.status(200).json({
       user: {
-        ...u,
+        ...auth.sessionUser,
         authMode: 'password',
       },
     });

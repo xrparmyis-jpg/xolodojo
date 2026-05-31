@@ -1,11 +1,11 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { randomBytes } from 'node:crypto';
-import { getAppMysqlPool } from '../../lib/mysqlPool.js';
-import { getUserByEmail, getUserByUsername, hashPassword, getAppPublicOrigin } from '../../lib/sessionAuth.js';
-import { sendMail } from '../../lib/mail.js';
+import { getAnonClient } from '../../lib/supabaseAdmin.js';
+import {
+  getAppPublicOrigin,
+  getProfileByEmail,
+  isUsernameAvailable,
+} from '../../lib/requestAuth.js';
 import { validateDisplayName, validateUsername } from '../../../src/lib/username.js';
-
-const VERIFY_TTL_MS = 48 * 60 * 60 * 1000;
 
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   if (req.method !== 'POST') {
@@ -42,55 +42,46 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       return;
     }
 
-    const existingEmail = await getUserByEmail(email);
+    const existingEmail = await getProfileByEmail(email);
     if (existingEmail) {
       res.status(409).json({ error: 'An account with that email already exists' });
       return;
     }
 
-    const existingUsername = await getUserByUsername(userCheck.normalized);
-    if (existingUsername) {
+    const usernameAvailable = await isUsernameAvailable(userCheck.normalized);
+    if (!usernameAvailable) {
       res.status(409).json({ error: 'That username is already taken' });
       return;
     }
 
-    const pool = getAppMysqlPool();
-    const hashed = hashPassword(password);
-    const verificationToken = randomBytes(32).toString('hex');
-    const verificationExpiry = new Date(Date.now() + VERIFY_TTL_MS);
-    const verificationExpirySql = verificationExpiry
-      .toISOString()
-      .slice(0, 19)
-      .replace('T', ' ');
+    const redirectTo = `${getAppPublicOrigin()}/auth/callback`;
+    const supabase = getAnonClient();
 
-    await pool.query(
-      `INSERT INTO users (
-        email, username, name, password, role,
-        verification_token, verification_token_expiry,
-        created_at, updated_at
-      ) VALUES (?, ?, ?, ?, 'user', ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())`,
-      [email, userCheck.normalized, nameCheck.normalized, hashed, verificationToken, verificationExpirySql]
-    );
-
-    const appBaseUrl = getAppPublicOrigin();
-    const verifyUrl = `${appBaseUrl}/api/auth/verify-email?token=${verificationToken}`;
-
-    const mailResult = await sendMail({
-      to: email,
-      subject: 'Verify your XoloDojo account',
-      text: `Welcome to XoloDojo. Verify your email by opening this link (valid 48 hours):\n${verifyUrl}`,
-      html: `<p>Welcome to XoloDojo.</p><p>Please <a href="${verifyUrl}">verify your email address</a> to activate your account. This link expires in 48 hours.</p>`,
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: redirectTo,
+        data: {
+          username: userCheck.normalized,
+          name: nameCheck.normalized,
+        },
+      },
     });
 
-    if (!mailResult.sent) {
-      console.warn('[Register] Verification email not sent:', mailResult.reason);
+    if (error) {
+      console.error('auth/register signUp:', error);
+      res.status(500).json({ error: error.message || 'Failed to create account' });
+      return;
     }
 
+    const emailSent = true;
+
     res.status(200).json({
-      message: mailResult.sent
+      message: emailSent
         ? 'Account created. Check your email for a verification link before signing in.'
-        : `Account created, but no verification email was sent. Set SMTP_HOST and SMTP_PORT in .env.local (for the API), restart the API, then use "Resend verification" on login. Reason: ${mailResult.reason ?? 'unknown'}`,
-      emailSent: mailResult.sent,
+        : 'Account created, but no verification email was sent. Configure Supabase Auth email settings, then use "Resend verification" on login.',
+      emailSent,
     });
   } catch (error) {
     console.error('auth/register:', error);

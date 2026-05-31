@@ -1,40 +1,23 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getAppMysqlPool } from '../../../lib/mysqlPool.js';
 import { deletePinsForUserWallet } from '../../../lib/userPinsRepo.js';
 import { resolveCanonicalClassicAddress } from '../../../xrplClassicAddress.js';
-import { requireSessionUserId } from '../../../lib/sessionAuth.js';
-
-function getDbDebugInfo() {
-  return {
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '3308'),
-    database: process.env.DB_NAME || 'donovan_db',
-    nodeEnv: process.env.NODE_ENV || 'development',
-    vercelEnv: process.env.VERCEL_ENV || 'local',
-  };
-}
+import { requireAuthUserId } from '../../../lib/requestAuth.js';
+import { getServiceRoleClient } from '../../../lib/supabaseAdmin.js';
 
 function isLikelyXrplAddress(value: string): boolean {
   return /^r[1-9A-HJ-NP-Za-km-z]{24,34}$/.test(value.trim());
 }
 
-function normalizeWalletAddressForStorage(
-  value: string,
-  walletType?: string
-): string {
+function normalizeWalletAddressForStorage(value: string, walletType?: string): string {
   const trimmed = value.trim();
   if (walletType === 'xaman' || walletType === 'joey') {
     const resolved = resolveCanonicalClassicAddress(trimmed);
-    if (!resolved) {
-      throw new Error('INVALID_XRPL_ADDRESS_CHECKSUM');
-    }
+    if (!resolved) throw new Error('INVALID_XRPL_ADDRESS_CHECKSUM');
     return resolved;
   }
   if (isLikelyXrplAddress(trimmed)) {
-    const resolved = resolveCanonicalClassicAddress(trimmed);
-    return resolved ?? trimmed;
+    return resolveCanonicalClassicAddress(trimmed) ?? trimmed;
   }
-
   return trimmed.toLowerCase();
 }
 
@@ -43,82 +26,57 @@ function normalizeWalletAddress(value: string): string {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const pool = getAppMysqlPool();
-  // walletId may be passed via query or as part of path; VercelRequest sometimes puts params in query
   let walletId = req.query.walletId as string;
   if (!walletId) {
-    // try to extract from URL manually
-    const match = req.url?.match(/\/wallets\/([^\/]+)/);
+    const match = req.url?.match(/\/wallets\/([^/]+)/);
     if (match) walletId = match[1];
   }
 
-  // Connect a wallet (set as active)
+  const supabase = getServiceRoleClient();
+
   if (req.url?.includes('/connect') && req.method === 'PUT') {
     try {
-      const userId = await requireSessionUserId(req, res);
+      const userId = await requireAuthUserId(req, res);
       if (userId === null) return;
 
-      console.log('CONNECT HANDLER: walletId param:', walletId, 'userId:', userId);
+      const { data: wallet } = await supabase
+        .from('user_wallets')
+        .select('id')
+        .eq('id', walletId)
+        .eq('user_id', userId)
+        .maybeSingle();
 
-      // Verify wallet belongs to user
-      const [wallet] = (await pool.execute(
-        'SELECT id FROM user_wallets WHERE id = ? AND user_id = ?',
-        [walletId, userId]
-      )) as [any[], any];
-
-      console.log('CONNECT HANDLER: wallet lookup result:', wallet);
-
-      if (!Array.isArray(wallet) || wallet.length === 0) {
+      if (!wallet) {
         return res.status(404).json({ error: 'Wallet not found' });
       }
 
-      // First, disconnect all wallets for this user
-      await pool.execute(
-        'UPDATE user_wallets SET is_connected = false WHERE user_id = ?',
-        [userId]
-      );
+      await supabase.from('user_wallets').update({ is_connected: false }).eq('user_id', userId);
+      await supabase
+        .from('user_wallets')
+        .update({ is_connected: true, updated_at: new Date().toISOString() })
+        .eq('id', walletId)
+        .eq('user_id', userId);
 
-      // Then connect the selected wallet
-      await pool.execute(
-        'UPDATE user_wallets SET is_connected = true WHERE id = ? AND user_id = ?',
-        [walletId, userId]
-      );
-
-      // Get updated wallet
-      const [updatedWallet] = (await pool.execute(
-        'SELECT * FROM user_wallets WHERE id = ?',
-        [walletId]
-      )) as [any[], any];
+      const { data: updatedWallet } = await supabase
+        .from('user_wallets')
+        .select('*')
+        .eq('id', walletId)
+        .maybeSingle();
 
       return res.status(200).json({
         success: true,
-        wallet:
-          Array.isArray(updatedWallet) && updatedWallet.length > 0
-            ? updatedWallet[0]
-            : null,
+        wallet: updatedWallet ?? null,
         message: 'Wallet connected',
       });
-    } catch (error: any) {
-      console.error('Error connecting wallet:', {
-        message: error?.message,
-        code: error?.code,
-        errno: error?.errno,
-        sqlState: error?.sqlState,
-        sqlMessage: error?.sqlMessage,
-        address: error?.address,
-        port: error?.port,
-        db: getDbDebugInfo(),
-      });
-      return res
-        .status(500)
-        .json({ error: 'Internal server error', details: error.message });
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      return res.status(500).json({ error: 'Internal server error', details: err.message });
     }
   }
 
-  // Delete a wallet
   if (req.method === 'PATCH') {
     try {
-      const userId = await requireSessionUserId(req, res);
+      const userId = await requireAuthUserId(req, res);
       if (userId === null) return;
 
       const { wallet_address } = req.body as { wallet_address?: string };
@@ -126,21 +84,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Missing wallet_address' });
       }
 
-      const [walletLookup] = (await pool.execute(
-        'SELECT id, wallet_type FROM user_wallets WHERE id = ? AND user_id = ?',
-        [walletId, userId]
-      )) as [any[], any];
+      const { data: walletLookup } = await supabase
+        .from('user_wallets')
+        .select('id, wallet_type')
+        .eq('id', walletId)
+        .eq('user_id', userId)
+        .maybeSingle();
 
-      if (!Array.isArray(walletLookup) || walletLookup.length === 0) {
+      if (!walletLookup) {
         return res.status(404).json({ error: 'Wallet not found' });
       }
 
-      const walletType = walletLookup[0].wallet_type as string | undefined;
       let nextWalletAddress: string;
       try {
         nextWalletAddress = normalizeWalletAddressForStorage(
           wallet_address,
-          walletType
+          walletLookup.wallet_type
         );
       } catch (normalizeErr) {
         const msg =
@@ -153,107 +112,79 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       const nextComparisonAddress = normalizeWalletAddress(wallet_address);
 
-      const [allUserWallets] = (await pool.execute(
-        'SELECT id, wallet_address FROM user_wallets WHERE user_id = ? AND id <> ?',
-        [userId, walletId]
-      )) as [any[], any];
+      const { data: allUserWallets } = await supabase
+        .from('user_wallets')
+        .select('id, wallet_address')
+        .eq('user_id', userId)
+        .neq('id', walletId);
 
-      const duplicateWallet = (Array.isArray(allUserWallets) ? allUserWallets : []).find(
-        wallet =>
-          typeof wallet.wallet_address === 'string' &&
-          normalizeWalletAddress(wallet.wallet_address) === nextComparisonAddress
+      const duplicateWallet = (allUserWallets ?? []).find(
+        (w) =>
+          typeof w.wallet_address === 'string' &&
+          normalizeWalletAddress(w.wallet_address) === nextComparisonAddress
       );
 
       if (duplicateWallet) {
         return res.status(409).json({ error: 'Wallet already exists for this user' });
       }
 
-      await pool.execute(
-        'UPDATE user_wallets SET wallet_address = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?',
-        [nextWalletAddress, walletId, userId]
-      );
+      await supabase
+        .from('user_wallets')
+        .update({ wallet_address: nextWalletAddress, updated_at: new Date().toISOString() })
+        .eq('id', walletId)
+        .eq('user_id', userId);
 
-      const [updatedWallet] = (await pool.execute(
-        'SELECT * FROM user_wallets WHERE id = ?',
-        [walletId]
-      )) as [any[], any];
+      const { data: updatedWallet } = await supabase
+        .from('user_wallets')
+        .select('*')
+        .eq('id', walletId)
+        .maybeSingle();
 
       return res.status(200).json({
         success: true,
-        wallet:
-          Array.isArray(updatedWallet) && updatedWallet.length > 0
-            ? updatedWallet[0]
-            : null,
+        wallet: updatedWallet ?? null,
         message: 'Wallet updated successfully',
       });
-    } catch (error: any) {
-      console.error('Error updating wallet:', {
-        message: error?.message,
-        code: error?.code,
-        errno: error?.errno,
-        sqlState: error?.sqlState,
-        sqlMessage: error?.sqlMessage,
-        address: error?.address,
-        port: error?.port,
-        db: getDbDebugInfo(),
-      });
-      return res
-        .status(500)
-        .json({ error: 'Internal server error', details: error.message });
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      return res.status(500).json({ error: 'Internal server error', details: err.message });
     }
   }
 
-  // Delete a wallet
   if (req.method === 'DELETE') {
     try {
-      const userId = await requireSessionUserId(req, res);
+      const userId = await requireAuthUserId(req, res);
       if (userId === null) return;
 
-      const [walletLookup] = (await pool.execute(
-        'SELECT wallet_address FROM user_wallets WHERE id = ? AND user_id = ?',
-        [walletId, userId]
-      )) as [any[], any];
+      const { data: walletLookup } = await supabase
+        .from('user_wallets')
+        .select('wallet_address')
+        .eq('id', walletId)
+        .eq('user_id', userId)
+        .maybeSingle();
 
-      if (!Array.isArray(walletLookup) || walletLookup.length === 0) {
+      if (!walletLookup) {
         return res.status(404).json({ error: 'Wallet not found' });
       }
 
-      const walletAddressToDelete = walletLookup[0].wallet_address as string;
+      await deletePinsForUserWallet(userId, normalizeWalletAddress(walletLookup.wallet_address));
 
-      await deletePinsForUserWallet(
-        pool,
-        userId,
-        normalizeWalletAddress(walletAddressToDelete)
-      );
+      const { data: deleted, error } = await supabase
+        .from('user_wallets')
+        .delete()
+        .eq('id', walletId)
+        .eq('user_id', userId)
+        .select('id');
 
-      // Delete wallet (verify it belongs to user)
-      const [result] = (await pool.execute(
-        'DELETE FROM user_wallets WHERE id = ? AND user_id = ?',
-        [walletId, userId]
-      )) as [any, any];
-
-      if (result.affectedRows === 0) {
+      if (error) throw error;
+      if (!deleted?.length) {
         return res.status(404).json({ error: 'Wallet not found' });
       }
 
-      return res.status(200).json({
-        success: true,
-        message: 'Wallet deleted successfully',
-      });
-    } catch (error: any) {
-      console.error('Error deleting wallet:', {
-        message: error?.message,
-        code: error?.code,
-        errno: error?.errno,
-        sqlState: error?.sqlState,
-        sqlMessage: error?.sqlMessage,
-        address: error?.address,
-        port: error?.port,
-        db: getDbDebugInfo(),
-      });
-      return res
-        .status(500)
-        .json({ error: 'Internal server error', details: error.message });
+      return res.status(200).json({ success: true, message: 'Wallet deleted successfully' });
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      return res.status(500).json({ error: 'Internal server error', details: err.message });
     }
   }
 

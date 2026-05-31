@@ -1,7 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
-
-const credFetch = (input: string, init?: RequestInit) =>
-  fetch(input, { ...init, credentials: 'include' });
+import { apiFetch, API_BASE_URL } from '../lib/apiFetch';
 
 export interface PinnedNftSocials {
   twitter?: string;
@@ -28,15 +25,33 @@ export interface PinnedNftItem {
 }
 
 interface PinnedNftsResponse {
-  success: boolean;
-  pinned_nfts: PinnedNftItem[];
+  success?: boolean;
+  pinned_nfts?: PinnedNftItem[];
+}
+
+export type PinNftPayload = {
+  token_id: string;
+  wallet_address: string;
+  issuer?: string | null;
+  uri?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  image_url?: string | null;
+  title?: string | null;
+  collection_name?: string | null;
+  socials?: PinnedNftSocials | null;
+  pin_note?: string | null;
+};
+
+function extractPinnedNfts(data: PinnedNftsResponse): PinnedNftItem[] {
+  return Array.isArray(data.pinned_nfts) ? data.pinned_nfts : [];
 }
 
 export async function getPinnedNfts(walletAddress?: string): Promise<PinnedNftItem[]> {
-  const walletQuery = walletAddress
+  const query = walletAddress
     ? `?wallet_address=${encodeURIComponent(walletAddress)}`
     : '';
-  const response = await credFetch(`${API_BASE_URL}/user/pinned-nfts${walletQuery}`, {
+  const response = await apiFetch(`${API_BASE_URL}/user/pinned-nfts${query}`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
   });
@@ -47,26 +62,18 @@ export async function getPinnedNfts(walletAddress?: string): Promise<PinnedNftIt
   }
 
   const data = (await response.json()) as PinnedNftsResponse;
-  return data.pinned_nfts || [];
+  return extractPinnedNfts(data);
 }
 
-export async function pinNft(nft: {
-  token_id: string;
-  wallet_address: string;
-  issuer?: string | null;
-  uri?: string | null;
-  latitude?: number | null;
-  longitude?: number | null;
-  image_url?: string | null;
-  title?: string | null;
-  collection_name?: string | null;
-  socials?: PinnedNftSocials;
-  pin_note?: string | null;
-}): Promise<PinnedNftItem[]> {
-  const response = await credFetch(`${API_BASE_URL}/user/pinned-nfts`, {
+export async function pinNft(payload: PinNftPayload): Promise<PinnedNftItem[]> {
+  const { wallet_address, ...nft } = payload;
+  const response = await apiFetch(`${API_BASE_URL}/user/pinned-nfts`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ nft }),
+    body: JSON.stringify({
+      wallet_address,
+      nft,
+    }),
   });
 
   if (!response.ok) {
@@ -75,14 +82,14 @@ export async function pinNft(nft: {
   }
 
   const data = (await response.json()) as PinnedNftsResponse;
-  return data.pinned_nfts || [];
+  return extractPinnedNfts(data);
 }
 
 export async function unpinNft(
   tokenId: string,
   walletAddress: string
 ): Promise<PinnedNftItem[]> {
-  const response = await credFetch(`${API_BASE_URL}/user/pinned-nfts`, {
+  const response = await apiFetch(`${API_BASE_URL}/user/pinned-nfts`, {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -97,5 +104,5 @@ export async function unpinNft(
   }
 
   const data = (await response.json()) as PinnedNftsResponse;
-  return data.pinned_nfts || [];
+  return extractPinnedNfts(data);
 }

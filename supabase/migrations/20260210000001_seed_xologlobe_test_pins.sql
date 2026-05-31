@@ -1,0 +1,4 @@
+-- XoloDojo test seed data is created via script (requires Supabase Auth admin API):
+--   npx tsx supabase/scripts/seed-test-data.ts
+--
+-- Run AFTER 20260210000000_initial_schema.sql

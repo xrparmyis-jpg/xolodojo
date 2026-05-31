@@ -51,9 +51,11 @@ export function isMobileConnectDevice(): boolean {
 
 export function resolveXamanConnectIntent(opts: {
 	completeWalletAuth?: boolean;
+	/** Profile page add/reconnect — use redirect flow, not desktop QR. */
+	fromProfile?: boolean;
 }): XamanConnectIntent {
 	if (opts.completeWalletAuth) return 'wallet_auth';
-	if (isMobileConnectDevice()) return 'profile_wallets';
+	if (opts.fromProfile || isMobileConnectDevice()) return 'profile_wallets';
 	return 'desktop';
 }
 

@@ -1,17 +1,11 @@
 /**
  * Browser-only diagnostics for wallet / NFT listing issues.
  *
- * **`walletTraceLog`** always prints to the console (connection + NFT API path) — use DevTools → Console, filter `[Donovan:Wallet]`.
- *
- * Extra detail via **`walletDebugLog`** when any of:
- * - `import.meta.env.DEV` (local `npm run dev`)
+ * Debug logging is **opt-in** (keeps the console clean for normal testing):
  * - `localStorage.setItem('donovanDebugWallet', '1')` then reload
- * - `VITE_DEBUG_WALLET=true` in .env
+ * - `VITE_DEBUG_WALLET=true` in .env.local
  */
 export function isWalletDebugEnabled(): boolean {
-	if (import.meta.env.DEV) {
-		return true;
-	}
 	if (import.meta.env.VITE_DEBUG_WALLET === 'true') {
 		return true;
 	}
@@ -23,11 +17,12 @@ export function isWalletDebugEnabled(): boolean {
 }
 
 /**
- * Always logged — high-signal lines for “connected as what?” and “NFT summary fetch result”.
- * Does not depend on localStorage (so production screenshares still see it).
+ * High-signal wallet diagnostics — only when debug is enabled (see isWalletDebugEnabled).
  */
 export function walletTraceLog(event: string, payload?: Record<string, unknown>): void {
-	// console.log so it shows even when the console is filtered to hide "Info" level
+	if (!isWalletDebugEnabled()) {
+		return;
+	}
 	// eslint-disable-next-line no-console
 	console.log(`[Donovan:Wallet] ${event}`, payload ?? {});
 }

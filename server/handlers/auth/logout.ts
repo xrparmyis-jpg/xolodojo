@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import {
-  buildSessionClearCookie,
-  deleteSessionByToken,
-  getSessionTokenFromRequest,
-} from '../../lib/sessionAuth.js';
+  buildWalletSessionClearCookie,
+  deleteWalletSessionByToken,
+  getWalletSessionTokenFromRequest,
+} from '../../lib/walletSession.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   if (req.method !== 'POST') {
@@ -12,11 +12,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
   }
 
   try {
-    const token = getSessionTokenFromRequest(req);
+    const token = getWalletSessionTokenFromRequest(req);
     if (token) {
-      await deleteSessionByToken(token);
+      await deleteWalletSessionByToken(token);
     }
-    res.setHeader('Set-Cookie', buildSessionClearCookie());
+    res.setHeader('Set-Cookie', buildWalletSessionClearCookie());
     res.status(200).json({ message: 'Logout successful' });
   } catch (error) {
     console.error('auth/logout:', error);

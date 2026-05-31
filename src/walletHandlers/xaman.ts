@@ -20,6 +20,15 @@ import {
 	XAMAN_CONNECTING_MESSAGE,
 } from '../constants/walletUiMessages';
 import { getUserWallets, type Wallet } from '../services/walletService';
+import { isWalletDebugEnabled } from '../utils/walletDebugLog';
+
+function xamanDebugLog(...args: unknown[]): void {
+	if (!isWalletDebugEnabled()) {
+		return;
+	}
+	// eslint-disable-next-line no-console
+	console.log(...args);
+}
 
 const xamanApiKey = (
 	import.meta.env.VITE_XAMAN_API_KEY ||
@@ -129,22 +138,21 @@ function inferXamanRedirectUrlFromLocation(): string | null {
 
 function resolveXamanRedirectUrl(intent?: XamanConnectIntent): string {
 	const resolvedIntent = intent ?? getXamanConnectIntent() ?? 'profile_wallets';
+
 	if (resolvedIntent === 'desktop') {
+		// Localhost without a phone-reachable handoff URL: use the registered env redirect
+		// instead of /?xaman_flow=desktop (usually not in the Xaman Developer Console).
+		if (configuredRedirectUrl && isLocalDevHost() && !getDesktopHandoffOrigin()) {
+			return configuredRedirectUrl;
+		}
 		return getXamanRedirectUrlForIntent('desktop');
 	}
+
 	if (configuredRedirectUrl) {
 		return configuredRedirectUrl;
 	}
-	if (typeof window === 'undefined') {
-		return getXamanRedirectUrlForIntent(resolvedIntent);
-	}
-	if (intent) {
-		return getXamanRedirectUrlForIntent(intent);
-	}
-	return (
-		inferXamanRedirectUrlFromLocation() ??
-		getXamanRedirectUrlForIntent('profile_wallets')
-	);
+
+	return getXamanRedirectUrlForIntent(resolvedIntent);
 }
 
 function createXamanPkceInstance(redirectUrl: string): XummPkce {
@@ -178,6 +186,12 @@ export function getXamanClient(options?: { redirectUrl?: string; recreate?: bool
 	return xamanPkce;
 }
 
+/** User dismissed connect UI or SDK errored — drop stale PKCE so the next attempt can open fresh. */
+export function cancelXamanConnectAttempt(): void {
+	clearXamanConnectIntent();
+	resetXamanPkceSilently();
+}
+
 /**
  * Drop the in-memory Xumm PKCE client so the next connect gets a fresh authorize() flow.
  * Without this, a rejected / timed-out sign-in can leave the SDK stuck repeating the same error
@@ -208,14 +222,14 @@ export function primeXamanPkceIfOAuthLanding(): void {
 	try {
 		if (isXamanDesktopHandoffSearch(window.location.search)) {
 			// eslint-disable-next-line no-console
-			console.log('[Xaman][prime] Skipping PKCE prime (desktop QR handoff on phone)');
+			xamanDebugLog('[Xaman][prime] Skipping PKCE prime (desktop QR handoff on phone)');
 			return;
 		}
 		const redirectUrl = inferXamanRedirectUrlFromLocation();
 		if (!redirectUrl && !isLikelyXummPkceOAuthReturn(window.location.search)) return;
 		getXamanClient({ redirectUrl: redirectUrl ?? undefined, recreate: true });
 		// eslint-disable-next-line no-console
-		console.log('[Xaman][prime] XummPkce constructed at startup (OAuth params present)', {
+		xamanDebugLog('[Xaman][prime] XummPkce constructed at startup (OAuth params present)', {
 			redirectUrl: redirectUrl ?? resolveXamanRedirectUrl(),
 		});
 	} catch {
@@ -347,6 +361,8 @@ export const xamanHandler: IWalletHandler = {
 		addWallet,
 		/** Wallet-only app sign-in: skip DB wallet rows */
 		completeWalletAuth,
+		/** Profile page add/reconnect (not wallet-only sign-in). */
+		fromProfile,
 		/** Set true when Profile resumed connect after stripping ?xaman_return=1 from URL */
 		resumeFromRedirect,
 		// showToast,
@@ -370,6 +386,7 @@ export const xamanHandler: IWalletHandler = {
 
 			const connectIntent = resolveXamanConnectIntent({
 				completeWalletAuth: typeof completeWalletAuth === 'function',
+				fromProfile: fromProfile === true,
 			});
 			warnIfLocalhostDesktopWithoutHandoff(connectIntent);
 
@@ -385,7 +402,7 @@ export const xamanHandler: IWalletHandler = {
 
 			const client = getXamanClient({
 				redirectUrl,
-				recreate: oauthReturnRecover,
+				recreate: true,
 			});
 			try {
 				const thread = (
@@ -394,7 +411,7 @@ export const xamanHandler: IWalletHandler = {
 				if (thread && typeof thread.authorizeUrl === 'function') {
 					const authUrl = new URL(thread.authorizeUrl());
 					// eslint-disable-next-line no-console
-					console.log('[Xaman][connect] oauth2.xumm.app /auth (from SDK)', {
+					xamanDebugLog('[Xaman][connect] oauth2.xumm.app /auth (from SDK)', {
 						client_id: authUrl.searchParams.get('client_id'),
 						redirect_uri: authUrl.searchParams.get('redirect_uri'),
 						response_type: authUrl.searchParams.get('response_type'),
@@ -405,20 +422,31 @@ export const xamanHandler: IWalletHandler = {
 			}
 			client.on('retrieved', () => {
 				// eslint-disable-next-line no-console
-				console.log('[Xaman][SDK] event: retrieved (mobile redirect / session restore)');
+				xamanDebugLog('[Xaman][SDK] event: retrieved (mobile redirect / session restore)');
 			});
 			client.on('error', (err: unknown) => {
 				// eslint-disable-next-line no-console
 				console.error('[Xaman][SDK] event: error', err);
+				const readableMessage = toReadableErrorMessage(err);
+				setWalletBusyMessage?.(null);
+				if (/access_denied|redirect url/i.test(readableMessage)) {
+					const hint = import.meta.env.DEV
+						? ` Register this exact URL in the Xaman Developer Console: ${redirectUrl}`
+						: ' Ask your admin to verify the redirect URL in the Xaman Developer Console.';
+					setShowToast?.('error', `Xaman could not connect: invalid redirect URL.${hint}`);
+				} else {
+					setShowToast?.('error', `Xaman sign-in failed: ${readableMessage}`);
+				}
+				cancelXamanConnectAttempt();
 			});
 			client.on('success', () => {
 				// eslint-disable-next-line no-console
-				console.log('[Xaman][SDK] event: success');
+				xamanDebugLog('[Xaman][SDK] event: success');
 				setWalletBusyMessage?.(FINISHING_XAMAN_SIGN_IN_MESSAGE);
 			});
 
 			// eslint-disable-next-line no-console
-			console.log('[Xaman][connect] start', {
+			xamanDebugLog('[Xaman][connect] start', {
 				href: typeof window !== 'undefined' ? window.location.href : 'n/a',
 				redirectUrl,
 				connectIntent,
@@ -430,6 +458,10 @@ export const xamanHandler: IWalletHandler = {
 				oauthReturnRecover,
 				didResetPkceForFreshAuthorize: !oauthReturnRecover,
 			});
+			if (import.meta.env.DEV) {
+				// eslint-disable-next-line no-console
+				console.info('[Xaman] OAuth redirect URL (must match Xaman Developer Console):', redirectUrl);
+			}
 
 			let walletsForMatch: Wallet[] = Array.isArray(wallets) ? filterValidWallets(wallets as Wallet[]) : [];
 
@@ -451,13 +483,13 @@ export const xamanHandler: IWalletHandler = {
 			let resolvedXrplAddress = flow?.me?.account as string | undefined;
 
 			// eslint-disable-next-line no-console
-			console.log('[Xaman][connect] initial state()', summarizeXamanState(flow), 'redacted:', redactForLog(flow));
+			xamanDebugLog('[Xaman][connect] initial state()', summarizeXamanState(flow), 'redacted:', redactForLog(flow));
 
 			// On mobile redirect we need a longer window for the ctor's async grant exchange + state() promise.
 			if (pollAttempts > 0 && !resolvedXrplAddress) {
 				for (let attempt = 0; attempt < pollAttempts && !resolvedXrplAddress; attempt += 1) {
 					// eslint-disable-next-line no-console
-					console.log(
+					xamanDebugLog(
 						'[Xaman][connect] Polling state after redirect, attempt',
 						attempt + 1,
 						'/',
@@ -467,7 +499,7 @@ export const xamanHandler: IWalletHandler = {
 					flow = await client.state();
 					resolvedXrplAddress = flow?.me?.account as string | undefined;
 					// eslint-disable-next-line no-console
-					console.log('[Xaman][connect] polled state()', summarizeXamanState(flow));
+					xamanDebugLog('[Xaman][connect] polled state()', summarizeXamanState(flow));
 				}
 			}
 
@@ -500,7 +532,7 @@ export const xamanHandler: IWalletHandler = {
 				}
 				resolvedXrplAddress = flow?.me?.account as string | undefined;
 				// eslint-disable-next-line no-console
-				console.log('[Xaman][connect] after authorize()', summarizeXamanState(flow));
+				xamanDebugLog('[Xaman][connect] after authorize()', summarizeXamanState(flow));
 			}
 			if (!resolvedXrplAddress) {
 				// eslint-disable-next-line no-console
@@ -512,7 +544,7 @@ export const xamanHandler: IWalletHandler = {
 			}
 
 			// eslint-disable-next-line no-console
-			console.log('[Xaman][connect] resolved XRPL address', resolvedXrplAddress);
+			xamanDebugLog('[Xaman][connect] resolved XRPL address', resolvedXrplAddress);
 
 			const existingWallet = walletsForMatch.find(
 				(wallet: Wallet) =>
@@ -558,7 +590,7 @@ export const xamanHandler: IWalletHandler = {
 
 			if (walletIdToConnect != null) {
 				// eslint-disable-next-line no-console
-				console.log('[Xaman][connect] branch: walletIdToConnect', walletIdToConnect);
+				xamanDebugLog('[Xaman][connect] branch: walletIdToConnect', walletIdToConnect);
 				const targetWallet = walletsForMatch.find((wallet: Wallet) => wallet.id === walletIdToConnect);
 				if (!targetWallet) {
 					setShowToast?.('error', 'Wallet not found');
@@ -584,7 +616,7 @@ export const xamanHandler: IWalletHandler = {
 			}
 			if (existingWallet) {
 				// eslint-disable-next-line no-console
-				console.log('[Xaman][connect] branch: existing wallet', existingWallet.id, existingWallet.wallet_address);
+				xamanDebugLog('[Xaman][connect] branch: existing wallet', existingWallet.id, existingWallet.wallet_address);
 				const repairedWallet = await repairWalletAddressIfNeeded(existingWallet, resolvedXrplAddress);
 				if (currentConnectedWallet && currentConnectedWallet.id !== repairedWallet.id) {
 					await tryDisconnectCurrentWallet(currentConnectedWallet);
@@ -600,7 +632,7 @@ export const xamanHandler: IWalletHandler = {
 				return;
 			}
 			// eslint-disable-next-line no-console
-			console.log('[Xaman][connect] branch: addWallet new xaman', resolvedXrplAddress);
+			xamanDebugLog('[Xaman][connect] branch: addWallet new xaman', resolvedXrplAddress);
 			const result = await addWallet(resolvedXrplAddress, 'xaman', undefined);
 			if (!result.success || !result.wallet) {
 				const msg = result.message || 'Could not save Xaman wallet to your profile.';
@@ -626,7 +658,15 @@ export const xamanHandler: IWalletHandler = {
 		} catch (error) {
 			const readableMessage = toReadableErrorMessage(error);
 			console.error('[Xaman][connect] Failed:', error);
-			setShowToast?.('error', `Failed to connect Xaman: ${readableMessage}`);
+			if (/access_denied|redirect url/i.test(readableMessage)) {
+				const attemptedRedirect = resolveXamanRedirectUrl(getXamanConnectIntent() ?? undefined);
+				const hint = import.meta.env.DEV
+					? ` Register this exact URL in the Xaman Developer Console: ${attemptedRedirect}`
+					: ' Ask your admin to verify the redirect URL in the Xaman Developer Console.';
+				setShowToast?.('error', `Xaman could not connect: invalid redirect URL.${hint}`);
+			} else {
+				setShowToast?.('error', `Failed to connect Xaman: ${readableMessage}`);
+			}
 		} finally {
 			stripXamanReturnQueryParam();
 			if (connectSucceeded) {

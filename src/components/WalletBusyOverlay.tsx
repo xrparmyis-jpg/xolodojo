@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
@@ -9,7 +10,28 @@ import { faSpinner } from '@fortawesome/free-solid-svg-icons';
  *
  * z-[55]: below app modals (z-[1100]) / wallet QR & Web3Modal (z-1200); toasts z-[10000].
  */
-export function WalletBusyOverlay({ message }: { message: string | null }) {
+export function WalletBusyOverlay({
+	message,
+	dismissible = false,
+	onDismiss,
+}: {
+	message: string | null;
+	dismissible?: boolean;
+	onDismiss?: () => void;
+}) {
+	useEffect(() => {
+		if (!dismissible || !onDismiss) {
+			return;
+		}
+		const onKeyDown = (event: KeyboardEvent) => {
+			if (event.key === 'Escape') {
+				onDismiss();
+			}
+		};
+		window.addEventListener('keydown', onKeyDown);
+		return () => window.removeEventListener('keydown', onKeyDown);
+	}, [dismissible, onDismiss]);
+
 	if (message == null || typeof document === 'undefined') {
 		return null;
 	}
@@ -20,10 +42,21 @@ export function WalletBusyOverlay({ message }: { message: string | null }) {
 			role="status"
 			aria-live="polite"
 			aria-busy="true"
+			onClick={dismissible ? onDismiss : undefined}
 		>
-			<div className="inline-flex max-w-[min(90vw,24rem)] items-center gap-2 rounded-lg border border-white/20 bg-black/85 px-4 py-3 text-sm text-white shadow-xl">
-				<FontAwesomeIcon icon={faSpinner} className="shrink-0 animate-spin" />
-				<span className="text-center leading-snug">{message}</span>
+			<div
+				className="inline-flex max-w-[min(90vw,24rem)] flex-col items-center gap-2 rounded-lg border border-white/20 bg-black/85 px-4 py-3 text-sm text-white shadow-xl"
+				onClick={(event) => event.stopPropagation()}
+			>
+				<div className="inline-flex items-center gap-2">
+					<FontAwesomeIcon icon={faSpinner} className="shrink-0 animate-spin" />
+					<span className="text-center leading-snug">{message}</span>
+				</div>
+				{dismissible ? (
+					<span className="text-center text-xs text-white/60">
+						Click outside or press Esc to cancel
+					</span>
+				) : null}
 			</div>
 		</div>,
 		document.body

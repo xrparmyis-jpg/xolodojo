@@ -9,7 +9,7 @@ import {
     faPlus,
     faSpinner,
 } from '@fortawesome/free-solid-svg-icons';
-import { GLOBE_DEFAULT_ZOOM, MAP_ZOOM_BUTTON_STEP } from '../constants/xoloGlobeMap';
+import { GLOBE_DEFAULT_CENTER, GLOBE_DEFAULT_ZOOM, MAP_ZOOM_BUTTON_STEP } from '../constants/xoloGlobeMap';
 import { useAuth } from '../providers/AuthContext';
 import { getSavedGlobePins } from '../services/savedGlobePinsService';
 import type { PinnedNftSocials } from '../services/pinnedNftService';
@@ -116,7 +116,7 @@ export default function MapBoxPinLocation({
     const previewActionsDisposeRef = useRef<(() => void) | null>(null);
     const suppressResultsForQueryRef = useRef<string | null>(null);
     const defaultPinMapViewRef = useRef<{ center: [number, number]; zoom: number }>({
-        center: [0, 20],
+        center: GLOBE_DEFAULT_CENTER,
         zoom: 1.9,
     });
     const [searchText, setSearchText] = useState('');
@@ -411,7 +411,7 @@ export default function MapBoxPinLocation({
         const initial = initialLocation;
         const startingCenter: [number, number] = initial
             ? [initial.lng, initial.lat]
-            : [0, 20];
+            : GLOBE_DEFAULT_CENTER;
         const startingZoom = initial ? 10 : 1.9;
         defaultPinMapViewRef.current = { center: startingCenter, zoom: startingZoom };
 

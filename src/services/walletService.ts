@@ -1,12 +1,8 @@
-// Use relative path for API - works with both Vite dev and Vercel dev
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
-
-const credFetch = (input: string, init?: RequestInit) =>
-  fetch(input, { ...init, credentials: 'include' });
+import { apiFetch, API_BASE_URL } from '../lib/apiFetch';
 
 export interface Wallet {
   id: number;
-  user_id: number;
+  user_id: string;
   wallet_address: string;
   wallet_type: string;
   wallet_label?: string | null;
@@ -72,7 +68,7 @@ export async function getUserWallets(): Promise<{ success: boolean; wallets: Wal
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      const response = await credFetch(`${API_BASE_URL}/user/wallets`, {
+      const response = await apiFetch(`${API_BASE_URL}/user/wallets`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -103,7 +99,7 @@ export async function addWallet(
   walletType: string,
   walletLabel?: string
 ): Promise<WalletResponse> {
-  const response = await credFetch(`${API_BASE_URL}/user/wallets`, {
+  const response = await apiFetch(`${API_BASE_URL}/user/wallets`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -122,7 +118,7 @@ export async function addWallet(
 }
 
 export async function connectWallet(walletId: number): Promise<WalletResponse> {
-  const response = await credFetch(`${API_BASE_URL}/user/wallets/${walletId}/connect`, {
+  const response = await apiFetch(`${API_BASE_URL}/user/wallets/${walletId}/connect`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({}),
@@ -137,7 +133,7 @@ export async function connectWallet(walletId: number): Promise<WalletResponse> {
 }
 
 export async function disconnectWallet(): Promise<WalletResponse> {
-  const response = await credFetch(`${API_BASE_URL}/user/wallets/disconnect`, {
+  const response = await apiFetch(`${API_BASE_URL}/user/wallets/disconnect`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({}),
@@ -152,7 +148,7 @@ export async function disconnectWallet(): Promise<WalletResponse> {
 }
 
 export async function deleteWallet(walletId: number): Promise<WalletResponse> {
-  const response = await credFetch(`${API_BASE_URL}/user/wallets/${walletId}`, {
+  const response = await apiFetch(`${API_BASE_URL}/user/wallets/${walletId}`, {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({}),
@@ -170,7 +166,7 @@ export async function updateWalletAddress(
   walletId: number,
   walletAddress: string
 ): Promise<WalletResponse> {
-  const response = await credFetch(`${API_BASE_URL}/user/wallets/${walletId}`, {
+  const response = await apiFetch(`${API_BASE_URL}/user/wallets/${walletId}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

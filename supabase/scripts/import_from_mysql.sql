@@ -1,0 +1,46 @@
+-- XoloDojo — import existing MySQL data into Supabase
+-- Run in Supabase SQL Editor AFTER 20260210000000_initial_schema.sql
+--
+-- HOW TO USE:
+-- 1. Export each table from MySQL (see export commands below)
+-- 2. Paste the generated INSERT statements into this file (or run separately)
+-- 3. Run reset_sequences.sql when done
+--
+-- ---------------------------------------------------------------------------
+-- MySQL export commands (run from your machine with Docker MySQL or Hostinger):
+-- ---------------------------------------------------------------------------
+--
+-- Local Docker:
+--   docker exec donovan-db mysqldump -udonovan_user -pdonovan_password donovan_db \
+--     --no-create-info --complete-insert --skip-triggers \
+--     users user_profiles user_wallets user_pins globe_pin_bookmarks user_sessions \
+--     > mysql_data_dump.sql
+--
+-- Then convert MySQL dump to PostgreSQL (manual fixes needed):
+--   - Remove backticks around identifiers
+--   - Replace `NULL` handling (usually fine as-is)
+--   - Replace 0/1 booleans in user_wallets.is_connected with true/false
+--   - Replace JSON strings: ensure valid jsonb (double quotes, escape as needed)
+--   - user_sessions.id: wrap in quotes if not already UUID format
+--   - Timestamps: MySQL '2024-01-01 12:00:00' works in PostgreSQL as timestamptz
+--
+-- Easier option — use the Node export script:
+--   npx tsx supabase/scripts/export-mysql-to-supabase.ts > supabase/scripts/data_import.sql
+--   Then paste/run data_import.sql in Supabase SQL Editor.
+--
+-- ---------------------------------------------------------------------------
+-- Import order (respects foreign keys):
+--   1. users
+--   2. user_profiles
+--   3. user_wallets
+--   4. user_pins
+--   5. globe_pin_bookmarks
+--   6. user_sessions  (optional — existing sessions won't carry over cleanly;
+--                      users will need to log in again after migration)
+-- ---------------------------------------------------------------------------
+
+-- Paste exported INSERT statements below this line.
+-- Example format:
+--
+-- insert into public.users (id, email, username, name, password, role, picture_url, reset_token, reset_token_expiry, email_verified_at, verification_token, verification_token_expiry, created_at, updated_at)
+-- values (1, 'user@example.com', 'myuser', 'My Name', 'scrypt:...', 'user', null, null, null, now(), null, null, now(), now());

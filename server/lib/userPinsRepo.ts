@@ -1,5 +1,5 @@
-import type mysql from 'mysql2/promise';
-import type { ResultSetHeader } from 'mysql2';
+import { getServiceRoleClient } from './supabaseAdmin.js';
+import { throwIfSupabaseError } from './supabaseErrors.js';
 import { normalizeNfTokenId } from '../../src/utils/nfTokenId.js';
 
 export interface PinnedNftSocials {
@@ -11,7 +11,6 @@ export interface PinnedNftSocials {
   linkedin?: string;
 }
 
-/** API / DB shape for one globe pin (matches prior `preferences.pinned_nfts[]`). */
 export interface PinnedNftItem {
   token_id: string;
   wallet_address: string;
@@ -32,9 +31,7 @@ export function normalizeWalletAddress(value: string): string {
 }
 
 function toFiniteNumber(value: unknown): number | null {
-  if (typeof value === 'number' && Number.isFinite(value)) {
-    return value;
-  }
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
   if (typeof value === 'string') {
     const n = Number(value);
     return Number.isFinite(n) ? n : null;
@@ -43,9 +40,7 @@ function toFiniteNumber(value: unknown): number | null {
 }
 
 function parseSocialsFromDb(value: unknown): PinnedNftSocials | null {
-  if (value == null) {
-    return null;
-  }
+  if (value == null) return null;
   let obj: unknown = value;
   if (typeof value === 'string') {
     try {
@@ -54,9 +49,7 @@ function parseSocialsFromDb(value: unknown): PinnedNftSocials | null {
       return null;
     }
   }
-  if (!obj || typeof obj !== 'object') {
-    return null;
-  }
+  if (!obj || typeof obj !== 'object') return null;
   const source = obj as Record<string, unknown>;
   const allowed = [
     'twitter',
@@ -68,13 +61,9 @@ function parseSocialsFromDb(value: unknown): PinnedNftSocials | null {
   ] as const;
   const socials = allowed.reduce<PinnedNftSocials>((acc, key) => {
     const v = source[key];
-    if (typeof v !== 'string') {
-      return acc;
-    }
+    if (typeof v !== 'string') return acc;
     const t = v.trim().replace(/^@+/, '');
-    if (!t) {
-      return acc;
-    }
+    if (!t) return acc;
     acc[key] = t;
     return acc;
   }, {});
@@ -82,14 +71,10 @@ function parseSocialsFromDb(value: unknown): PinnedNftSocials | null {
 }
 
 function pinnedAtToIso(value: unknown): string {
-  if (value instanceof Date) {
-    return value.toISOString();
-  }
+  if (value instanceof Date) return value.toISOString();
   if (typeof value === 'string' && value.length > 0) {
     const d = new Date(value);
-    if (!Number.isNaN(d.getTime())) {
-      return d.toISOString();
-    }
+    if (!Number.isNaN(d.getTime())) return d.toISOString();
     return value;
   }
   return new Date().toISOString();
@@ -111,224 +96,210 @@ function mapRow(row: Record<string, unknown>): PinnedNftItem {
     longitude: lng,
     image_url: typeof row.image_url === 'string' ? row.image_url : null,
     title: typeof row.title === 'string' ? row.title : null,
-    collection_name:
-      typeof row.collection_name === 'string' ? row.collection_name : null,
+    collection_name: typeof row.collection_name === 'string' ? row.collection_name : null,
     socials: parseSocialsFromDb(row.socials),
     pin_note: typeof row.pin_note === 'string' ? row.pin_note : null,
     pinned_at: pinnedAtToIso(row.pinned_at),
   };
 }
 
+const PIN_SELECT =
+  'token_id, wallet_address, issuer, uri, latitude, longitude, image_url, title, collection_name, socials, pin_note, pinned_at';
+
 export async function listPinsForUser(
-  pool: mysql.Pool,
-  userId: number,
+  userId: string,
   walletAddress?: string
 ): Promise<PinnedNftItem[]> {
-  const baseSql = `SELECT token_id, wallet_address, issuer, uri, latitude, longitude,
-    image_url, title, collection_name, socials, pin_note, pinned_at
-    FROM user_pins WHERE user_id = ?`;
-  const [rows] = (walletAddress
-    ? await pool.execute(
-        `${baseSql} AND wallet_address = ? ORDER BY pinned_at DESC`,
-        [userId, normalizeWalletAddress(walletAddress)]
-      )
-    : await pool.execute(`${baseSql} ORDER BY pinned_at DESC`, [userId])) as [
-    Record<string, unknown>[],
-    unknown,
-  ];
-  return rows.map(mapRow);
-}
-
-/** Pins created while logged in with wallet-only session (`user_id` IS NULL). */
-export async function listPinsForWalletOwner(
-  pool: mysql.Pool,
-  walletAddress: string
-): Promise<PinnedNftItem[]> {
-  const wa = normalizeWalletAddress(walletAddress);
-  const [rows] = (await pool.execute(
-    `SELECT token_id, wallet_address, issuer, uri, latitude, longitude,
-      image_url, title, collection_name, socials, pin_note, pinned_at
-     FROM user_pins
-     WHERE user_id IS NULL AND wallet_address = ?
-     ORDER BY pinned_at DESC`,
-    [wa]
-  )) as [Record<string, unknown>[], unknown];
-  return rows.map(mapRow);
-}
-
-/**
- * All pins for a classic wallet address (any `user_id`). Used for wallet-session GET /pinned-nfts.
- * The unique key is (wallet_address, token_id) only; ON DUPLICATE KEY UPDATE can leave `user_id`
- * non-NULL while updating lat/title/etc., so listing with `user_id IS NULL` would hide the row.
- */
-export async function listPinsForWalletAddress(
-  pool: mysql.Pool,
-  walletAddress: string
-): Promise<PinnedNftItem[]> {
-  const wa = normalizeWalletAddress(walletAddress);
-  const [rows] = (await pool.execute(
-    `SELECT token_id, wallet_address, issuer, uri, latitude, longitude,
-      image_url, title, collection_name, socials, pin_note, pinned_at
-     FROM user_pins
-     WHERE wallet_address = ?
-     ORDER BY pinned_at DESC`,
-    [wa]
-  )) as [Record<string, unknown>[], unknown];
-  return rows.map(mapRow);
-}
-
-export async function upsertUserPin(
-  pool: mysql.Pool,
-  params: {
-    userId: number | null;
-    tokenId: string;
-    walletAddress: string;
-    issuer: string | null;
-    uri: string | null;
-    latitude: number;
-    longitude: number;
-    imageUrl: string | null;
-    title: string | null;
-    collectionName: string | null;
-    socials: PinnedNftSocials | null;
-    pinNote: string | null;
-    /** ISO string for new pins only; duplicate key updates keep existing `pinned_at`. */
-    pinnedAtIsoForInsert: string;
+  const supabase = getServiceRoleClient();
+  let query = supabase
+    .from('user_pins')
+    .select(PIN_SELECT)
+    .eq('user_id', userId)
+    .order('pinned_at', { ascending: false });
+  if (walletAddress) {
+    query = query.eq('wallet_address', normalizeWalletAddress(walletAddress));
   }
-): Promise<void> {
+  const { data, error } = await query;
+  if (error) throwIfSupabaseError(error);
+  return (data ?? []).map((row) => mapRow(row as Record<string, unknown>));
+}
+
+export async function listPinsForWalletOwner(walletAddress: string): Promise<PinnedNftItem[]> {
+  const supabase = getServiceRoleClient();
+  const wa = normalizeWalletAddress(walletAddress);
+  const { data, error } = await supabase
+    .from('user_pins')
+    .select(PIN_SELECT)
+    .is('user_id', null)
+    .eq('wallet_address', wa)
+    .order('pinned_at', { ascending: false });
+  if (error) throwIfSupabaseError(error);
+  return (data ?? []).map((row) => mapRow(row as Record<string, unknown>));
+}
+
+export async function listPinsForWalletAddress(walletAddress: string): Promise<PinnedNftItem[]> {
+  const supabase = getServiceRoleClient();
+  const wa = normalizeWalletAddress(walletAddress);
+  const { data, error } = await supabase
+    .from('user_pins')
+    .select(PIN_SELECT)
+    .eq('wallet_address', wa)
+    .order('pinned_at', { ascending: false });
+  if (error) throwIfSupabaseError(error);
+  return (data ?? []).map((row) => mapRow(row as Record<string, unknown>));
+}
+
+export async function upsertUserPin(params: {
+  userId: string | null;
+  tokenId: string;
+  walletAddress: string;
+  issuer: string | null;
+  uri: string | null;
+  latitude: number;
+  longitude: number;
+  imageUrl: string | null;
+  title: string | null;
+  collectionName: string | null;
+  socials: PinnedNftSocials | null;
+  pinNote: string | null;
+  pinnedAtIsoForInsert: string;
+}): Promise<void> {
+  const supabase = getServiceRoleClient();
   const wa = normalizeWalletAddress(params.walletAddress);
   const tokenId = normalizeNfTokenId(params.tokenId);
-  const pinnedDate = new Date(params.pinnedAtIsoForInsert);
-  const pinnedAtMysql = Number.isNaN(pinnedDate.getTime())
-    ? new Date()
-    : pinnedDate;
+  const pinnedAt = params.pinnedAtIsoForInsert || new Date().toISOString();
 
-  const socialsParam =
-    params.socials === null ? null : JSON.stringify(params.socials);
+  const { data: existing } = await supabase
+    .from('user_pins')
+    .select('id, user_id, pinned_at')
+    .eq('wallet_address', wa)
+    .eq('token_id', tokenId)
+    .maybeSingle();
 
-  await pool.execute(
-    `INSERT INTO user_pins (
-      user_id, token_id, wallet_address, issuer, uri,
-      latitude, longitude, image_url, title, collection_name,
-      socials, pin_note, pinned_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ON DUPLICATE KEY UPDATE
-      user_id = CASE
-        WHEN user_pins.user_id IS NULL THEN NULL
-        WHEN VALUES(user_id) IS NOT NULL THEN VALUES(user_id)
-        ELSE user_pins.user_id
-      END,
-      issuer = VALUES(issuer),
-      uri = VALUES(uri),
-      latitude = VALUES(latitude),
-      longitude = VALUES(longitude),
-      image_url = VALUES(image_url),
-      title = VALUES(title),
-      collection_name = VALUES(collection_name),
-      socials = VALUES(socials),
-      pin_note = VALUES(pin_note)`,
-    [
-      params.userId,
-      tokenId,
-      wa,
-      params.issuer,
-      params.uri,
-      params.latitude,
-      params.longitude,
-      params.imageUrl,
-      params.title,
-      params.collectionName,
-      socialsParam,
-      params.pinNote,
-      pinnedAtMysql,
-    ]
-  );
+  const row = {
+    user_id:
+      existing?.user_id == null
+        ? params.userId
+        : params.userId ?? existing.user_id,
+    token_id: tokenId,
+    wallet_address: wa,
+    issuer: params.issuer,
+    uri: params.uri,
+    latitude: params.latitude,
+    longitude: params.longitude,
+    image_url: params.imageUrl,
+    title: params.title,
+    collection_name: params.collectionName,
+    socials: params.socials,
+    pin_note: params.pinNote,
+    pinned_at: existing?.pinned_at ?? pinnedAt,
+  };
+
+  const { error } = await supabase.from('user_pins').upsert(row, {
+    onConflict: 'wallet_address,token_id',
+  });
+  if (error) throwIfSupabaseError(error);
 }
 
 export async function deleteUserPin(
-  pool: mysql.Pool,
-  userId: number | null,
+  userId: string | null,
   tokenId: string,
   walletAddress: string
 ): Promise<void> {
+  const supabase = getServiceRoleClient();
   const wa = normalizeWalletAddress(walletAddress);
   const tid = normalizeNfTokenId(tokenId);
   if (userId == null) {
-    await pool.execute(
-      `DELETE FROM user_pins WHERE token_id = ? AND wallet_address = ?`,
-      [tid, wa]
-    );
+    const { error } = await supabase
+      .from('user_pins')
+      .delete()
+      .eq('token_id', tid)
+      .eq('wallet_address', wa);
+    if (error) throwIfSupabaseError(error);
     return;
   }
-  await pool.execute(
-    `DELETE FROM user_pins WHERE user_id = ? AND token_id = ? AND wallet_address = ?`,
-    [userId, tid, wa]
-  );
+  const { error } = await supabase
+    .from('user_pins')
+    .delete()
+    .eq('user_id', userId)
+    .eq('token_id', tid)
+    .eq('wallet_address', wa);
+  if (error) throwIfSupabaseError(error);
 }
 
-/**
- * Removes the pin row by wallet + token only (unique key). Used after auth proves the
- * caller controls this wallet — covers pins created with `user_id IS NULL` (wallet-only)
- * when the same wallet is later used under an email account.
- */
 export async function deletePinByWalletAndToken(
-  pool: mysql.Pool,
   tokenId: string,
   walletAddress: string
 ): Promise<number> {
+  const supabase = getServiceRoleClient();
   const wa = normalizeWalletAddress(walletAddress);
   const tid = normalizeNfTokenId(tokenId);
-  const [result] = await pool.execute(
-    `DELETE FROM user_pins WHERE token_id = ? AND wallet_address = ?`,
-    [tid, wa]
-  );
-  return (result as ResultSetHeader).affectedRows;
+  const { data, error } = await supabase
+    .from('user_pins')
+    .delete()
+    .eq('token_id', tid)
+    .eq('wallet_address', wa)
+    .select('id');
+  if (error) throwIfSupabaseError(error);
+  return data?.length ?? 0;
 }
 
 export async function deletePinsForUserWallet(
-  pool: mysql.Pool,
-  userId: number,
+  userId: string,
   walletAddress: string
 ): Promise<void> {
-  await pool.execute(
-    `DELETE FROM user_pins WHERE user_id = ? AND wallet_address = ?`,
-    [userId, normalizeWalletAddress(walletAddress)]
-  );
+  const supabase = getServiceRoleClient();
+  const { error } = await supabase
+    .from('user_pins')
+    .delete()
+    .eq('user_id', userId)
+    .eq('wallet_address', normalizeWalletAddress(walletAddress));
+  if (error) throwIfSupabaseError(error);
 }
 
-/**
- * Deletes pins for this wallet when the NFTokenID is not present on-chain (uses full ledger
- * list, not UI collection filter). Rows are matched by `wallet_address` only so pins created
- * with `user_id IS NULL` (wallet-only) are cleaned up the same as account-linked pins.
- * If the ledger reports zero NFTs for the account, all pins for that wallet are removed.
- * If `heldNfTokenIds` is empty but `ledgerNftCount > 0`, does nothing (avoids wiping pins when
- * token IDs could not be collected from the RPC response).
- */
 export async function deletePinsForWalletNotHeld(
-  pool: mysql.Pool,
   walletAddress: string,
   heldNfTokenIds: Set<string>,
   ledgerNftCount: number
 ): Promise<number> {
+  const supabase = getServiceRoleClient();
   const wa = normalizeWalletAddress(walletAddress);
 
   if (heldNfTokenIds.size === 0) {
-    if (ledgerNftCount !== 0) {
-      return 0;
-    }
-    const [result] = await pool.execute(
-      `DELETE FROM user_pins WHERE wallet_address = ?`,
-      [wa]
-    );
-    return (result as ResultSetHeader).affectedRows;
+    if (ledgerNftCount !== 0) return 0;
+    const { data, error } = await supabase
+      .from('user_pins')
+      .delete()
+      .eq('wallet_address', wa)
+      .select('id');
+    if (error) throwIfSupabaseError(error);
+    return data?.length ?? 0;
   }
-  const ids = [...heldNfTokenIds].map(id => normalizeNfTokenId(id));
-  const placeholders = ids.map(() => '?').join(', ');
-  const [result] = await pool.execute(
-    `DELETE FROM user_pins WHERE wallet_address = ? AND UPPER(TRIM(token_id)) NOT IN (${placeholders})`,
-    [wa, ...ids]
-  );
-  return (result as ResultSetHeader).affectedRows;
+
+  const { data: rows, error: fetchError } = await supabase
+    .from('user_pins')
+    .select('id, token_id')
+    .eq('wallet_address', wa);
+  if (fetchError) throwIfSupabaseError(fetchError);
+
+  const held = new Set([...heldNfTokenIds].map((id) => normalizeNfTokenId(id)));
+  const toDelete = (rows ?? [])
+    .filter((row) => {
+      const tid =
+        typeof row.token_id === 'string' ? normalizeNfTokenId(row.token_id) : '';
+      return tid && !held.has(tid);
+    })
+    .map((row) => row.id);
+
+  if (toDelete.length === 0) return 0;
+
+  const { data, error } = await supabase
+    .from('user_pins')
+    .delete()
+    .in('id', toDelete)
+    .select('id');
+  if (error) throwIfSupabaseError(error);
+  return data?.length ?? 0;
 }
 
 function toUniquePins(items: PinnedNftItem[]): PinnedNftItem[] {
@@ -336,75 +307,54 @@ function toUniquePins(items: PinnedNftItem[]): PinnedNftItem[] {
   const unique: PinnedNftItem[] = [];
   for (const item of items) {
     const key = `${item.wallet_address}:${item.token_id}`;
-    if (seen.has(key)) {
-      continue;
-    }
+    if (seen.has(key)) continue;
     seen.add(key);
     unique.push(item);
   }
   return unique;
 }
 
-/** All pins for the public globe feed (deduped by wallet + token_id, like prior implementation). */
-export async function listGlobePins(pool: mysql.Pool): Promise<PinnedNftItem[]> {
-  const [rows] = (await pool.execute(
-    `SELECT token_id, wallet_address, issuer, uri, latitude, longitude,
-      image_url, title, collection_name, socials, pin_note, pinned_at
-     FROM user_pins
-     ORDER BY pinned_at DESC`
-  )) as [Record<string, unknown>[], unknown];
+export async function listGlobePins(): Promise<PinnedNftItem[]> {
+  const supabase = getServiceRoleClient();
+  const { data, error } = await supabase
+    .from('user_pins')
+    .select(PIN_SELECT)
+    .order('pinned_at', { ascending: false });
+  if (error) throwIfSupabaseError(error);
 
-  const mapped = rows
-    .map(mapRow)
+  const mapped = (data ?? [])
+    .map((row) => mapRow(row as Record<string, unknown>))
     .filter(
-      item =>
+      (item) =>
         item.token_id.length > 0 &&
         item.wallet_address.length > 0 &&
         toFiniteNumber(item.latitude) != null &&
         toFiniteNumber(item.longitude) != null
     );
 
-  return toUniquePins(mapped).sort((left, right) => {
-    return (
-      new Date(right.pinned_at).getTime() - new Date(left.pinned_at).getTime()
-    );
-  });
+  return toUniquePins(mapped).sort(
+    (a, b) => new Date(b.pinned_at).getTime() - new Date(a.pinned_at).getTime()
+  );
 }
 
-/** One globe row by token id (for OG / share previews). */
-export async function getGlobePinByTokenId(
-  pool: mysql.Pool,
-  tokenId: string
-): Promise<PinnedNftItem | null> {
+export async function getGlobePinByTokenId(tokenId: string): Promise<PinnedNftItem | null> {
+  const supabase = getServiceRoleClient();
   const tid = normalizeNfTokenId(tokenId);
-  if (!tid) {
-    return null;
-  }
-  const [rows] = (await pool.execute(
-    `SELECT token_id, wallet_address, issuer, uri, latitude, longitude,
-      image_url, title, collection_name, socials, pin_note, pinned_at
-     FROM user_pins
-     WHERE UPPER(TRIM(token_id)) = ?
-     LIMIT 1`,
-    [tid]
-  )) as [Record<string, unknown>[], unknown];
-  if (!Array.isArray(rows) || rows.length === 0) {
-    return null;
-  }
-  return mapRow(rows[0] as Record<string, unknown>);
+  if (!tid) return null;
+
+  const { data, error } = await supabase
+    .from('user_pins')
+    .select(PIN_SELECT)
+    .eq('token_id', tid)
+    .limit(1)
+    .maybeSingle();
+  if (error || !data) return null;
+  return mapRow(data as Record<string, unknown>);
 }
 
-/**
- * Resolve `?Xpin=` (or legacy `?pin=`) for OG / previews: 64-char hex NFToken id or pin title (URL-decoded).
- */
-export async function getGlobePinByQueryParam(
-  pool: mysql.Pool,
-  rawPin: string
-): Promise<PinnedNftItem | null> {
+export async function getGlobePinByQueryParam(rawPin: string): Promise<PinnedNftItem | null> {
   const trimmed = typeof rawPin === 'string' ? rawPin.trim() : '';
-  if (!trimmed) {
-    return null;
-  }
+  if (!trimmed) return null;
 
   let decoded = trimmed;
   try {
@@ -415,22 +365,18 @@ export async function getGlobePinByQueryParam(
 
   const asToken = normalizeNfTokenId(decoded);
   if (/^[0-9A-F]{64}$/.test(asToken)) {
-    return getGlobePinByTokenId(pool, asToken);
+    return getGlobePinByTokenId(asToken);
   }
 
-  const [rows] = (await pool.execute(
-    `SELECT token_id, wallet_address, issuer, uri, latitude, longitude,
-      image_url, title, collection_name, socials, pin_note, pinned_at
-     FROM user_pins
-     WHERE title IS NOT NULL AND CHAR_LENGTH(TRIM(title)) > 0
-       AND LOWER(TRIM(title)) = LOWER(TRIM(?))
-     ORDER BY pinned_at DESC
-     LIMIT 1`,
-    [decoded]
-  )) as [Record<string, unknown>[], unknown];
-
-  if (!Array.isArray(rows) || rows.length === 0) {
-    return null;
-  }
-  return mapRow(rows[0] as Record<string, unknown>);
+  const supabase = getServiceRoleClient();
+  const { data, error } = await supabase
+    .from('user_pins')
+    .select(PIN_SELECT)
+    .not('title', 'is', null)
+    .ilike('title', decoded.trim())
+    .order('pinned_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error || !data) return null;
+  return mapRow(data as Record<string, unknown>);
 }
