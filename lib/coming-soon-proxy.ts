@@ -35,12 +35,30 @@ export function isComingSoonMode(): boolean {
 }
 
 /**
+ * Hosts that always see the full site, even when COMING_SOON_MODE=1.
+ * *.vercel.app is excluded so the default deployment URL stays usable for team preview.
+ */
+export function isComingSoonBypassHost(hostname: string): boolean {
+  const host = hostname.toLowerCase().split(':')[0];
+  if (host === 'localhost' || host === '127.0.0.1') {
+    return true;
+  }
+  if (host.endsWith('.vercel.app')) {
+    return true;
+  }
+  return false;
+}
+
+/**
  * When coming-soon mode is on, rewrite gated requests to the static landing page.
  * Returns null when the request should pass through unchanged.
  */
 export function comingSoonRewriteResponse(request: Request): Response | null {
-  const { pathname } = new URL(request.url);
-  if (isComingSoonAllowed(pathname)) {
+  const url = new URL(request.url);
+  if (isComingSoonBypassHost(url.hostname)) {
+    return null;
+  }
+  if (isComingSoonAllowed(url.pathname)) {
     return null;
   }
   return rewrite(new URL(COMING_SOON_PATH, request.url));
