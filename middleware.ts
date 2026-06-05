@@ -1,3 +1,4 @@
+import { comingSoonRewriteResponse, isComingSoonMode } from './lib/coming-soon-proxy';
 import { next } from '@vercel/edge';
 
 /**
@@ -8,11 +9,13 @@ import { next } from '@vercel/edge';
 const CRAWLER_UA =
   /Slackbot|Slack-ImgProxy|facebookexternalhit|Facebot|Twitterbot|LinkedInBot|WhatsApp|Telegram|Discord|SkypeUriPreview|Googlebot|bingbot|applebot|Embedly|Quora|Preview|vkShare|Pinterest|redditbot|SkypeUrlPreview|MicrosoftPreview|opengraph/i;
 
-export const config = {
-  matcher: '/xglobe',
-};
-
 export default async function middleware(request: Request): Promise<Response> {
+  if (isComingSoonMode()) {
+    const rewrite = comingSoonRewriteResponse(request);
+    if (rewrite) return rewrite;
+    return next();
+  }
+
   const url = new URL(request.url);
   if (url.pathname !== '/xglobe') {
     return next();
@@ -34,3 +37,9 @@ export default async function middleware(request: Request): Promise<Response> {
     headers: { Accept: 'text/html' },
   });
 }
+
+export const config = {
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
+};
