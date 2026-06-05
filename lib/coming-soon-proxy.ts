@@ -4,7 +4,11 @@ import { rewrite } from '@vercel/edge';
 export const COMING_SOON_PATH = '/coming-soon.html';
 
 const STATIC_ASSET =
+<<<<<<< HEAD
   /\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff2?|ttf|map|txt)$/i;
+=======
+  /\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff2?|ttf|map|txt|html)$/i;
+>>>>>>> main
 
 /**
  * Paths that bypass the coming-soon gate. API routes and static assets must still
@@ -35,12 +39,38 @@ export function isComingSoonMode(): boolean {
 }
 
 /**
+<<<<<<< HEAD
+=======
+ * Hosts that always see the full site, even when COMING_SOON_MODE=1.
+ * *.vercel.app is excluded so the default deployment URL stays usable for team preview.
+ */
+export function isComingSoonBypassHost(hostname: string): boolean {
+  const host = hostname.toLowerCase().split(':')[0];
+  if (host === 'localhost' || host === '127.0.0.1') {
+    return true;
+  }
+  if (host.endsWith('.vercel.app')) {
+    return true;
+  }
+  return false;
+}
+
+/**
+>>>>>>> main
  * When coming-soon mode is on, rewrite gated requests to the static landing page.
  * Returns null when the request should pass through unchanged.
  */
 export function comingSoonRewriteResponse(request: Request): Response | null {
+<<<<<<< HEAD
   const { pathname } = new URL(request.url);
   if (isComingSoonAllowed(pathname)) {
+=======
+  const url = new URL(request.url);
+  if (isComingSoonBypassHost(url.hostname)) {
+    return null;
+  }
+  if (isComingSoonAllowed(url.pathname)) {
+>>>>>>> main
     return null;
   }
   return rewrite(new URL(COMING_SOON_PATH, request.url));
