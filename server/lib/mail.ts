@@ -36,10 +36,14 @@ export async function sendMail(options: {
     });
 
     if (!response.ok) {
-      const data = (await response.json().catch(() => ({}))) as { message?: string };
+      const data = (await response.json().catch(() => ({}))) as {
+        message?: string;
+        name?: string;
+      };
+      const detail = data.message || data.name || JSON.stringify(data);
       return {
         sent: false,
-        reason: data.message || `Resend request failed (${response.status})`,
+        reason: `Resend ${response.status}: ${detail}`,
       };
     }
 

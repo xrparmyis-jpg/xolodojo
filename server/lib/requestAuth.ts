@@ -125,6 +125,7 @@ export async function getProfileByEmail(email: string): Promise<(ProfileRow & { 
     perPage: 1000,
   });
   if (listError) {
+    console.error('[getProfileByEmail] listUsers failed:', listError.message);
     return null;
   }
   const authUser = listData.users.find(

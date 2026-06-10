@@ -23,27 +23,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     }
 
     const profile = await getProfileByEmail(email);
-    if (profile) {
-      const username = profile.username.trim();
-      if (username) {
-        const mailResult = await sendMail({
-          to: email,
-          subject: 'Your XoloDojo username',
-          text: [
-            'You asked for a reminder of the username for your XoloDojo account.',
-            '',
-            `Username: ${username}`,
-            '',
-            'Sign in with your email and password. If you forgot your password, use "Forgot password" on the sign-in page.',
-          ].join('\n'),
-          html: `<p>You asked for a reminder of the username for your XoloDojo account.</p>
+    if (!profile) {
+      console.warn('[Forgot Username] No profile found for email lookup');
+      res.status(200).json({ message: GENERIC_MESSAGE });
+      return;
+    }
+
+    const username = profile.username.trim();
+    if (!username) {
+      console.warn('[Forgot Username] Profile found but username is empty', { userId: profile.id });
+      res.status(200).json({ message: GENERIC_MESSAGE });
+      return;
+    }
+
+    const mailResult = await sendMail({
+      to: email,
+      subject: 'Your XoloDojo username',
+      text: [
+        'You asked for a reminder of the username for your XoloDojo account.',
+        '',
+        `Username: ${username}`,
+        '',
+        'Sign in with your email and password. If you forgot your password, use "Forgot password" on the sign-in page.',
+      ].join('\n'),
+      html: `<p>You asked for a reminder of the username for your XoloDojo account.</p>
 <p><strong>Username:</strong> ${username}</p>
 <p>Sign in with your email and password. If you forgot your password, use <strong>Forgot password</strong> on the sign-in page.</p>`,
-        });
-        if (!mailResult.sent) {
-          console.warn('[Forgot Username] Resend email failed:', mailResult.reason);
-        }
-      }
+    });
+    if (!mailResult.sent) {
+      console.error('[Forgot Username] Resend email failed:', mailResult.reason);
+    } else {
+      console.info('[Forgot Username] Resend email queued', { userId: profile.id });
     }
 
     res.status(200).json({ message: GENERIC_MESSAGE });
