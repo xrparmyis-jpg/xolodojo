@@ -26,7 +26,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     if (profile) {
       const username = profile.username.trim();
       if (username) {
-        await sendMail({
+        const mailResult = await sendMail({
           to: email,
           subject: 'Your XoloDojo username',
           text: [
@@ -40,6 +40,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 <p><strong>Username:</strong> ${username}</p>
 <p>Sign in with your email and password. If you forgot your password, use <strong>Forgot password</strong> on the sign-in page.</p>`,
         });
+        if (!mailResult.sent) {
+          console.warn('[Forgot Username] Resend email failed:', mailResult.reason);
+        }
       }
     }
 

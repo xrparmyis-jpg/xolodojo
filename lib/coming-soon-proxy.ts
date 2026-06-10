@@ -12,6 +12,9 @@ export function isComingSoonAllowed(pathname: string): boolean {
   if (pathname === '/api' || pathname.startsWith('/api/')) {
     return true;
   }
+  if (pathname === '/auth/callback') {
+    return true;
+  }
   if (pathname.startsWith('/_vercel/')) {
     return true;
   }

@@ -34,7 +34,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
         const anon = getAnonClient();
         const { error } = await anon.auth.resetPasswordForEmail(email, { redirectTo });
         if (error) {
-          console.warn('[Forgot Password] Supabase reset email failed:', error.message);
+          console.error('[Forgot Password] Supabase reset email failed:', error.message);
         }
       }
     }
