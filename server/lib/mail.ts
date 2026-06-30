@@ -4,13 +4,36 @@ function getMailConfig() {
   return { apiKey, from };
 }
 
+export function getMailConfigStatus(): {
+  hasApiKey: boolean;
+  hasFrom: boolean;
+  from: string | null;
+} {
+  const config = getMailConfig();
+  return {
+    hasApiKey: Boolean(config.apiKey),
+    hasFrom: Boolean(config.from),
+    from: config.from ?? null,
+  };
+}
+
 export async function sendMail(options: {
   to: string;
   subject: string;
   text: string;
   html?: string;
-}): Promise<{ sent: boolean; reason?: string }> {
+}): Promise<{ sent: boolean; reason?: string; resendId?: string }> {
   const config = getMailConfig();
+  const configStatus = getMailConfigStatus();
+
+  console.info('[mail] sendMail called', {
+    to: options.to,
+    subject: options.subject,
+    resendConfigured: configStatus.hasApiKey && configStatus.hasFrom,
+    hasApiKey: configStatus.hasApiKey,
+    hasFrom: configStatus.hasFrom,
+    from: configStatus.from,
+  });
 
   if (!config.apiKey) {
     return { sent: false, reason: 'RESEND_API_KEY not configured' };
@@ -35,23 +58,38 @@ export async function sendMail(options: {
       }),
     });
 
+    const data = (await response.json().catch(() => ({}))) as {
+      id?: string;
+      message?: string;
+      name?: string;
+    };
+
     if (!response.ok) {
-      const data = (await response.json().catch(() => ({}))) as {
-        message?: string;
-        name?: string;
-      };
       const detail = data.message || data.name || JSON.stringify(data);
+      console.error('[mail] Resend API error', {
+        to: options.to,
+        status: response.status,
+        detail,
+        response: data,
+      });
       return {
         sent: false,
         reason: `Resend ${response.status}: ${detail}`,
       };
     }
 
-    return { sent: true };
+    console.info('[mail] Resend email accepted', {
+      to: options.to,
+      subject: options.subject,
+      resendId: data.id ?? null,
+    });
+    return { sent: true, resendId: data.id };
   } catch (error) {
+    const reason = error instanceof Error ? error.message : 'Unknown mail error';
+    console.error('[mail] sendMail exception', { to: options.to, reason, error });
     return {
       sent: false,
-      reason: error instanceof Error ? error.message : 'Unknown mail error',
+      reason,
     };
   }
 }

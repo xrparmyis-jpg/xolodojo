@@ -96,6 +96,11 @@ a {
     @apply w-full rounded-md border border-white/20 bg-background-elevated px-3 py-2 text-white placeholder:text-gray-500 focus:border-theme focus:outline-none;
   }
 
+  .label-auth {
+    @apply mb-1 block text-sm;
+    color: rgb(2, 171, 250);
+  }
+
   /**
    * Long “read terms” panels — thin, low-contrast scrollbars (WebKit + Firefox).
    * Pair with `TermsScrollAcceptBox` so the scrollable node is the one that receives wheel/drag.

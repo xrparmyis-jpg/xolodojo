@@ -19,6 +19,7 @@ export default function ConnectChoiceModal({
       title="Connect"
       onClose={onClose}
       maxWidthClassName="max-w-sm"
+      closeOnOverlayClick={false}
     >
       <p className="mb-4 text-sm text-white/70">
         Choose how you want to continue.

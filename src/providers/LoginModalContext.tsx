@@ -7,10 +7,12 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import LoginModal from '../components/LoginModal';
 import ConnectChoiceModal from '../components/ConnectChoiceModal';
 import ConnectWalletAuthModal from '../components/ConnectWalletAuthModal';
+import { authClientDebugLog } from '../lib/authClientDebugLog';
+import { getSupabaseClient } from '../lib/supabaseClient';
 import { shouldResumeXamanPkceConnect } from '../utils/oauthCallbackGuards';
 import {
   getXamanConnectIntent,
@@ -31,6 +33,7 @@ const LoginModalContext = createContext<LoginModalContextValue | undefined>(unde
 
 export function LoginModalProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
   const [isConnectWalletAuthOpen, setIsConnectWalletAuthOpen] = useState(false);
   const [resumeXamanWalletAuth, setResumeXamanWalletAuth] = useState(false);
@@ -58,19 +61,42 @@ export function LoginModalProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('reset') === '1') {
+    const params = new URLSearchParams(location.search);
+    const hashParams = new URLSearchParams(location.hash.replace(/^#/, ''));
+    const isRecovery =
+      params.get('reset') === '1' ||
+      params.get('type') === 'recovery' ||
+      hashParams.get('type') === 'recovery';
+
+    authClientDebugLog('LoginModal', 'checking URL auth params', {
+      pathname: location.pathname,
+      search: location.search || null,
+      hasHash: Boolean(location.hash),
+      reset: params.get('reset'),
+      typeSearch: params.get('type'),
+      typeHash: hashParams.get('type'),
+      isRecovery,
+    });
+
+    if (isRecovery) {
+      authClientDebugLog('LoginModal', 'opening reset-password modal');
       setResetToken(null);
       setInitialView('reset-password');
       setIsOpen(true);
       params.delete('reset');
+      params.delete('type');
       const q = params.toString();
-      window.history.replaceState({}, '', q ? `${window.location.pathname}?${q}` : window.location.pathname);
+      window.history.replaceState(
+        {},
+        '',
+        q ? `${location.pathname}?${q}` : location.pathname
+      );
       return;
     }
 
     const token = params.get('resetToken');
     if (token) {
+      authClientDebugLog('LoginModal', 'opening reset-password modal from resetToken');
       setResetToken(token);
       setInitialView('reset-password');
       setIsOpen(true);
@@ -79,6 +105,7 @@ export function LoginModalProvider({ children }: { children: ReactNode }) {
 
     let shouldStrip = false;
     if (params.get('verified') === '1') {
+      authClientDebugLog('LoginModal', 'opening login modal after email verification');
       setResetToken(null);
       setInitialView('login');
       setUrlAuthNotice({
@@ -91,6 +118,7 @@ export function LoginModalProvider({ children }: { children: ReactNode }) {
     }
     const authError = params.get('authError');
     if (authError === 'verify') {
+      authClientDebugLog('LoginModal', 'opening login modal after auth verify error');
       setResetToken(null);
       setInitialView('login');
       setUrlAuthNotice({
@@ -101,6 +129,7 @@ export function LoginModalProvider({ children }: { children: ReactNode }) {
       params.delete('authError');
       shouldStrip = true;
     } else if (authError === 'expired') {
+      authClientDebugLog('LoginModal', 'opening login modal after expired verification link');
       setResetToken(null);
       setInitialView('login');
       setUrlAuthNotice({
@@ -117,8 +146,34 @@ export function LoginModalProvider({ children }: { children: ReactNode }) {
       window.history.replaceState(
         {},
         '',
-        q ? `${window.location.pathname}?${q}` : window.location.pathname
+        q ? `${location.pathname}?${q}` : location.pathname
       );
+    }
+  }, [location.pathname, location.search, location.hash]);
+
+  useEffect(() => {
+    try {
+      const supabase = getSupabaseClient();
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange((event, session) => {
+        authClientDebugLog('LoginModal', 'supabase auth state change', {
+          event,
+          hasSession: Boolean(session),
+          userId: session?.user.id ?? null,
+        });
+        if (event === 'PASSWORD_RECOVERY') {
+          authClientDebugLog('LoginModal', 'PASSWORD_RECOVERY event — opening reset modal');
+          setResetToken(null);
+          setInitialView('reset-password');
+          setIsOpen(true);
+        }
+      });
+      return () => {
+        subscription.unsubscribe();
+      };
+    } catch {
+      return undefined;
     }
   }, []);
 

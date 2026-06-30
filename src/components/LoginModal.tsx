@@ -4,11 +4,21 @@ import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import Modal from './Modal';
 import { useAuth } from '../providers/AuthContext';
 import { useAppLoadingTask } from '../providers/AppLoadingProvider';
-import { LoginError, requestPasswordResetByUsername, resendVerificationEmail, resetPasswordWithSupabase } from '../lib/authApi';
+import {
+  LoginError,
+  requestPasswordResetByUsername,
+  resendVerificationEmail,
+  resetPasswordWithSupabase,
+} from '../lib/authApi';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
-type View = 'login' | 'register' | 'forgot-password' | 'forgot-username' | 'reset-password';
+type View =
+  | 'login'
+  | 'register'
+  | 'forgot-password'
+  | 'forgot-username'
+  | 'reset-password';
 
 function PasswordField({
   id,
@@ -33,7 +43,7 @@ function PasswordField({
 }) {
   return (
     <div>
-      <label htmlFor={id} className="mb-1 block text-sm text-foreground-muted">
+      <label htmlFor={id} className="label-auth">
         {label}
       </label>
       <div className="relative">
@@ -44,7 +54,7 @@ function PasswordField({
           autoComplete={autoComplete}
           required
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={e => onChange(e.target.value)}
           className="input-auth pr-10"
           placeholder={placeholder}
         />
@@ -54,7 +64,10 @@ function PasswordField({
           onClick={onToggleShow}
           aria-label={showPassword ? 'Hide password' : 'Show password'}
         >
-          <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} aria-hidden />
+          <FontAwesomeIcon
+            icon={showPassword ? faEyeSlash : faEye}
+            aria-hidden
+          />
         </button>
       </div>
     </div>
@@ -79,7 +92,9 @@ export default function LoginModal({
   onConsumeUrlAuthNotice,
 }: LoginModalProps) {
   const { login } = useAuth();
-  const [view, setView] = useState<View>(resetTokenProp ? 'reset-password' : initialView);
+  const [view, setView] = useState<View>(
+    resetTokenProp ? 'reset-password' : initialView
+  );
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showLoginPassword, setShowLoginPassword] = useState(false);
@@ -87,13 +102,15 @@ export default function LoginModal({
   const [signupName, setSignupName] = useState('');
   const [signupPasswordConfirm, setSignupPasswordConfirm] = useState('');
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
-  const [showRegisterPasswordConfirm, setShowRegisterPasswordConfirm] = useState(false);
+  const [showRegisterPasswordConfirm, setShowRegisterPasswordConfirm] =
+    useState(false);
   const [forgotPasswordUsername, setForgotPasswordUsername] = useState('');
   const [forgotUsernameEmail, setForgotUsernameEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmResetPassword, setShowConfirmResetPassword] = useState(false);
+  const [showConfirmResetPassword, setShowConfirmResetPassword] =
+    useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
@@ -157,7 +174,9 @@ export default function LoginModal({
         setError(err.message);
       } else {
         setNeedsVerification(false);
-        setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
+        setError(
+          err instanceof Error ? err.message : 'Login failed. Please try again.'
+        );
       }
     } finally {
       setIsLoading(false);
@@ -178,7 +197,11 @@ export default function LoginModal({
         setNeedsVerification(true);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not resend verification email.');
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Could not resend verification email.'
+      );
     } finally {
       setResendLoading(false);
     }
@@ -209,7 +232,12 @@ export default function LoginModal({
         }),
       });
       const raw = await response.text();
-      let data: { error?: string; message?: string; emailSent?: boolean; details?: string } = {};
+      let data: {
+        error?: string;
+        message?: string;
+        emailSent?: boolean;
+        details?: string;
+      } = {};
       if (raw) {
         try {
           data = JSON.parse(raw) as typeof data;
@@ -230,7 +258,9 @@ export default function LoginModal({
         const details = typeof data.details === 'string' ? data.details : '';
         throw new Error(
           errMsg && errMsg.length > 0
-            ? (details ? `${errMsg} (${details})` : errMsg)
+            ? details
+              ? `${errMsg} (${details})`
+              : errMsg
             : `Request failed (HTTP ${response.status})`
         );
       }
@@ -257,7 +287,9 @@ export default function LoginModal({
           'Network error (could not reach the server). For local dev, run the API: npm run dev:api (port 3001) with npm run dev, or npm run dev:full.'
         );
       } else {
-        setError(err instanceof Error ? err.message : 'Failed to create account');
+        setError(
+          err instanceof Error ? err.message : 'Failed to create account'
+        );
       }
     } finally {
       setIsLoading(false);
@@ -270,11 +302,15 @@ export default function LoginModal({
     setSuccessMessage('');
     setIsLoading(true);
     try {
-      const data = await requestPasswordResetByUsername(forgotPasswordUsername.trim());
+      const data = await requestPasswordResetByUsername(
+        forgotPasswordUsername.trim()
+      );
       setSuccessMessage(data.message);
       setForgotPasswordUsername('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send reset email');
+      setError(
+        err instanceof Error ? err.message : 'Failed to send reset email'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -289,10 +325,14 @@ export default function LoginModal({
       const response = await fetch(`${API_BASE_URL}/auth/forgot-username`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: forgotUsernameEmail.trim().toLowerCase() }),
+        body: JSON.stringify({
+          email: forgotUsernameEmail.trim().toLowerCase(),
+        }),
       });
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Failed to send email' }));
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: 'Failed to send email' }));
         throw new Error(errorData.error || 'Failed to send email');
       }
       const data = await response.json();
@@ -323,7 +363,9 @@ export default function LoginModal({
     setIsLoading(true);
     try {
       await resetPasswordWithSupabase(newPassword);
-      setSuccessMessage('Password has been reset successfully. You can now sign in with your new password.');
+      setSuccessMessage(
+        'Password has been reset successfully. You can now sign in with your new password.'
+      );
       setView('login');
       setNewPassword('');
       setConfirmPassword('');
@@ -347,7 +389,13 @@ export default function LoginModal({
             : 'Reset password';
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title} maxWidthClassName="max-w-md">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={title}
+      maxWidthClassName="max-w-md"
+      closeOnOverlayClick={false}
+    >
       <div className="space-y-4 text-left">
         {error && (
           <div className="rounded-md border border-red-500/40 bg-red-950/40 p-3 text-sm text-red-200">
@@ -376,7 +424,7 @@ export default function LoginModal({
         {view === 'login' && (
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label htmlFor="login-email" className="mb-1 block text-sm text-foreground-muted">
+              <label htmlFor="login-email" className="label-auth">
                 Email
               </label>
               <input
@@ -386,7 +434,7 @@ export default function LoginModal({
                 autoComplete="email"
                 required
                 value={email}
-                onChange={(e) => {
+                onChange={e => {
                   setEmail(e.target.value);
                   setNeedsVerification(false);
                 }}
@@ -399,13 +447,13 @@ export default function LoginModal({
               name="password"
               label="Password"
               value={password}
-              onChange={(v) => {
+              onChange={v => {
                 setPassword(v);
                 setNeedsVerification(false);
               }}
               autoComplete="current-password"
               showPassword={showLoginPassword}
-              onToggleShow={() => setShowLoginPassword((s) => !s)}
+              onToggleShow={() => setShowLoginPassword(s => !s)}
             />
             <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
               <button
@@ -438,7 +486,7 @@ export default function LoginModal({
             >
               {isLoading ? 'Signing in…' : 'Sign in'}
             </button>
-            <p className="text-center text-sm text-foreground-muted">
+            <p className="text-center label-auth">
               Don&apos;t have an account?{' '}
               <button
                 type="button"
@@ -458,7 +506,7 @@ export default function LoginModal({
         {view === 'register' && (
           <form onSubmit={handleRegister} className="space-y-4">
             <div>
-              <label htmlFor="signup-username" className="mb-1 block text-sm text-foreground-muted">
+              <label htmlFor="signup-username" className="label-auth">
                 Username
               </label>
               <input
@@ -468,13 +516,13 @@ export default function LoginModal({
                 autoComplete="username"
                 required
                 value={signupUsername}
-                onChange={(e) => setSignupUsername(e.target.value)}
+                onChange={e => setSignupUsername(e.target.value)}
                 className="input-auth"
                 placeholder="3–30 characters, letters, numbers, . _ -"
               />
             </div>
             <div>
-              <label htmlFor="signup-name" className="mb-1 block text-sm text-foreground-muted">
+              <label htmlFor="signup-name" className="label-auth">
                 Name
               </label>
               <input
@@ -484,12 +532,12 @@ export default function LoginModal({
                 autoComplete="name"
                 required
                 value={signupName}
-                onChange={(e) => setSignupName(e.target.value)}
+                onChange={e => setSignupName(e.target.value)}
                 className="input-auth"
               />
             </div>
             <div>
-              <label htmlFor="register-email" className="mb-1 block text-sm text-foreground-muted">
+              <label htmlFor="register-email" className="label-auth">
                 Email
               </label>
               <input
@@ -499,7 +547,7 @@ export default function LoginModal({
                 autoComplete="email"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={e => setEmail(e.target.value)}
                 className="input-auth"
               />
             </div>
@@ -511,7 +559,7 @@ export default function LoginModal({
               onChange={setPassword}
               autoComplete="new-password"
               showPassword={showRegisterPassword}
-              onToggleShow={() => setShowRegisterPassword((s) => !s)}
+              onToggleShow={() => setShowRegisterPassword(s => !s)}
               placeholder="At least 6 characters"
             />
             <PasswordField
@@ -522,7 +570,7 @@ export default function LoginModal({
               onChange={setSignupPasswordConfirm}
               autoComplete="new-password"
               showPassword={showRegisterPasswordConfirm}
-              onToggleShow={() => setShowRegisterPasswordConfirm((s) => !s)}
+              onToggleShow={() => setShowRegisterPasswordConfirm(s => !s)}
               placeholder="Re-enter your password"
             />
             <button
@@ -530,9 +578,11 @@ export default function LoginModal({
               disabled={isLoading}
               className="btn-cta-primary btn-cta-primary--block"
             >
-              {isLoading ? 'Creating XoloDojo account…' : 'Create XoloDojo Account'}
+              {isLoading
+                ? 'Creating XoloDojo account…'
+                : 'Create XoloDojo Account'}
             </button>
-            <p className="text-center text-sm text-foreground-muted">
+            <p className="text-center label-auth">
               Already have an account?{' '}
               <button
                 type="button"
@@ -551,12 +601,12 @@ export default function LoginModal({
 
         {view === 'forgot-password' && (
           <form onSubmit={handleForgotPassword} className="space-y-4">
-            <p className="text-sm text-foreground-muted">
-              Enter your XoloDojo username. If an account exists, we&apos;ll email the address on
-              file with a reset link.
+            <p className="label-auth">
+              Enter your XoloDojo username. If an account exists, we&apos;ll
+              email the address on file with a reset link.
             </p>
             <div>
-              <label htmlFor="forgot-pw-user" className="mb-1 block text-sm text-foreground-muted">
+              <label htmlFor="forgot-pw-user" className="label-auth">
                 Username
               </label>
               <input
@@ -566,7 +616,7 @@ export default function LoginModal({
                 autoComplete="username"
                 required
                 value={forgotPasswordUsername}
-                onChange={(e) => setForgotPasswordUsername(e.target.value)}
+                onChange={e => setForgotPasswordUsername(e.target.value)}
                 className="input-auth"
               />
             </div>
@@ -590,7 +640,7 @@ export default function LoginModal({
                 {isLoading ? 'Sending…' : 'Send link'}
               </button>
             </div>
-            <p className="text-center text-sm text-foreground-muted">
+            <p className="text-center label-auth">
               <button
                 type="button"
                 className="link-auth"
@@ -608,12 +658,12 @@ export default function LoginModal({
 
         {view === 'forgot-username' && (
           <form onSubmit={handleForgotUsername} className="space-y-4">
-            <p className="text-sm text-foreground-muted">
-              Enter the email you used for XoloDojo. If an account exists, we&apos;ll send your
-              username there.
+            <p className="label-auth">
+              Enter the email you used for XoloDojo. If an account exists,
+              we&apos;ll send your username there.
             </p>
             <div>
-              <label htmlFor="forgot-user-email" className="mb-1 block text-sm text-foreground-muted">
+              <label htmlFor="forgot-user-email" className="label-auth">
                 Email
               </label>
               <input
@@ -623,7 +673,7 @@ export default function LoginModal({
                 autoComplete="email"
                 required
                 value={forgotUsernameEmail}
-                onChange={(e) => setForgotUsernameEmail(e.target.value)}
+                onChange={e => setForgotUsernameEmail(e.target.value)}
                 className="input-auth"
               />
             </div>
@@ -647,7 +697,7 @@ export default function LoginModal({
                 {isLoading ? 'Sending…' : 'Send'}
               </button>
             </div>
-            <p className="text-center text-sm text-foreground-muted">
+            <p className="text-center label-auth">
               <button
                 type="button"
                 className="link-auth"
@@ -665,7 +715,9 @@ export default function LoginModal({
 
         {view === 'reset-password' && (
           <form onSubmit={handleResetPassword} className="space-y-4">
-            <p className="text-sm text-foreground-muted">Choose a new password and confirm it below.</p>
+            <p className="label-auth">
+              Choose a new password and confirm it below.
+            </p>
             <PasswordField
               id="new-password"
               name="newPassword"
@@ -674,7 +726,7 @@ export default function LoginModal({
               onChange={setNewPassword}
               autoComplete="new-password"
               showPassword={showNewPassword}
-              onToggleShow={() => setShowNewPassword((s) => !s)}
+              onToggleShow={() => setShowNewPassword(s => !s)}
             />
             <PasswordField
               id="confirm-password"
@@ -684,7 +736,7 @@ export default function LoginModal({
               onChange={setConfirmPassword}
               autoComplete="new-password"
               showPassword={showConfirmResetPassword}
-              onToggleShow={() => setShowConfirmResetPassword((s) => !s)}
+              onToggleShow={() => setShowConfirmResetPassword(s => !s)}
             />
             <div className="flex gap-2">
               <button

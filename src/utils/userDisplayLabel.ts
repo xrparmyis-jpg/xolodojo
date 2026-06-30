@@ -7,10 +7,10 @@ export function truncateWalletAddress(address: string): string {
 }
 
 export function accountDisplayLabel(user: AuthUser): string {
-  const name = user.name?.trim();
-  if (name) return name;
   const un = user.username?.trim();
   if (un) return un;
+  const name = user.name?.trim();
+  if (name) return name;
   const em = user.email?.trim();
   if (em) return em.split('@')[0] || em;
   return 'Account';

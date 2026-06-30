@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { createPortal } from 'react-dom';
 import { useAccount } from 'wagmi';
 import { useWeb3Modal } from '@web3modal/wagmi/react';
 import { useDisconnect as useWagmiDisconnect } from 'wagmi';
@@ -14,6 +13,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { walletConnectProjectId } from '../web3modal';
 import Button from './Button';
+import Modal from './Modal';
 import ModalConfirm from './ModalConfirm';
 import NftGallery from './NftGallery';
 import { useToast } from './ToastProvider';
@@ -1064,45 +1064,61 @@ function WalletConnectionContent({
                 onConfirm={handleConfirmDelete}
             />
 
-            {showAddWalletModal && typeof document !== 'undefined' && createPortal(
-                (() => {
-                    const offeredWallets = [
-                        { type: 'walletconnect', label: 'WalletConnect', color: 'bg-[#0988F0] hover:bg-[#0666b3] active:bg-[#054a7a]', onClick: () => void handleSelectWalletType('walletconnect') },
-                        { type: 'joey', label: 'Joey Wallet', color: 'bg-[#F76807] hover:bg-[#c94e06] active:bg-[#a13d04]', onClick: () => { clearToasts(); setShowAddWalletModal(false); void handleConnectJoey(); } },
-                        { type: 'xaman', label: 'Xaman (XUMM)', color: 'bg-[#0030CF] hover:bg-[#002399] active:bg-[#001966]', onClick: () => void handleSelectWalletType('xaman') },
-                    ];
-                    return (
-                        <div className="fixed inset-0 z-[1100] flex items-center justify-center overflow-y-auto bg-black/75 p-4 sm:p-6">
-                            <div className="w-full max-w-sm rounded-xl bg-neutral-900 p-6 shadow-xl border border-white/10">
-                                <h3 className="text-white text-lg font-semibold mb-2">Add New Wallet</h3>
-                                <p className="text-sm text-white/70 mb-4">Select the wallet type you want to add. You can add multiple accounts per type (for example, several Xaman accounts).</p>
-                                <div className="grid grid-cols-1 gap-3">
-                                    {offeredWallets.map(w => (
-                                        <Button
-                                            key={w.type}
-                                            onClick={w.onClick}
-                                            disabled={walletBusyMessage !== null}
-                                            className={`w-full ${w.color}`}
-                                        >
-                                            {w.label}
-                                        </Button>
-                                    ))}
-                                </div>
-                                <div className="flex justify-end mt-4">
-                                    <Button
-                                        onClick={dismissWalletPicker}
-                                        disabled={walletBusyMessage !== null}
-                                        className="bg-gray-600 hover:bg-gray-700 active:bg-gray-800 text-sm"
-                                    >
-                                        Cancel
-                                    </Button>
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })(),
-                document.body
-            )}
+            <Modal
+                isOpen={showAddWalletModal}
+                onClose={dismissWalletPicker}
+                title="Add New Wallet"
+                closeOnOverlayClick={false}
+                maxWidthClassName="max-w-sm"
+            >
+                <p className="mb-4 text-sm text-white/70">
+                    Select the wallet type you want to add. You can add multiple accounts per type (for example, several Xaman accounts).
+                </p>
+                <div className="grid grid-cols-1 gap-3">
+                    {[
+                        {
+                            type: 'walletconnect',
+                            label: 'WalletConnect',
+                            color: 'bg-[#0988F0] hover:bg-[#0666b3] active:bg-[#054a7a]',
+                            onClick: () => void handleSelectWalletType('walletconnect'),
+                        },
+                        {
+                            type: 'joey',
+                            label: 'Joey Wallet',
+                            color: 'bg-[#F76807] hover:bg-[#c94e06] active:bg-[#a13d04]',
+                            onClick: () => {
+                                clearToasts();
+                                setShowAddWalletModal(false);
+                                void handleConnectJoey();
+                            },
+                        },
+                        {
+                            type: 'xaman',
+                            label: 'Xaman (XUMM)',
+                            color: 'bg-[#0030CF] hover:bg-[#002399] active:bg-[#001966]',
+                            onClick: () => void handleSelectWalletType('xaman'),
+                        },
+                    ].map((w) => (
+                        <Button
+                            key={w.type}
+                            onClick={w.onClick}
+                            disabled={walletBusyMessage !== null}
+                            className={`w-full ${w.color}`}
+                        >
+                            {w.label}
+                        </Button>
+                    ))}
+                </div>
+                <div className="mt-4 flex justify-end">
+                    <Button
+                        onClick={dismissWalletPicker}
+                        disabled={walletBusyMessage !== null}
+                        className="bg-gray-600 hover:bg-gray-700 active:bg-gray-800 text-sm"
+                    >
+                        Cancel
+                    </Button>
+                </div>
+            </Modal>
 
             <JoeyWalletQrModal
                 open={showJoeyQrModal}
