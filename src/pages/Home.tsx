@@ -31,15 +31,15 @@ type LegacyStoryRow = {
 
 const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
   {
-    id: 'Ghost-Xolo-Gecko',
+    id: 'XoloPuzzleSkin',
     imageAtLg: 'left',
-    imageSrc: '/home/GhostXoloGecko.jpg',
-    imageAlt: 'Ghost Xolo Gecko',
-    borderColor: 'border-green-500',
-    titleColor: 'text-green-500',
-    eyebrowTextColor: 'text-[#00bfff]',
-    eyebrow: 'Welcome to the XoloDojo',
-    title: '',
+    imageSrc: '/home/XoloPuzzleSkin.jpg',
+    imageAlt: 'XoloPuzzleSkin',
+    borderColor: 'border-[#68ed77]',
+    titleColor: 'text-[#68ed77]',
+    eyebrowTextColor: 'text-[#68ed77]',
+    eyebrow: 'Welcome to the Community',
+    title: 'A Global Network of Family. A Piece of the Puzzle.',
     body: (
       <>
         <p className="mb-4">
@@ -72,15 +72,15 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageAtLg: 'right',
     imageSrc: '/home/StaindGlassXoloSkiGoggles.jpg',
     imageAlt: 'Stained Glass Xolo',
-    borderColor: 'border-fuchsia-400',
-    titleColor: 'text-fuchsia-400',
-    eyebrowTextColor: 'text-fuchsia-400',
-    eyebrow: 'The Collection',
-    title: <>The Xoloitzquintli NFT Collection</>,
+    borderColor: 'border-[#e661a8]',
+    titleColor: 'text-[#e661a8]',
+    eyebrowTextColor: 'text-[#e661a8]',
+    eyebrow: 'The Xoloitzquintli NFT Collection',
+    title: <>Clean traits. Straight fire. Built different. </>,
     body: (
       <>
         <p className="mb-4">
-          10,001 Xolos. Clean traits. Straight fire. Built different. Built on
+          10,001 Xolos. Built on
           the XRPL for its eco-friendly design, fast payments, and low fees, the
           collection draws from 11 distinct traits and 311 sub-traits, all
           hand-drawn by the teams talented artist, RedShadow.{' '}
@@ -103,11 +103,11 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageAtLg: 'left',
     imageSrc: '/home/PostalXolo.jpg',
     imageAlt: 'Postal Xolo',
-    borderColor: 'border-amber-400',
-    titleColor: 'text-amber-400',
-    eyebrowTextColor: 'text-amber-400',
-    eyebrow: 'Unlock Xglobe',
-    title: <>Connect on Xglobe</>,
+    borderColor: 'border-[#3bbee6]',
+    titleColor: 'text-[#3bbee6]',
+    eyebrowTextColor: 'text-[#3bbee6]',
+    eyebrow: 'Powered by Xglobe',
+    title: <>Connecting Xoloitzquintli NFT holders across the Globe</>,
     body: (
       <>
         <p className="mb-4">
@@ -137,11 +137,11 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
   {
     id: 'Pin Your Presence',
     imageAtLg: 'right',
-    imageSrc: '/home/XoloMarvinMartian.jpg',
-    imageAlt: 'Wet Paint Xolo',
-    borderColor: 'border-sky-400',
-    titleColor: 'text-sky-400',
-    eyebrowTextColor: 'text-sky-400',
+    imageSrc: '/home/XoloBrickSkin.jpg',
+    imageAlt: 'Xolo Brick Skin ',
+    borderColor: 'border-[#b1b1a7]',
+    titleColor: 'text-[#b1b1a7]',
+    eyebrowTextColor: 'text-[#b1b1a7]',
     eyebrow: 'Pin your presence',
     title: <>Seen on Xglobe. Shared with the world.</>,
     body: (
@@ -175,11 +175,11 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageAtLg: 'left',
     imageSrc: '/home/WetPaintXolo.jpg',
     imageAlt: 'Wet Paint Xolo',
-    borderColor: 'border-amber-400',
-    titleColor: 'text-amber-400',
-    eyebrowTextColor: 'text-amber-400',
+    borderColor: 'border-[#d400ff] ',
+    titleColor: 'text-[#d400ff]',
+    eyebrowTextColor: 'text-[#d400ff]',
     eyebrow: 'The Xoloitzquintli: A breed of Legacy',
-    title: <>Sacred Legacy, Living Presence</>,
+    title: <>A legendary history, A living presence</>,
     body: (
       <>
         <p className="mb-4">
@@ -216,10 +216,10 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageAtLg: 'right',
     imageSrc: '/home/AbstractXoloBlue.jpg',
     imageAlt: 'Postal Xolo',
-    borderColor: 'border-amber-400',
-    titleColor: 'text-amber-400',
-    eyebrowTextColor: 'text-amber-400',
-    eyebrow: 'A vision',
+    borderColor: 'border-[#f0f896]',
+    titleColor: 'text-[#f0f896]',
+    eyebrowTextColor: 'text-[#f0f896]',
+    eyebrow: 'The vision',
     title: <>Built for the long game</>,
     body: (
       <>
@@ -364,10 +364,7 @@ function Home() {
           <GsapPageContent className="mx-auto w-full max-w-4xl">
             <>
               <p>
-                The website is built. Xglobe is live. The Xpin is ready. The
-                mint is next. Your Xoloitzquintli NFT awaits. Fused with degen
-                pride and the spirit of community, the collection is prepared to
-                launch. Lock in and be ready when we flip the switch!
+                10,001 unique Xoloitzquintli NFTs on the XRPL. Each one unlocks Xglobe — a live, token-gated world map where holders connect, collaborate, and build real relationships across the planet. Fused with degen pride and the spirit of community, the mint is next. Lock in and be ready when we flip the switch.
               </p>
             </>
           </GsapPageContent>
@@ -376,11 +373,6 @@ function Home() {
             delay={0.72}
           >
             <XoloitzquintleSlideshow />
-          </GsapPageContent>
-          <GsapPageContent className="mx-auto w-full max-w-4xl">
-            <h3 className="text-[#CE2029] text-center text-xl font-bold md:text-2xl mt-12">
-              Launch Alert: The Final Countdown
-            </h3>
           </GsapPageContent>
           <MintCountdownSection />
         </div>
@@ -407,12 +399,12 @@ function Home() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <GsapPageContent delay={0}>
             <GsapPageSubHeading
-              headingColor="#00ff1e"
-              iconColor="#00bfff"
+              headingColor="#794bd0"
+              iconColor="#02abfa"
               heading={`Xolo (ShōLō) "The Guardian", 道 (Dō) "The Pathway",\n\n and 場 (Jō) "The Destination"`}
             />
           </GsapPageContent>
-          <div className="mt-4 flex flex-col gap-12 lg:gap-16">
+          <div className="mt-8 flex flex-col gap-12 lg:gap-16">
             {LEGACY_STORY_ROWS.map((row, index) => {
               const imageLeft = row.imageAtLg === 'left';
               return (
@@ -422,16 +414,14 @@ function Home() {
                   delay={index * 0.06}
                 >
                   <div
-                    className={`min-w-0 w-full lg:w-1/2 order-1 ${
-                      imageLeft ? 'lg:order-1' : 'lg:order-2'
-                    }`}
+                    className={`min-w-0 w-full lg:w-1/2 order-1 ${imageLeft ? 'lg:order-1' : 'lg:order-2'
+                      }`}
                   >
                     <div
-                      className={`w-full transition-transform duration-300 ease-in-out ${
-                        imageLeft
+                      className={`w-full transition-transform duration-300 ease-in-out ${imageLeft
                           ? 'hover:rotate-[10deg]'
                           : 'hover:-rotate-[10deg]'
-                      }`}
+                        }`}
                     >
                       <img
                         src={row.imageSrc}
@@ -441,17 +431,14 @@ function Home() {
                     </div>
                   </div>
                   <div
-                    className={`min-w-0 w-full lg:w-1/2 order-2 ${
-                      imageLeft ? 'lg:order-2' : 'lg:order-1'
-                    }`}
+                    className={`min-w-0 w-full lg:w-1/2 order-2 ${imageLeft ? 'lg:order-2' : 'lg:order-1'
+                      }`}
                   >
                     <div className="flex min-w-0 flex-col text-left mt-8 lg:mt-0">
                       <span
-                        className={`mb-5 inline-block w-fit max-w-full self-center rounded-2xl border ${
-                          row.borderColor
-                        } px-8 py-2 text-center text-[15px] font-bold leading-none ${
-                          row.eyebrowTextColor || row.titleColor
-                        }`}
+                        className={`mb-5 inline-block w-fit max-w-full self-center rounded-2xl border ${row.borderColor
+                          } px-8 py-2 text-center text-[15px] font-bold leading-none ${row.eyebrowTextColor || row.titleColor
+                          }`}
                       >
                         {row.eyebrow}
                       </span>
