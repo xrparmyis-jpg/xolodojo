@@ -20,7 +20,7 @@ function GsapPageHeading({
   eyebrow,
   heading,
   accent,
-  eyebrowTextColor = 'text-[#ff00d7]',
+  eyebrowTextColor = 'text-[#794bd0]',
   iconType = 'star',
   iconCount = 1,
   centered = true,
