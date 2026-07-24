@@ -23,7 +23,7 @@ function headingPartsForWrapSafeHeading(source: string): string[] {
 function GsapPageSubHeading({
     heading,
     className = "",
-    iconColor = "#28aae4",
+    iconColor = "#02abfa",
     headingColor = "#642ff8",
 }: GsapPageSubHeadingProps) {
     const containerRef = useRef<HTMLDivElement | null>(null);
