@@ -132,7 +132,7 @@ function CookiePolicy() {
                 cookie policy version changes), a notice appears at the bottom
                 of the browser window. You can:
               </p>
-              <ul className="mb-6 list-disc space-y-2 pl-6">
+              <ul className="legal-list">
                 <li>
                   <strong>Accept all</strong> — allow Functional, Analytics, and
                   Marketing categories.
