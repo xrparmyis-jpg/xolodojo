@@ -1,5 +1,8 @@
 import type { ProfileSocials, UserProfile } from '../services/profileService';
 import { updateUserProfile } from '../services/profileService';
+import {
+    setFunctionalSessionItem,
+} from '../lib/consent/functional-storage';
 
 import { faDiscord, faInstagram, faLinkedinIn, faTelegram, faTiktok, faXTwitter } from '@fortawesome/free-brands-svg-icons';
 
@@ -152,11 +155,10 @@ export function useSocials({
         setVisibleSocialInputs(nextVisibleSocialInputs);
         if (!saveToApi) {
             if (walletSocialsStorageKey) {
-                try {
-                    sessionStorage.setItem(walletSocialsStorageKey, JSON.stringify(normalizeSocials(nextSocials)));
-                } catch {
-                    /* ignore quota */
-                }
+                setFunctionalSessionItem(
+                    walletSocialsStorageKey,
+                    JSON.stringify(normalizeSocials(nextSocials)),
+                );
             }
             showToast('success', 'Handle updated for pinning.');
             return;
@@ -192,11 +194,10 @@ export function useSocials({
                 setSocials(normalizedSocials);
                 setVisibleSocialInputs(createEmptyVisibleInputs());
                 if (walletSocialsStorageKey) {
-                    try {
-                        sessionStorage.setItem(walletSocialsStorageKey, JSON.stringify(normalizedSocials));
-                    } catch {
-                        /* ignore */
-                    }
+                    setFunctionalSessionItem(
+                        walletSocialsStorageKey,
+                        JSON.stringify(normalizedSocials),
+                    );
                 }
                 showToast('success', 'Social handles saved for pinning.');
                 return;

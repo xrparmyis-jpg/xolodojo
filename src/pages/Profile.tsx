@@ -30,6 +30,10 @@ import {
   createEmptyVisibleInputs,
   normalizeSocials,
 } from '../hooks/useSocials';
+import {
+  getFunctionalSessionItem,
+  setFunctionalSessionItem,
+} from '../lib/consent/functional-storage';
 import { shouldResumeXamanPkceConnect } from '../utils/oauthCallbackGuards';
 
 import Button from '../components/Button';
@@ -147,14 +151,10 @@ function Profile() {
       const normalized = normalizeSocials(next);
       setSocials(normalized);
       if (walletSocialsStorageKey) {
-        try {
-          sessionStorage.setItem(
-            walletSocialsStorageKey,
-            JSON.stringify(normalized)
-          );
-        } catch {
-          /* ignore quota / private mode */
-        }
+        setFunctionalSessionItem(
+          walletSocialsStorageKey,
+          JSON.stringify(normalized),
+        );
       }
       if (user?.id) {
         setProfile({ userId: user.id, socialHandles: { ...normalized } });
@@ -189,7 +189,7 @@ function Profile() {
       setIsLoadingProfile(true);
       try {
         const raw = walletSocialsStorageKey
-          ? sessionStorage.getItem(walletSocialsStorageKey)
+          ? getFunctionalSessionItem(walletSocialsStorageKey)
           : null;
         if (raw) {
           const parsed = JSON.parse(raw) as Record<string, string>;
