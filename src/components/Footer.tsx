@@ -114,6 +114,9 @@ function Footer() {
               <Link to="/privacy-policy" className="text-sm text-[#cdcdcd] no-underline transition-all duration-300 ease-in-out hover:text-[#b7e9f7] hover:no-underline">
                 Privacy Policy
               </Link>
+              <Link to="/cookie-policy" className="text-sm text-[#cdcdcd] no-underline transition-all duration-300 ease-in-out hover:text-[#b7e9f7] hover:no-underline">
+                Cookie Policy
+              </Link>
             </div>
           </GsapPageContent>
           <GsapPageContent

@@ -1,17 +1,20 @@
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
-import { Analytics } from '@vercel/analytics/react';
 import { useXamanOAuthReturnRouting } from './hooks/useXamanOAuthReturnRouting';
 import './App.css';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
+import { CookieConsentBanner } from './components/CookieConsentBanner';
+import { MarketingScriptsGate } from './components/MarketingScriptsGate';
+import { VercelAnalyticsGate } from './components/VercelAnalyticsGate';
 import Home from './pages/Home';
 import FAQ from './pages/FAQ';
 import Profile from './pages/Profile';
 import NotFound from './pages/404';
 import TermsAndConditions from './pages/TermsAndConditions';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import CookiePolicy from './pages/CookiePolicy';
 import Xoloitzquintli from './pages/Xoloitzquintle';
 import Vision from './pages/Vision';
 import Team from './pages/Team';
@@ -57,6 +60,7 @@ function AppContent() {
             element={<TermsAndConditions />}
           />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/cookie-policy" element={<CookiePolicy />} />
           <Route
             path="/profile"
             element={
@@ -69,7 +73,9 @@ function AppContent() {
         </Routes>
       </main>
       <Footer />
-      {import.meta.env.PROD ? <Analytics /> : <Analytics debug={false} />}
+      <CookieConsentBanner />
+      <VercelAnalyticsGate />
+      <MarketingScriptsGate />
     </div>
   );
 }
