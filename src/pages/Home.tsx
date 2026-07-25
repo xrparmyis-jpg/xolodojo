@@ -16,16 +16,12 @@ type LegacyStoryRow = {
   imageAtLg: 'left' | 'right';
   imageSrc: string;
   imageAlt: string;
-  /** Tailwind border-color utility (include the `border-` prefix), e.g. `border-cyan-400` or `border-[#b7e9f7]`. */
   borderColor: string;
-  /** Tailwind text-color utility for the section title (e.g. `text-cyan-400`) — pair with `borderColor`. */
   titleColor: string;
-  /** Tailwind text-color utility for the eyebrow pill (defaults to `titleColor` when omitted). */
   eyebrowTextColor?: string;
   eyebrow: string;
   title: ReactNode;
   body: ReactNode;
-  /** When set, a CTA link is rendered below the section body (use in-app paths like `/team`). */
   sectionCta?: { to: string; label: string };
 };
 
