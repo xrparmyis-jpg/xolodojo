@@ -82,12 +82,9 @@ function Xglobe() {
                 <p className="mb-4">
                   Over time, the Xglobe will open its doors to other verified,
                   values-aligned NFT communities who share our vision of
-                  trust-based human connection.
-                </p>
+                  trust-based human connection - expanding the stage without compromising the standard, cultivating a global dojo where shared experiences weave a stronger, more connected world.       </p>
                 <p>
-                  Just as our Mission states: we're cultivating a global dojo
-                  where shared experiences weave a stronger, more connected
-                  world. Connect your wallet and join the Xglobe today!
+
                 </p>
               </GsapPageContent>
             </div>
