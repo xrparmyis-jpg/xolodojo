@@ -29,6 +29,22 @@ Visit http://localhost:5173
 - `npm run dev` - Frontend only (port 5173)
 - `npm run dev:api` - API server only (port 3001)
 
+## Tests
+
+Shared helpers live under `tests/helpers/` (env load, test users, Supabase clients, credential seed).
+
+```bash
+npm run test:unit                 # Vitest unit tests (no DB)
+npm run test:integration          # Vitest + Supabase RLS (phase 2, skipped)
+npm run auth:seed-test-credentials
+npm run test:e2e                  # Playwright (reuses npm run dev:full if already running)
+# npm run test:e2e:install        # only if Chromium is missing from ~/.cache/ms-playwright
+```
+
+Auth/e2e prereqs: `.env.local` with Supabase URL + anon + service role keys, then seed passwords. Sign-in UI: Get Started → XoloDojo Account.
+
+`@playwright/test` is pinned to **1.53.2** so it reuses the existing cached Chromium (no CDN download). If you bump Playwright later, you must re-run `test:e2e:install` or switch the config to `channel: 'chrome'` / `'msedge'` (system browser, no Playwright download).
+
 ## Pre-push checks
 
 - `npm run preflight` - Fast deploy-safety check (TypeScript build checks)
