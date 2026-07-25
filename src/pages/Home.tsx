@@ -175,9 +175,9 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageAtLg: 'left',
     imageSrc: '/home/WetPaintXolo.jpg',
     imageAlt: 'Wet Paint Xolo',
-    borderColor: 'border-[#d400ff] ',
-    titleColor: 'text-[#d400ff]',
-    eyebrowTextColor: 'text-[#d400ff]',
+    borderColor: 'border-[#f0f896] ',
+    titleColor: 'text-[#f0f896]',
+    eyebrowTextColor: 'text-[#f0f896]',
     eyebrow: 'The Xoloitzquintli: A breed of Legacy',
     title: <>A legendary history, A living presence</>,
     body: (
@@ -214,12 +214,12 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
   {
     id: 'The Vision',
     imageAtLg: 'right',
-    imageSrc: '/home/AbstractXoloBlue.jpg',
-    imageAlt: 'Postal Xolo',
-    borderColor: 'border-[#f0f896]',
-    titleColor: 'text-[#f0f896]',
-    eyebrowTextColor: 'text-[#f0f896]',
-    eyebrow: 'The vision',
+    imageSrc: '/home/XoloSwirl600.jpg',
+    imageAlt: 'Xolo Swirl 600',
+    borderColor: 'border-[#d400ff]',
+    titleColor: 'text-[#d400ff]',
+    eyebrowTextColor: 'text-[#d400ff]',
+    eyebrow: 'The Vision',
     title: <>Built for the long game</>,
     body: (
       <>
