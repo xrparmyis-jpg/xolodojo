@@ -60,7 +60,7 @@ function PrivacyPolicy() {
               <p className="mb-4 font-semibold leading-relaxed text-white">
                 a) Information You Provide Voluntarily
               </p>
-              <ul className="mb-6 list-disc space-y-2 pl-6">
+              <ul className="legal-list">
                 <li>
                   <strong>Wallet address</strong> — when you connect your XRPL
                   wallet to access Xglobe.
@@ -85,7 +85,7 @@ function PrivacyPolicy() {
               <p className="mb-4 font-semibold leading-relaxed text-white">
                 b) Information Collected Automatically
               </p>
-              <ul className="mb-6 list-disc space-y-2 pl-6">
+              <ul className="legal-list">
                 <li>
                   <strong>IP address and usage data</strong> — collected by
                   Vercel (our hosting provider). Optional privacy-friendly
@@ -136,7 +136,7 @@ function PrivacyPolicy() {
               <p className="mb-4 leading-relaxed">
                 We use the information collected to:
               </p>
-              <ul className="mb-6 list-disc space-y-2 pl-6">
+              <ul className="legal-list">
                 <li>Verify NFT ownership and provide access to Xglobe.</li>
                 <li>
                   Display your Xpin on the Xglobe map to other verified holders.
@@ -181,7 +181,7 @@ function PrivacyPolicy() {
                 We use the following third-party services that may collect data
                 independently under their own privacy policies:
               </p>
-              <ul className="mb-6 list-disc space-y-2 pl-6">
+              <ul className="legal-list">
                 <li>
                   <strong>Vercel</strong> — hosting and analytics.{' '}
                   <a
@@ -285,7 +285,7 @@ function PrivacyPolicy() {
               <p className="mb-4 leading-relaxed">
                 Depending on your location, you may have the right to:
               </p>
-              <ul className="mb-6 list-disc space-y-2 pl-6">
+              <ul className="legal-list">
                 <li>
                   Access the personal information we hold about you.
                 </li>

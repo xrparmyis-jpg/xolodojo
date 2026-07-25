@@ -26,10 +26,10 @@ function TermsAndConditions() {
               <p className="mb-4 leading-relaxed">
                 These Terms and Conditions (&quot;Terms&quot;) govern your
                 access to and use of the XoloDojo website located at
-                https://xolodojo.io (the &quot;Site&quot;), the Xglobe
-                platform, Xpin features, and all related services
-                (collectively, the &quot;Services&quot;) operated by Donovan S.
-                Hall (&quot;XoloDojo,&quot; &quot;we,&quot; &quot;us,&quot; or
+                https://xolodojo.io (the &quot;Site&quot;), the Xglobe platform,
+                Xpin features, and all related services (collectively, the
+                &quot;Services&quot;) operated by Cryptonite Labs, LLC
+                (&quot;XoloDojo,&quot; &quot;we,&quot; &quot;us,&quot; or
                 &quot;our&quot;), based in Alaska, United States.
               </p>
               <p className="mb-4 leading-relaxed">
@@ -83,7 +83,7 @@ function TermsAndConditions() {
                 NFTs minted on the XRP Ledger (&quot;Xolo NFTs&quot;). Each Xolo
                 NFT is a digital collectible. Purchasing a Xolo NFT grants you:
               </p>
-              <ul className="mb-6 list-disc space-y-2 pl-6">
+              <ul className="legal-list">
                 <li>
                   Ownership of the unique digital artwork associated with that
                   NFT token.
@@ -127,7 +127,7 @@ function TermsAndConditions() {
                 Xpin is your personal profile on Xglobe. By creating an Xpin,
                 you agree to:
               </p>
-              <ul className="mb-6 list-disc space-y-2 pl-6">
+              <ul className="legal-list">
                 <li>Provide accurate information in your profile.</li>
                 <li>Not impersonate any person or entity.</li>
                 <li>
@@ -161,7 +161,7 @@ function TermsAndConditions() {
               <p className="mb-4 leading-relaxed">
                 XoloDojo is not responsible for:
               </p>
-              <ul className="mb-6 list-disc space-y-2 pl-6">
+              <ul className="legal-list">
                 <li>The accuracy of any user&apos;s Xpin information.</li>
                 <li>
                   The outcome of any P2P interaction, exchange, or transaction.
@@ -183,7 +183,7 @@ function TermsAndConditions() {
                 5. Prohibited Conduct
               </h2>
               <p className="mb-4 leading-relaxed">You agree not to:</p>
-              <ul className="list-disc space-y-2 pl-6">
+              <ul className="legal-list">
                 <li>
                   Use the Services for any unlawful purpose or in violation of
                   any applicable laws.
@@ -234,7 +234,7 @@ function TermsAndConditions() {
                 You acknowledge and accept the following risks associated with
                 NFTs and blockchain technology:
               </p>
-              <ul className="list-disc space-y-2 pl-6">
+              <ul className="legal-list">
                 <li>
                   The value of NFTs is volatile and may decrease to zero.
                   XoloDojo makes no representations regarding the future value

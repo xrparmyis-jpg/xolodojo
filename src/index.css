@@ -204,6 +204,34 @@ ul {
   list-style: none;
 }
 
+/**
+ * Legal pages (Terms / Privacy / Cookie): restore real disc bullets.
+ * Global `ul { list-style: none }` above otherwise strips Tailwind `list-disc`.
+ * Marker color matches legal h2 `text-cyan-300`.
+ */
+ul.legal-list {
+  list-style-type: disc;
+  list-style-position: outside;
+  padding-left: 1.5rem;
+  margin: 0 0 1.5rem;
+  text-align: left;
+}
+
+ul.legal-list > li {
+  display: list-item;
+  margin-bottom: 0.5rem;
+  line-height: 1.625;
+  text-align: left;
+}
+
+ul.legal-list > li:last-child {
+  margin-bottom: 0;
+}
+
+ul.legal-list > li::marker {
+  color: #67e8f9;
+}
+
 input:focus {
   color: var(--white);
   outline: none;
