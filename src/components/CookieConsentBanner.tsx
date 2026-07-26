@@ -16,9 +16,9 @@ import {
 type DraftCategories = Record<OptionalCookieCategory, boolean>;
 
 const DEFAULT_DRAFT: DraftCategories = {
-  functional: false,
-  analytics: false,
-  marketing: false,
+  functional: true,
+  analytics: true,
+  marketing: true,
 };
 
 function loadDraft(): DraftCategories {
