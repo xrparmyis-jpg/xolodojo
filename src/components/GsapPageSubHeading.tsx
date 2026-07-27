@@ -1,17 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faAsterisk } from "@fortawesome/free-solid-svg-icons";
 
 gsap.registerPlugin(useGSAP);
 
 interface GsapPageSubHeadingProps {
     heading: string;
     className?: string;
-    /** Optional color override for the leading asterisk icon. */
-    iconColor?: string;
-    /** Optional final color for heading letters after animation. */
+    
     headingColor?: string;
 }
 
@@ -23,7 +19,6 @@ function headingPartsForWrapSafeHeading(source: string): string[] {
 function GsapPageSubHeading({
     heading,
     className = "",
-    iconColor = "#edf952",
     headingColor = "#642ff8",
 }: GsapPageSubHeadingProps) {
     const containerRef = useRef<HTMLDivElement | null>(null);
@@ -111,12 +106,7 @@ function GsapPageSubHeading({
             ref={containerRef}
             className={`mb-4 flex w-full items-center justify-start gap-2 md:items-center md:justify-center ${className}`}
         >
-            {/* <FontAwesomeIcon
-                icon={faAsterisk}
-                className="subheading-icon w-5 h-5 md:w-6 md:h-6 opacity-0"
-                style={{ color: iconColor }}
-                aria-label="subheading icon"
-            /> */}
+  
             <h3
                 ref={headingRef}
                 aria-label={heading}
