@@ -53,7 +53,6 @@ function Xoloitzquintli() {
             <div className="space-y-6">
               <GsapPageSubHeading
                 headingColor="#ffee00"
-                iconColor="#ffee00"
                 heading="Mystical Journey of the Xolo"
               />
               <GsapPageContent as="p" className="mb-4" delay={0.04}>
