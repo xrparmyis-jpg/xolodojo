@@ -395,7 +395,7 @@ function Home() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <GsapPageContent delay={0}>
             <GsapPageSubHeading
-              headingColor="#f7feff"
+              headingColor="#ffee00"
               iconColor="#02abfa"
               heading={`Xolo (ShōLō) "The Guardian", 道 (Dō) "The Pathway",\n\n and 場 (Jō) "The Destination"`}
             />

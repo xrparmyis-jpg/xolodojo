@@ -1,6 +1,5 @@
 import GsapPageContent from '../components/GsapPageContent';
 import GsapPageHeading from '../components/GsapPageHeading';
-import GsapPageSubHeading from '../components/GsapPageSubHeading';
 import TeamMemberSocialLinks, {
   type TeamMemberSocials,
 } from '../components/TeamMemberSocialLinks';
@@ -59,7 +58,7 @@ function TeamMemberHeading({ name }: { name: string }) {
 
   return (
     <div className="mb-0 flex flex-wrap items-center justify-center gap-3 md:justify-start">
-      <h3 className="text-2xl font-bold text-[#28aae4] md:text-3xl">{name}</h3>
+      <h3 className="text-2xl font-bold text-[#ffee00] md:text-3xl">{name}</h3>
       {member && (
         <TeamMemberSocialLinks
           name={member.name}
@@ -99,18 +98,17 @@ function Team() {
       <section className="relative overflow-hidden py-8 lg:py-12 bg-(--bg)">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
-            <GsapPageSubHeading heading="Meet the XoloDojo Team" />
-
-            <GsapPageContent className="mt-8" delay={0.12}>
+           
+            <GsapPageContent className="mt-4" delay={0.12}>
               <TeamMemberHeading name="Cryptonite" />
               <h4 className="text-lg text-center md:text-left md:text-xl font-semibold text-[#642ff8] mb-4">
                 Founder & Visionary Explorer
               </h4>
               <div>
                 <img
-                  src="/xolo-nft-showcase-01.png"
+                  src="/team/XoloCryptonite.jpg"
                   alt="Cryptonite"
-                  className="float-left mr-6 mb-3 mt-2 w-[148px] max-w-[45vw] rounded-md"
+                  className="float-left mr-6 mb-3 mt-2 w-[220px] max-w-[50vw] rounded-md"
                 />
                 <p className="text-justify">
                   Cryptonite, Donovan S. Hall, is a battle-hardened degen from the golden Clubhouse days
@@ -126,9 +124,9 @@ function Team() {
               </h4>
               <div>
                 <img
-                  src="/xolo-nft-showcase-01.png"
+                  src="/team/XoloRedShadow.jpg"
                   alt="RedShadow"
-                  className="float-left mr-6 mb-3 mt-2 w-[148px] max-w-[45vw] rounded-md"
+                  className="float-left mr-6 mb-3 mt-2 w-[220px] max-w-[50vw] rounded-md"
                 />
                 <p className="text-justify">
                   RedShadow, Daniyal Ahmad, is the visionary artist breathing life into The
@@ -152,9 +150,9 @@ function Team() {
               </h4>
               <div>
                 <img
-                  src="/xolo-nft-showcase-01.png"
+                  src="/team/XoloCode.jpg"
                   alt="Code"
-                  className="float-left mr-6 mb-3 mt-2 w-[148px] max-w-[45vw] rounded-md"
+                  className="float-left mr-6 mb-3 mt-2 w-[220px] max-w-[50vw] rounded-md"
                 />
                 <p className="text-justify">
                   Code, Todd A. Nagel, is a seasoned crypto trader with razor-sharp market

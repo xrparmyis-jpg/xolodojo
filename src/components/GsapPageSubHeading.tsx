@@ -23,7 +23,7 @@ function headingPartsForWrapSafeHeading(source: string): string[] {
 function GsapPageSubHeading({
     heading,
     className = "",
-    iconColor = "#02abfa",
+    iconColor = "#edf952",
     headingColor = "#642ff8",
 }: GsapPageSubHeadingProps) {
     const containerRef = useRef<HTMLDivElement | null>(null);
@@ -111,12 +111,12 @@ function GsapPageSubHeading({
             ref={containerRef}
             className={`mb-4 flex w-full items-center justify-start gap-2 md:items-center md:justify-center ${className}`}
         >
-            <FontAwesomeIcon
+            {/* <FontAwesomeIcon
                 icon={faAsterisk}
                 className="subheading-icon w-5 h-5 md:w-6 md:h-6 opacity-0"
                 style={{ color: iconColor }}
                 aria-label="subheading icon"
-            />
+            /> */}
             <h3
                 ref={headingRef}
                 aria-label={heading}
