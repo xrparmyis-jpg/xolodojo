@@ -47,7 +47,7 @@ const teamMembers: TeamMember[] = [
   },
   {
     name: 'Code',
-    role: 'Lead Builder & Degen Architect',
+    role: 'Lead Builder & Degen Architect ',
     image: '/xolo-nft-showcase-01.png',
     email: 'code@xolodojo.com',
     socials: {
