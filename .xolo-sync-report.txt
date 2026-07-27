@@ -1,0 +1,12 @@
+START 2026-07-25T18:13:56-07:00
+PREV_BRANCH=main
+## main...origin/main [behind 4]
+?? .xolo-sync-report.txt
+?? .xolo-sync.sh
+PROD=23719eb0785a4403ee821dc09dcb9ee0cf422f31
+MAIN=15e574f349582f9cef925082f4fb1c87fce69f2b
+=== commits on prod not main ===
+23719eb test
+=== commits on main not prod ===
+TEAM_COMPONENT_ON_PROD=yes
+TEAM_COMPONENT_ON_MAIN=no
