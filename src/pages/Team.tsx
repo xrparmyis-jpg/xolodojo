@@ -31,7 +31,7 @@ const teamMembers: TeamMember[] = [
   },
   {
     name: 'RedShadow',
-    role: 'Artist & Cultural Alchemist',
+    role: 'Artist & Cultural Alchemist ',
     image: '/team/XoloRedShadow.jpg',
     email: 'redshadow@xolodojo.com',
     socials: {
@@ -46,7 +46,7 @@ const teamMembers: TeamMember[] = [
   },
   {
     name: 'Code',
-    role: 'Lead Builder & Degen Architect ',
+    role: 'Lead Builder & Degen Architect',
     image: '/team/XoloCode.jpg',
     email: 'code@xolodojo.com',
     socials: {
