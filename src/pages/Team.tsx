@@ -67,7 +67,7 @@ const memberDelays = [0.12, 0.2, 0.28];
 function TeamMemberHeading({ member }: { member: TeamMember }) {
   return (
     <div className="mb-0 flex flex-wrap items-center justify-center gap-3 md:justify-start">
-      <h3 className="text-2xl font-bold text-[#28aae4] md:text-3xl">
+      <h3 className="text-2xl font-bold text-[#ffee00] md:text-3xl">
         {member.name}
       </h3>
       <TeamMemberSocialLinks
