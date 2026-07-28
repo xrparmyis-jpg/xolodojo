@@ -34,7 +34,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     borderColor: 'border-[#68ed77]',
     titleColor: 'text-[#68ed77]',
     eyebrowTextColor: 'text-[#68ed77]',
-    eyebrow: 'Welcome to the Community',
+    eyebrow: 'The XoloDojo Community',
     title: 'A Global Network of Family. A Piece of the Puzzle.',
     body: (
       <>
@@ -103,7 +103,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     titleColor: 'text-[#3bbee6]',
     eyebrowTextColor: 'text-[#3bbee6]',
     eyebrow: 'Powered by Xglobe',
-    title: <>Connecting Xoloitzquintli NFT holders across the Globe</>,
+    title: <>Connecting Xoloitzquintli NFT holders Across the Globe</>,
     body: (
       <>
         <p className="mb-4">
@@ -138,7 +138,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     borderColor: 'border-[#b1b1a7]',
     titleColor: 'text-[#b1b1a7]',
     eyebrowTextColor: 'text-[#b1b1a7]',
-    eyebrow: 'Pin your presence',
+    eyebrow: 'Xpin your Presence',
     title: <>Seen on Xglobe. Shared with the world.</>,
     body: (
       <>
@@ -171,11 +171,11 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageAtLg: 'left',
     imageSrc: '/home/WetPaintXolo.jpg',
     imageAlt: 'Wet Paint Xolo',
-    borderColor: 'border-[#f0f896] ',
-    titleColor: 'text-[#f0f896]',
-    eyebrowTextColor: 'text-[#f0f896]',
-    eyebrow: 'The Xoloitzquintli: A breed of Legacy',
-    title: <>A legendary history, A living presence</>,
+    borderColor: 'border-[#fff] ',
+    titleColor: 'text-[#fff]',
+    eyebrowTextColor: 'text-[#fff]',
+    eyebrow: 'The Xoloitzquintli: A Breed of Legacy',
+    title: <>Ancient History. Living Presence.</>,
     body: (
       <>
         <p className="mb-4">
@@ -212,11 +212,11 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     imageAtLg: 'right',
     imageSrc: '/home/XoloSwirl600.jpg',
     imageAlt: 'Xolo Swirl 600',
-    borderColor: 'border-[#d400ff]',
-    titleColor: 'text-[#d400ff]',
-    eyebrowTextColor: 'text-[#d400ff]',
+    borderColor: 'border-[#7f2168]',
+    titleColor: 'text-[#7f2168]',
+    eyebrowTextColor: 'text-[#7f2168]',
     eyebrow: 'The Vision',
-    title: <>Built for the long game</>,
+    title: <>Built for the Long Game</>,
     body: (
       <>
         <p className="mb-4">
@@ -395,8 +395,7 @@ function Home() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <GsapPageContent delay={0}>
             <GsapPageSubHeading
-              headingColor="#794bd0"
-              iconColor="#02abfa"
+              headingColor="#ffee00"
               heading={`Xolo (ShōLō) "The Guardian", 道 (Dō) "The Pathway",\n\n and 場 (Jō) "The Destination"`}
             />
           </GsapPageContent>
