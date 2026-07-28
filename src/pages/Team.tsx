@@ -1,6 +1,5 @@
 import GsapPageContent from '../components/GsapPageContent';
 import GsapPageHeading from '../components/GsapPageHeading';
-import GsapPageSubHeading from '../components/GsapPageSubHeading';
 import TeamMemberSocialLinks, {
   type TeamMemberSocials,
 } from '../components/TeamMemberSocialLinks';
@@ -18,7 +17,7 @@ const teamMembers: TeamMember[] = [
   {
     name: 'Cryptonite',
     role: 'Founder & Visionary Explorer',
-    image: '/xolo-nft-showcase-01.png',
+    image: '/team/XoloCryptonite.jpg',
     email: 'xrparmyis@gmail.com',
     socials: {
       twitter: 'XoloDojo',
@@ -32,8 +31,8 @@ const teamMembers: TeamMember[] = [
   },
   {
     name: 'RedShadow',
-    role: 'Artist & Cultural Alchemist',
-    image: '/xolo-nft-showcase-01.png',
+    role: 'Artist & Cultural Alchemist ',
+    image: '/team/XoloRedShadow.jpg',
     email: 'redshadow@xolodojo.com',
     socials: {
       twitter: '#',
@@ -47,8 +46,8 @@ const teamMembers: TeamMember[] = [
   },
   {
     name: 'Code',
-    role: 'Lead Builder & Degen Architect ',
-    image: '/xolo-nft-showcase-01.png',
+    role: 'Lead Builder & Degen Architect',
+    image: '/team/XoloCode.jpg',
     email: 'code@xolodojo.com',
     socials: {
       twitter: '#',
@@ -107,12 +106,10 @@ function Team() {
       <section className="relative overflow-hidden py-8 lg:py-12 bg-(--bg)">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
-            <GsapPageSubHeading heading="Meet the XoloDojo Team" />
-
             {teamMembers.map((member, index) => (
               <GsapPageContent
                 key={member.name}
-                className="mt-8"
+                className="mb-8"
                 delay={memberDelays[index] ?? 0.12}
               >
                 <TeamMemberHeading member={member} />

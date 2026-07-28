@@ -31,7 +31,7 @@ function Xglobe() {
               <p className="mb-7 text-justify">
                 Inside the XoloDojo, the Xglobe comes alive on an interactive,
                 Mapbox-powered world map. Verified Xoloitzquintli NFT holders
-                pin their locations, showcase their unique Xolo, and discover
+                Xpin their locations, showcase their unique Xolo, and discover
                 fellow members across the planet.
               </p>
             </GsapPageContent>
