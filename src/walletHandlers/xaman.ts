@@ -83,7 +83,7 @@ function warnIfLocalhostDesktopWithoutHandoff(intent: XamanConnectIntent): void 
 	warnedLocalhostDesktopHandoff = true;
 	// eslint-disable-next-line no-console
 	console.warn(
-		'[Xaman] Desktop QR on localhost: set VITE_SITE_URL or VITE_XAMAN_DESKTOP_HANDOFF_URL to your deployed site (e.g. https://xolodojo.vercel.app) so the phone does not open http://localhost:5173 after sign-in.'
+		'[Xaman] Desktop QR on localhost: set VITE_SITE_URL or VITE_XAMAN_DESKTOP_HANDOFF_URL to your deployed site (e.g. https://xolodojo.io) so the phone does not open http://localhost:5173 after sign-in.'
 	);
 }
 

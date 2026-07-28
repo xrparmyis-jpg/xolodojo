@@ -22,7 +22,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const image = item.image_url?.startsWith('http')
       ? item.image_url
       : item.image_url
-        ? `${process.env.APP_PUBLIC_URL || 'https://xolodojo.vercel.app'}${item.image_url}`
+        ? `${process.env.APP_PUBLIC_URL || 'https://xolodojo.io'}${item.image_url}`
         : '';
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
