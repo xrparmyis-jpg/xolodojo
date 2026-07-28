@@ -1,15 +1,13 @@
-import 'react';
+import type { DetailedHTMLProps, HTMLAttributes } from 'react';
 
 /** `emoji-picker-element` web component (see PinNoteEditor). */
-declare global {
+declare module 'react/jsx-runtime' {
   namespace JSX {
     interface IntrinsicElements {
-      'emoji-picker': React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement>,
+      'emoji-picker': DetailedHTMLProps<
+        HTMLAttributes<HTMLElement>,
         HTMLElement
       >;
     }
   }
 }
-
-export {};
