@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const defaultSiteOrigin =
-    mode === 'production' ? 'https://xolodojo.vercel.app' : 'http://localhost:5173'
+    mode === 'production' ? 'https://xolodojo.io' : 'http://localhost:5173'
   const siteOrigin = (env.VITE_SITE_URL || env.VITE_APP_URL || defaultSiteOrigin)
     .trim()
     .replace(/\/$/, '')
