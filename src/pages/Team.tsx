@@ -7,6 +7,7 @@ import TeamMemberSocialLinks, {
 
 interface TeamMember {
   name: string;
+  color: string;
   role: string;
   bio: string;
   image: string;
@@ -17,6 +18,7 @@ interface TeamMember {
 const teamMembers: TeamMember[] = [
   {
     name: 'Cryptonite',
+    color: '#FFAA00',
     role: 'Founder & Visionary Explorer',
     image: '/xolo-nft-showcase-01.png',
     email: 'xrparmyis@gmail.com',
@@ -32,6 +34,7 @@ const teamMembers: TeamMember[] = [
   },
   {
     name: 'RedShadow',
+    color: '#0B8900',
     role: 'Artist & Cultural Alchemist',
     image: '/xolo-nft-showcase-01.png',
     email: 'redshadow@xolodojo.com',
@@ -47,6 +50,7 @@ const teamMembers: TeamMember[] = [
   },
   {
     name: 'Code',
+    color: '#896900',
     role: 'Lead Builder & Degen Architect ',
     image: '/xolo-nft-showcase-01.png',
     email: 'code@xolodojo.com',
@@ -67,7 +71,10 @@ const memberDelays = [0.12, 0.2, 0.28];
 function TeamMemberHeading({ member }: { member: TeamMember }) {
   return (
     <div className="mb-0 flex flex-wrap items-center justify-center gap-3 md:justify-start">
-      <h3 className="text-2xl font-bold text-[#ffee00] md:text-3xl">
+      <h3
+        className="text-2xl font-bold md:text-3xl"
+        style={{ color: member.color }}
+      >
         {member.name}
       </h3>
       <TeamMemberSocialLinks
