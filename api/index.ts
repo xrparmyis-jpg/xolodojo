@@ -1,13 +1,34 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { createApiApp } from '../server/createApiApp.js';
 
-let appPromise: ReturnType<typeof createApiApp> | null = null;
+type CreateApiApp = typeof import('../server/createApiApp.js').createApiApp;
+
+let appPromise: ReturnType<CreateApiApp> | null = null;
 
 async function getApp() {
   if (!appPromise) {
+    // Dynamic import so bootstrap failures can be returned as JSON instead of
+    // opaque FUNCTION_INVOCATION_FAILED when the module graph crashes at load.
+    const { createApiApp } = await import('../server/createApiApp.js');
     appPromise = createApiApp();
   }
   return appPromise;
+}
+
+function envPresence() {
+  return {
+    hasSUPABASE_URL: Boolean(process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL),
+    hasSUPABASE_ANON_KEY: Boolean(
+      process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
+    ),
+    hasSUPABASE_SERVICE_ROLE_KEY: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY),
+    hasAPP_PUBLIC_URL: Boolean(process.env.APP_PUBLIC_URL),
+    hasRESEND_API_KEY: Boolean(process.env.RESEND_API_KEY),
+    hasRESEND_FROM: Boolean(process.env.RESEND_FROM || process.env.EMAIL_FROM),
+    APP_PUBLIC_URL: process.env.APP_PUBLIC_URL || null,
+    VERCEL_ENV: process.env.VERCEL_ENV || null,
+    VERCEL_URL: process.env.VERCEL_URL || null,
+    NODE_ENV: process.env.NODE_ENV || null,
+  };
 }
 
 /**
@@ -66,15 +87,48 @@ function mergeVercelQueryIntoUrl(url: string, query: VercelRequest['query']): st
   }
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
-  const pathUrl = expressUrlFromVercelRequest(req);
-  (req as { url: string }).url = mergeVercelQueryIntoUrl(pathUrl, req.query);
+function isHealthRequest(req: VercelRequest, pathUrl: string): boolean {
+  if (req.query?.health === '1' || req.query?.debug === 'env') {
+    return true;
+  }
+  try {
+    const pathname = new URL(pathUrl, 'http://vc.local').pathname;
+    return pathname === '/api/health' || pathname === '/api/debug/env';
+  } catch {
+    return false;
+  }
+}
 
-  const app = await getApp();
-  await new Promise<void>((resolve, reject) => {
-    app(req as never, res as never, (err?: unknown) => {
-      if (err) reject(err);
-      else resolve();
+export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
+  try {
+    const pathUrl = expressUrlFromVercelRequest(req);
+    (req as { url: string }).url = mergeVercelQueryIntoUrl(pathUrl, req.query);
+
+    if (isHealthRequest(req, pathUrl)) {
+      res.status(200).json({
+        ok: true,
+        path: (req as { url: string }).url,
+        env: envPresence(),
+      });
+      return;
+    }
+
+    const app = await getApp();
+    await new Promise<void>((resolve, reject) => {
+      app(req as never, res as never, (err?: unknown) => {
+        if (err) reject(err);
+        else resolve();
+      });
     });
-  });
+  } catch (error: unknown) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    console.error('api/index bootstrap failure:', err);
+    if (!res.headersSent) {
+      res.status(500).json({
+        error: 'API bootstrap failed',
+        details: err.message,
+        env: envPresence(),
+      });
+    }
+  }
 }
