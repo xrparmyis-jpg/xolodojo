@@ -62,12 +62,20 @@
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.11.0",
     "ripple-address-codec": "^4.3.1",
-    "sanitize-html": "^2.17.3",
+    "sanitize-html": "2.13.1",
     "tz-lookup": "^6.1.25",
     "viem": "^2.47.0",
     "wagmi": "^3.5.0",
     "xumm": "^1.8.0",
     "xumm-oauth2-pkce": "^2.8.7"
+  },
+  "overrides": {
+    "htmlparser2": "8.0.2"
+  },
+  "pnpm": {
+    "overrides": {
+      "htmlparser2": "8.0.2"
+    }
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",
