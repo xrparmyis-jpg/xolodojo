@@ -5,10 +5,22 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-const serverDir = path.dirname(fileURLToPath(import.meta.url));
-const projectRoot = path.join(serverDir, '..');
-dotenv.config({ path: path.join(projectRoot, '.env') });
-dotenv.config({ path: path.join(projectRoot, '.env.local'), override: true });
+/** Local only — on Vercel, platform env vars are already injected. */
+function loadLocalEnvFiles(): void {
+  if (process.env.VERCEL) {
+    return;
+  }
+  try {
+    const serverDir = path.dirname(fileURLToPath(import.meta.url));
+    const projectRoot = path.join(serverDir, '..');
+    dotenv.config({ path: path.join(projectRoot, '.env') });
+    dotenv.config({ path: path.join(projectRoot, '.env.local'), override: true });
+  } catch (error) {
+    console.warn('createApiApp: skipped local dotenv load', error);
+  }
+}
+
+loadLocalEnvFiles();
 
 type VercelHandler = (req: VercelRequest, res: VercelResponse) => unknown | Promise<unknown>;
 
