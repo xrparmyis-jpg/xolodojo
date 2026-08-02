@@ -72,14 +72,14 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     titleColor: 'text-[#e661a8]',
     eyebrowTextColor: 'text-[#e661a8]',
     eyebrow: 'The Xoloitzquintli NFT Collection',
-    title: <>Clean traits. Straight fire. Built different. </>,
+    title: <>Clean Traits. Straight Fire. Built Different. </>,
     body: (
       <>
         <p className="mb-4">
-          10,001 Xolos. Built on
-          the XRPL for its eco-friendly design, fast payments, and low fees, the
-          collection draws from 11 distinct traits and 311 sub-traits, all
-          hand-drawn by the teams talented artist, RedShadow.{' '}
+          10,001 Xolos. Built on the XRPL for its eco-friendly design, fast
+          payments, and low fees, the collection draws from 11 distinct traits
+          and 311 sub-traits, all hand-drawn by the teams talented artist,
+          RedShadow.{' '}
         </p>
         <p className="mb-4">
           Every Xolo carries its own energy--from sacred, sharp, chaotic, and
@@ -103,7 +103,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     titleColor: 'text-[#3bbee6]',
     eyebrowTextColor: 'text-[#3bbee6]',
     eyebrow: 'Powered by Xglobe',
-    title: <>Connecting Xoloitzquintli NFT holders Across the Globe</>,
+    title: <>Connecting Xoloitzquintli NFT Holders across the Globe</>,
     body: (
       <>
         <p className="mb-4">
@@ -139,7 +139,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     titleColor: 'text-[#b1b1a7]',
     eyebrowTextColor: 'text-[#b1b1a7]',
     eyebrow: 'Xpin your Presence',
-    title: <>Seen on Xglobe. Shared with the world.</>,
+    title: <>Seen on Xglobe. Shared with the World.</>,
     body: (
       <>
         <p className="mb-4">
@@ -360,7 +360,11 @@ function Home() {
           <GsapPageContent className="mx-auto w-full max-w-4xl">
             <>
               <p>
-                10,001 unique Xoloitzquintli NFTs on the XRPL. Each one unlocks Xglobe — a live, token-gated world map where holders connect, collaborate, and build real relationships across the planet. Fused with degen pride and the spirit of community, the mint is next. Lock in and be ready when we flip the switch.
+                10,001 unique Xoloitzquintli NFTs on the XRPL. Each one unlocks
+                Xglobe — a live, token-gated world map where holders connect,
+                collaborate, and build real relationships across the planet.
+                Fused with degen pride and the spirit of community, the mint is
+                next. Lock in and be ready when we flip the switch.
               </p>
             </>
           </GsapPageContent>
@@ -409,14 +413,16 @@ function Home() {
                   delay={index * 0.06}
                 >
                   <div
-                    className={`min-w-0 w-full lg:w-1/2 order-1 ${imageLeft ? 'lg:order-1' : 'lg:order-2'
-                      }`}
+                    className={`min-w-0 w-full lg:w-1/2 order-1 ${
+                      imageLeft ? 'lg:order-1' : 'lg:order-2'
+                    }`}
                   >
                     <div
-                      className={`w-full transition-transform duration-300 ease-in-out ${imageLeft
+                      className={`w-full transition-transform duration-300 ease-in-out ${
+                        imageLeft
                           ? 'hover:rotate-[10deg]'
                           : 'hover:-rotate-[10deg]'
-                        }`}
+                      }`}
                     >
                       <img
                         src={row.imageSrc}
@@ -426,14 +432,17 @@ function Home() {
                     </div>
                   </div>
                   <div
-                    className={`min-w-0 w-full lg:w-1/2 order-2 ${imageLeft ? 'lg:order-2' : 'lg:order-1'
-                      }`}
+                    className={`min-w-0 w-full lg:w-1/2 order-2 ${
+                      imageLeft ? 'lg:order-2' : 'lg:order-1'
+                    }`}
                   >
                     <div className="flex min-w-0 flex-col text-left mt-8 lg:mt-0">
                       <span
-                        className={`mb-5 inline-block w-fit max-w-full self-center rounded-2xl border ${row.borderColor
-                          } px-8 py-2 text-center text-[15px] font-bold leading-none ${row.eyebrowTextColor || row.titleColor
-                          }`}
+                        className={`mb-5 inline-block w-fit max-w-full self-center rounded-2xl border ${
+                          row.borderColor
+                        } px-8 py-2 text-center text-[15px] font-bold leading-none ${
+                          row.eyebrowTextColor || row.titleColor
+                        }`}
                       >
                         {row.eyebrow}
                       </span>
