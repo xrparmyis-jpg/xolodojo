@@ -72,7 +72,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     titleColor: 'text-[#e661a8]',
     eyebrowTextColor: 'text-[#e661a8]',
     eyebrow: 'The Xoloitzquintli NFT Collection',
-    title: <>Clean traits. Straight fire. Built different. </>,
+    title: <>Clean Traits. Straight Fire. Built Different. </>,
     body: (
       <>
         <p className="mb-4">
@@ -103,7 +103,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     titleColor: 'text-[#3bbee6]',
     eyebrowTextColor: 'text-[#3bbee6]',
     eyebrow: 'Powered by Xglobe',
-    title: <>Connecting Xoloitzquintli NFT holders Across the Globe</>,
+    title: <>Connecting Xoloitzquintli NFT Holders across the Globe</>,
     body: (
       <>
         <p className="mb-4">
@@ -128,7 +128,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
         <p>Xglobe is the Omega.</p>
       </>
     ),
-    sectionCta: { to: '/xglobe', label: 'Open Xglobe' },
+    sectionCta: { to: '/xglobe', label: 'Xglobe' },
   },
   {
     id: 'Pin Your Presence',
@@ -139,7 +139,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
     titleColor: 'text-[#b1b1a7]',
     eyebrowTextColor: 'text-[#b1b1a7]',
     eyebrow: 'Xpin your Presence',
-    title: <>Seen on Xglobe. Shared with the world.</>,
+    title: <>Seen on Xglobe. Shared with the World.</>,
     body: (
       <>
         <p className="mb-4">
@@ -205,7 +205,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
         <p></p>
       </>
     ),
-    sectionCta: { to: '/xoloitzquintli', label: 'The Xoloitzquintli page' },
+    sectionCta: { to: '/xoloitzquintli', label: 'Xoloitzquintli' },
   },
   {
     id: 'The Vision',
@@ -244,7 +244,7 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
         </p>
       </>
     ),
-    sectionCta: { to: '/vision', label: 'Read the full vision' },
+    sectionCta: { to: '/vision', label: 'Vision' },
   },
   {
     id: 'The Team',
@@ -284,13 +284,14 @@ const LEGACY_STORY_ROWS: LegacyStoryRow[] = [
         <p className="mb-4"></p>
       </>
     ),
-    sectionCta: { to: '/team', label: 'Meet the team' },
+    sectionCta: { to: '/team', label: 'Team' },
   },
 ];
 
 function Home() {
   const projectSectionRef = useRef<HTMLElement>(null);
   const projectColorBgRef = useRef<HTMLDivElement>(null);
+  
 
   const [projectBlobOffset, setProjectBlobOffset] = useState(0);
 

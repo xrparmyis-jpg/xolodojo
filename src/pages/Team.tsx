@@ -1,5 +1,6 @@
 import GsapPageContent from '../components/GsapPageContent';
 import GsapPageHeading from '../components/GsapPageHeading';
+import GsapPageSubHeading from '../components/GsapPageSubHeading';
 import TeamMemberSocialLinks, {
   type TeamMemberSocials,
 } from '../components/TeamMemberSocialLinks';
@@ -106,10 +107,14 @@ function Team() {
       <section className="relative overflow-hidden py-8 lg:py-12 bg-(--bg)">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
+           <GsapPageSubHeading
+              headingColor="#ffee00"
+              heading="Cryptonite Labs: Team Fire"
+            />
             {teamMembers.map((member, index) => (
               <GsapPageContent
                 key={member.name}
-                className="mb-8"
+                className="mt-12"
                 delay={memberDelays[index] ?? 0.12}
               >
                 <TeamMemberHeading member={member} />
