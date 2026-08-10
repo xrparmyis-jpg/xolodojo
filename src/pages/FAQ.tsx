@@ -48,7 +48,7 @@ function FAQ() {
           <div className="flex flex-col items-center text-center">
             <div className="mb-8">
               <img
-                src="/04a.png"
+                src="/faq/Faq.jpg"
                 alt=""
                 className="max-h-56 w-auto rounded-md object-contain md:max-h-80"
               />

@@ -44,7 +44,7 @@ function Xoloitzquintli() {
             <div className="container mx-auto max-w-7xl px-4">
               <div className="flex flex-col items-center text-center">
                 <GsapHeroParallax
-                  imageSrc="/04a.png"
+                  imageSrc="/xoloitzquintli/Xoloitzquintli.jpg"
                   alt="Xoloitzquintli Mint Hero"
                   className="mb-10"
                 />

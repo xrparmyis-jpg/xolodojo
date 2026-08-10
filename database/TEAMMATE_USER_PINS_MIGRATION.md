@@ -46,13 +46,3 @@ Adjust user/password/database if your `.env.local` differs.
 ## If the API errors before migration
 
 Symptoms: `ER_NO_SUCH_TABLE` / `user_pins` doesn’t exist. Fix: run the migration above once.
-
----
-
-## Optional: 15 test globe pins (seed user only)
-
-```bash
-docker compose exec -T mysql mysql -udonovan_user -pdonovan_password donovan_db < database/migrations/seed_xologlobe_test_pins.sql
-```
-
-Safe on dev; skip on shared prod unless you want fake markers.
