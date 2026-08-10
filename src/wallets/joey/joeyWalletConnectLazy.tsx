@@ -130,12 +130,19 @@ export function JoeyWalletConnectBridgeHost({ hookParams }: { hookParams: JoeyCo
     if (!pending) {
       return;
     }
-    stack.pendingActionRef.current = null;
-    if (pending === 'connect') {
-      void joey.connect();
-      return;
-    }
-    void joey.disconnectFromProvider();
+    // Defer one tick so Joey Provider can leave DefaultContext before generate runs.
+    const timer = window.setTimeout(() => {
+      if (stack.pendingActionRef.current !== pending) {
+        return;
+      }
+      stack.pendingActionRef.current = null;
+      if (pending === 'connect') {
+        void joey.connect();
+        return;
+      }
+      void joey.disconnectFromProvider();
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [joey, stack]);
 
   return null;
