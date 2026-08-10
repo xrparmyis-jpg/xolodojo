@@ -1,232 +1,251 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useLocation, Link, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBars, faTimes, faUser, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
+import {
+  faBars,
+  faTimes,
+  faUser,
+  faSignOutAlt,
+} from '@fortawesome/free-solid-svg-icons';
 import { useAuth } from '../providers/AuthContext';
 import { useLoginModal } from '../providers/LoginModalContext';
 import { disconnectExternalWallets } from '../utils/disconnectExternalWallets';
-import { accountDisplayLabel, truncateWalletAddress } from '../utils/userDisplayLabel';
+import {
+  accountDisplayLabel,
+  truncateWalletAddress,
+} from '../utils/userDisplayLabel';
 
 interface MenuProps {
-    onLinkClick?: () => void;
-    variant?: 'desktop' | 'mobile-toggle';
-    isMobileMenuOpen?: boolean;
-    setIsMobileMenuOpen?: React.Dispatch<React.SetStateAction<boolean>>;
-    isSticky?: boolean;
+  onLinkClick?: () => void;
+  variant?: 'desktop' | 'mobile-toggle';
+  isMobileMenuOpen?: boolean;
+  setIsMobileMenuOpen?: React.Dispatch<React.SetStateAction<boolean>>;
+  isSticky?: boolean;
 }
 
 function Menu({
-    onLinkClick,
-    variant = 'desktop',
-    isMobileMenuOpen: externalIsOpen,
-    setIsMobileMenuOpen: externalSetOpen,
-    isSticky = false,
+  onLinkClick,
+  variant = 'desktop',
+  isMobileMenuOpen: externalIsOpen,
+  setIsMobileMenuOpen: externalSetOpen,
+  isSticky = false,
 }: MenuProps) {
-    const [internalIsOpen, setInternalIsOpen] = useState(false);
-    const location = useLocation();
-    const navigate = useNavigate();
-    const { user, loading: authLoading, logout } = useAuth();
-    const { openConnect } = useLoginModal();
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user, loading: authLoading, logout } = useAuth();
+  const { openConnect } = useLoginModal();
 
-    const isMobileMenuOpen =
-        externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
-    const setIsMobileMenuOpen =
-        externalSetOpen !== undefined ? externalSetOpen : setInternalIsOpen;
+  const isMobileMenuOpen =
+    externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
+  const setIsMobileMenuOpen =
+    externalSetOpen !== undefined ? externalSetOpen : setInternalIsOpen;
 
-    useEffect(() => {
-        setIsMobileMenuOpen(false);
-    }, [location.pathname]);
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
 
-    useEffect(() => {
-        if (isMobileMenuOpen) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = '';
-        }
-        return () => {
-            document.body.style.overflow = '';
-        };
-    }, [isMobileMenuOpen]);
-
-    const toggleMobileMenu = () => {
-        setIsMobileMenuOpen(!isMobileMenuOpen);
-    };
-
-    const closeMobileMenu = () => {
-        setIsMobileMenuOpen(false);
-        onLinkClick?.();
-    };
-
-    const menuItems = [
-        { path: '/xoloitzquintli', label: 'Xoloitzquintli' },
-        { path: '/team', label: 'Team' },
-        { path: '/vision', label: 'Vision' },
-        { path: '/xglobe', label: 'Xglobe' },
-    ];
-
-    const mobileNavLinkClass = ({ isActive }: { isActive: boolean }) =>
-        `flex items-center gap-3 border-b border-white/10 py-3 text-base font-medium capitalize no-underline transition-colors ${isActive ? 'font-semibold text-[#b7e9f7]' : 'text-white hover:text-[#b7e9f7]'}`;
-
-    const desktopNavLinkClass = ({ isActive }: { isActive: boolean }) =>
-        `inline-block text-lg font-medium capitalize no-underline transition-all duration-300 ease-in-out ${isSticky ? 'py-1.5' : 'py-5'} ${isActive
-            ? 'font-bold text-[#b7e9f7] underline decoration-[#b7e9f7] underline-offset-4'
-            : 'text-white hover:text-[#b7e9f7]'
-        }`;
-
-    if (variant === 'mobile-toggle') {
-        return (
-            <div className="md:hidden">
-                <button
-                    type="button"
-                    onClick={toggleMobileMenu}
-                    aria-label="Toggle mobile menu"
-                    className="cursor-pointer border-0 bg-transparent p-2 text-xl text-white"
-                >
-                    <FontAwesomeIcon icon={isMobileMenuOpen ? faTimes : faBars} />
-                </button>
-            </div>
-        );
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
     }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileMenuOpen]);
 
-    // Desktop menu variant
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+    onLinkClick?.();
+  };
+
+  const menuItems = [
+    { path: '/xoloitzquintli', label: 'Xoloitzquintli' },
+    { path: '/team', label: 'Team' },
+    { path: '/vision', label: 'Vision' },
+    { path: '/xglobe', label: 'Xglobe' },
+  ];
+
+  const mobileNavLinkClass = ({ isActive }: { isActive: boolean }) =>
+    `flex items-center gap-3 border-b border-white/10 py-3 text-base font-medium capitalize no-underline transition-colors ${isActive ? 'font-semibold text-[#b7e9f7]' : 'text-white hover:text-[#b7e9f7]'}`;
+
+  const desktopNavLinkClass = ({ isActive }: { isActive: boolean }) =>
+    `inline-block text-lg font-medium capitalize no-underline transition-all duration-300 ease-in-out ${isSticky ? 'py-1' : 'py-2'} ${
+      isActive
+        ? 'font-bold text-[#b7e9f7] underline decoration-[#b7e9f7] underline-offset-4 px-2 rounded-md'
+        : 'text-white hover:bg-[#1ca7f2] px-2 rounded-md'
+    }`;
+
+  if (variant === 'mobile-toggle') {
     return (
-        <>
-            <nav
-                className={`hidden md:block ${isSticky ? '-mt-1' : ''}`}
-                aria-label="Primary"
-            >
-                <ul className="m-0 flex list-none flex-row gap-6 p-0">
-                    {menuItems.map((item) => (
-                        <li key={item.path} className="relative list-none">
-                            <NavLink to={item.path} end className={desktopNavLinkClass}>
-                                {item.label}
-                            </NavLink>
-                        </li>
-                    ))}
-                </ul>
-            </nav>
-
-            {variant === 'desktop' && (
-                <>
-                    {isMobileMenuOpen && (
-                        <div
-                            className="fixed inset-0 z-[9998] bg-black/50 md:hidden"
-                            onClick={closeMobileMenu}
-                            role="presentation"
-                            aria-hidden="true"
-                        />
-                    )}
-
-                    <div
-                        className={`fixed top-0 right-0 z-[9999] h-screen w-[320px] max-w-[85vw] overflow-hidden bg-[#1d1d21] shadow-[-2px_0_10px_rgba(0,0,0,0.3)] transition-transform duration-300 ease-in-out md:hidden ${isMobileMenuOpen ? 'translate-x-0 pointer-events-auto' : 'translate-x-full pointer-events-none'}`}
-                    >
-                        <div className="flex h-full flex-col overflow-hidden">
-                            <div className="flex items-center justify-between border-b border-white/20 px-5 py-5">
-                                <div className="min-w-0 flex-1 pr-3">
-                                    {authLoading ? (
-                                        <span className="text-sm text-white/50">…</span>
-                                    ) : user ? (
-                                        user.authMode === 'wallet' && user.walletAddress ? (
-                                            <span className="block truncate font-mono text-sm font-semibold text-white">
-                                                {truncateWalletAddress(user.walletAddress)}
-                                            </span>
-                                        ) : (
-                                            <span className="block truncate text-base font-semibold tracking-tight text-white">
-                                                {accountDisplayLabel(user)}
-                                            </span>
-                                        )
-                                    ) : (
-                                        <span className="text-sm font-medium text-white/90">XoloDojo</span>
-                                    )}
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={closeMobileMenu}
-                                    className="cursor-pointer border-0 bg-transparent p-2 text-xl text-white transition-colors hover:text-[#b7e9f7]"
-                                    aria-label="Close menu"
-                                >
-                                    <FontAwesomeIcon icon={faTimes} />
-                                </button>
-                            </div>
-
-                            <nav className="flex-1 overflow-y-auto p-5" aria-label="Mobile primary">
-                                <ul className="m-0 list-none p-0">
-                                    {menuItems.map((item) => (
-                                        <li key={item.path} className="mb-2">
-                                            <NavLink
-                                                to={item.path}
-                                                end
-                                                onClick={closeMobileMenu}
-                                                className={mobileNavLinkClass}
-                                            >
-                                                {item.label}
-                                            </NavLink>
-                                        </li>
-                                    ))}
-                                    {!authLoading && (
-                                        <>
-                                            {user ? (
-                                                <>
-                                                    <li className="mb-2">
-                                                        <Link
-                                                            to="/profile"
-                                                            onClick={closeMobileMenu}
-                                                            className="flex w-full items-center gap-3 border-b border-white/10 py-3 text-left text-base font-medium text-white no-underline transition-colors hover:text-[#b7e9f7]"
-                                                        >
-                                                            <FontAwesomeIcon icon={faUser} className="h-[18px] w-[18px] shrink-0" />
-                                                            <span>Profile</span>
-                                                        </Link>
-                                                    </li>
-                                                                                                       <li className="mb-2">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                void (async () => {
-                                                                    if (user.authMode === 'wallet') {
-                                                                        await disconnectExternalWallets();
-                                                                        await logout();
-                                                                        navigate('/');
-                                                                    } else {
-                                                                        await logout();
-                                                                    }
-                                                                    closeMobileMenu();
-                                                                })();
-                                                            }}
-                                                            className="mt-2 flex w-full cursor-pointer items-center gap-3 border-0 border-b border-white/10 bg-transparent py-3 text-left text-base font-medium text-white transition-colors hover:text-[#b7e9f7]"
-                                                        >
-                                                            <FontAwesomeIcon icon={faSignOutAlt} className="h-[18px] w-[18px] shrink-0" />
-                                                            <span>
-                                                                {user.authMode === 'wallet' ? 'Disconnect' : 'Logout'}
-                                                            </span>
-                                                        </button>
-                                                    </li>
-                                                </>
-                                            ) : (
-                                                <li className="mb-2">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            openConnect();
-                                                            closeMobileMenu();
-                                                        }}
-                                                        className="xologlobe-nav-pill xologlobe-nav-pill--sticky mt-2 w-full max-w-none justify-center py-2.5"
-                                                    >
-                                                        <span className="xologlobe-nav-pill__label text-base font-semibold">
-                                                            Get Started
-                                                        </span>
-                                                    </button>
-                                                </li>
-                                            )}
-                                        </>
-                                    )}
-                                </ul>
-                            </nav>
-                        </div>
-                    </div>
-                </>
-            )}
-        </>
+      <div className="md:hidden">
+        <button
+          type="button"
+          onClick={toggleMobileMenu}
+          aria-label="Toggle mobile menu"
+          className="cursor-pointer border-0 bg-transparent p-2 text-xl text-white"
+        >
+          <FontAwesomeIcon icon={isMobileMenuOpen ? faTimes : faBars} />
+        </button>
+      </div>
     );
+  }
+
+  // Desktop menu variant
+  return (
+    <>
+      <nav className={`hidden md:block`} aria-label="Primary">
+        <ul className="m-0 flex list-none flex-row items-center gap-6 p-0">
+          {menuItems.map(item => (
+            <li key={item.path} className="relative list-none">
+              <NavLink to={item.path} end className={desktopNavLinkClass}>
+                {item.label}
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      {variant === 'desktop' && (
+        <>
+          {isMobileMenuOpen && (
+            <div
+              className="fixed inset-0 z-[9998] bg-black/50 md:hidden"
+              onClick={closeMobileMenu}
+              role="presentation"
+              aria-hidden="true"
+            />
+          )}
+
+          <div
+            className={`fixed top-0 right-0 z-[9999] h-screen w-[320px] max-w-[85vw] overflow-hidden bg-[#1d1d21] shadow-[-2px_0_10px_rgba(0,0,0,0.3)] transition-transform duration-300 ease-in-out md:hidden ${isMobileMenuOpen ? 'translate-x-0 pointer-events-auto' : 'translate-x-full pointer-events-none'}`}
+          >
+            <div className="flex h-full flex-col overflow-hidden">
+              <div className="flex items-center justify-between border-b border-white/20 px-5 py-5">
+                <div className="min-w-0 flex-1 pr-3">
+                  {authLoading ? (
+                    <span className="text-sm text-white/50">…</span>
+                  ) : user ? (
+                    user.authMode === 'wallet' && user.walletAddress ? (
+                      <span className="block truncate font-mono text-sm font-semibold text-white">
+                        {truncateWalletAddress(user.walletAddress)}
+                      </span>
+                    ) : (
+                      <span className="block truncate text-base font-semibold tracking-tight text-white">
+                        {accountDisplayLabel(user)}
+                      </span>
+                    )
+                  ) : (
+                    <span className="text-sm font-medium text-white/90">
+                      XoloDojo
+                    </span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={closeMobileMenu}
+                  className="cursor-pointer border-0 bg-transparent p-2 text-xl text-white transition-colors hover:text-[#b7e9f7]"
+                  aria-label="Close menu"
+                >
+                  <FontAwesomeIcon icon={faTimes} />
+                </button>
+              </div>
+
+              <nav
+                className="flex-1 overflow-y-auto p-5"
+                aria-label="Mobile primary"
+              >
+                <ul className="m-0 list-none p-0">
+                  {menuItems.map(item => (
+                    <li key={item.path} className="mb-2">
+                      <NavLink
+                        to={item.path}
+                        end
+                        onClick={closeMobileMenu}
+                        className={mobileNavLinkClass}
+                      >
+                        {item.label}
+                      </NavLink>
+                    </li>
+                  ))}
+                  {!authLoading && (
+                    <>
+                      {user ? (
+                        <>
+                          <li className="mb-2">
+                            <Link
+                              to="/profile"
+                              onClick={closeMobileMenu}
+                              className="flex w-full items-center gap-3 border-b border-white/10 py-3 text-left text-base font-medium text-white no-underline transition-colors hover:text-[#b7e9f7]"
+                            >
+                              <FontAwesomeIcon
+                                icon={faUser}
+                                className="h-[18px] w-[18px] shrink-0"
+                              />
+                              <span>Profile</span>
+                            </Link>
+                          </li>
+                          <li className="mb-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                void (async () => {
+                                  if (user.authMode === 'wallet') {
+                                    await disconnectExternalWallets();
+                                    await logout();
+                                    navigate('/');
+                                  } else {
+                                    await logout();
+                                  }
+                                  closeMobileMenu();
+                                })();
+                              }}
+                              className="mt-2 flex w-full cursor-pointer items-center gap-3 border-0 border-b border-white/10 bg-transparent py-3 text-left text-base font-medium text-white transition-colors hover:text-[#b7e9f7]"
+                            >
+                              <FontAwesomeIcon
+                                icon={faSignOutAlt}
+                                className="h-[18px] w-[18px] shrink-0"
+                              />
+                              <span>
+                                {user.authMode === 'wallet'
+                                  ? 'Disconnect'
+                                  : 'Logout'}
+                              </span>
+                            </button>
+                          </li>
+                        </>
+                      ) : (
+                        <li className="mb-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              openConnect();
+                              closeMobileMenu();
+                            }}
+                            className="xologlobe-nav-pill xologlobe-nav-pill--sticky mt-2 w-full max-w-none justify-center py-2.5 hover:bg-[#1ca7f2]"
+                          >
+                            <span className="xologlobe-nav-pill__label text-base font-semibold ">
+                              Get Started
+                            </span>
+                          </button>
+                        </li>
+                      )}
+                    </>
+                  )}
+                </ul>
+              </nav>
+            </div>
+          </div>
+        </>
+      )}
+    </>
+  );
 }
 
 export default Menu;
