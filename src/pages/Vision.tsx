@@ -45,7 +45,7 @@ function Vision() {
             <div className="container mx-auto max-w-7xl px-4">
               <div className="flex flex-col items-center text-center">
                 <GsapHeroParallax
-                  imageSrc="/paralax-bg.png"
+                  imageSrc="/vision/Vision.jpg"
                   alt="Xoloitzquintli Mint Hero"
                   className="mb-8"
                 />

@@ -16,9 +16,9 @@ const SEED_USERNAME = 'xologlobe_seed';
 const SEED_PASSWORD = 'XoloGlobeSeed!';
 
 const PINS = [
-  { token_id: 'test-marker-001', wallet_address: 'rtestmarker001', latitude: 37.7749, longitude: -122.4194, image_url: '/03c.jpg', title: 'San Francisco Test Pin', collection_name: 'Xolo Test Pins', socials: { twitter: 'xolo_sf', instagram: 'xolo.sf' }, pin_note: 'Pacific-edge city — fog, hills, and the bay nearby.\n\nStaging test pin only.' },
-  { token_id: 'test-marker-002', wallet_address: 'rtestmarker002', latitude: 19.4326, longitude: -99.1332, image_url: '/03a.jpg', title: 'Mexico City Test Pin', collection_name: 'Xolo Test Pins', socials: { telegram: 'xolo_mexico', tiktok: 'xolomx' }, pin_note: 'High valley capital ringed by mountains and volcanoes.\n\nTest data only.' },
-  { token_id: 'test-marker-c01', wallet_address: 'rtestclust01', latitude: 37.77495, longitude: -122.41935, image_url: '/03c.jpg', title: 'SF cluster (tight A)', collection_name: 'Xolo Cluster Test', socials: { twitter: 'xolo_cluster' }, pin_note: 'Cluster test pin — tight group near SF seed pin.' },
+  { token_id: 'test-marker-001', wallet_address: 'rtestmarker001', latitude: 37.7749, longitude: -122.4194, image_url: '/team/XoloCryptonite.jpg', title: 'San Francisco Test Pin', collection_name: 'Xolo Test Pins', socials: { twitter: 'xolo_sf', instagram: 'xolo.sf' }, pin_note: 'Pacific-edge city — fog, hills, and the bay nearby.\n\nStaging test pin only.' },
+  { token_id: 'test-marker-002', wallet_address: 'rtestmarker002', latitude: 19.4326, longitude: -99.1332, image_url: '/team/XoloRedShadow.jpg', title: 'Mexico City Test Pin', collection_name: 'Xolo Test Pins', socials: { telegram: 'xolo_mexico', tiktok: 'xolomx' }, pin_note: 'High valley capital ringed by mountains and volcanoes.\n\nTest data only.' },
+  { token_id: 'test-marker-c01', wallet_address: 'rtestclust01', latitude: 37.77495, longitude: -122.41935, image_url: '/team/XoloCode.jpg', title: 'SF cluster (tight A)', collection_name: 'Xolo Cluster Test', socials: { twitter: 'xolo_cluster' }, pin_note: 'Cluster test pin — tight group near SF seed pin.' },
 ];
 
 async function main() {
@@ -43,7 +43,7 @@ async function main() {
     console.log('Seed user already exists:', userId);
     await supabase
       .from('profiles')
-      .update({ name: 'XoloGlobe Test Markers', picture_url: '/image.png' })
+      .update({ name: 'XoloGlobe Test Markers', picture_url: '/team/XoloCryptonite.jpg' })
       .eq('id', userId);
   }
 
