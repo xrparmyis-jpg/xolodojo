@@ -1,18 +1,17 @@
-import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faDiscord,
   faInstagram,
-  faLinkedinIn,
   faTelegram,
   faTiktok,
   faXTwitter,
-} from "@fortawesome/free-brands-svg-icons";
+} from '@fortawesome/free-brands-svg-icons';
 
-import SectionBlobs from "./SectionBlobs";
-import GsapPageContent from "./GsapPageContent";
+import SectionBlobs from './SectionBlobs';
+import GsapPageContent from './GsapPageContent';
 
 function Footer() {
   const footerRef = useRef<HTMLElement>(null);
@@ -30,7 +29,10 @@ function Footer() {
         const sectionTop = rect.top;
         const sectionHeight = rect.height;
 
-        const scrollProgress = Math.max(0, (windowHeight - sectionTop) / (windowHeight + sectionHeight));
+        const scrollProgress = Math.max(
+          0,
+          (windowHeight - sectionTop) / (windowHeight + sectionHeight)
+        );
         const greenOffset = scrollProgress * sectionHeight * 0.3;
         const orangeOffset = scrollProgress * sectionHeight * 0.4;
 
@@ -49,7 +51,10 @@ function Footer() {
   }, []);
 
   return (
-    <footer ref={footerRef} className="border-t border-[#36e9e424] relative overflow-hidden py-4 lg:py-8 bg-[#1a1a1e]">
+    <footer
+      ref={footerRef}
+      className="border-t border-[#36e9e424] relative overflow-hidden py-4 lg:py-8 bg-[#1a1a1e]"
+    >
       <SectionBlobs
         greenBlobOffset={greenBlobOffset}
         orangeBlobOffset={orangeBlobOffset}
@@ -74,19 +79,34 @@ function Footer() {
             intersectionRootMargin="0px"
           >
             <div className="grid grid-cols-1 justify-items-center gap-2 sm:grid-cols-2 sm:gap-4 lg:grid-cols-5">
-              <a href="https://xrp.cafe/" className="text-white text-sm sm:text-base whitespace-nowrap transition-all duration-300 ease-in-out no-underline hover:text-[#b7e9f7] hover:no-underline">
+              <a
+                href="https://xrp.cafe/"
+                className="text-white text-sm sm:text-base whitespace-nowrap transition-all duration-300 ease-in-out no-underline hover:text-[#b7e9f7] hover:no-underline"
+              >
                 Xrp.cafe Marketplace
               </a>
-              <a href="https://xaman.app/" className="text-white text-sm sm:text-base whitespace-nowrap transition-all duration-300 ease-in-out no-underline hover:text-[#b7e9f7] hover:no-underline">
+              <a
+                href="https://xaman.app/"
+                className="text-white text-sm sm:text-base whitespace-nowrap transition-all duration-300 ease-in-out no-underline hover:text-[#b7e9f7] hover:no-underline"
+              >
                 Xaman Wallet
               </a>
-              <a href="https://xrpscan.com/" className="text-white text-sm sm:text-base whitespace-nowrap transition-all duration-300 ease-in-out no-underline hover:text-[#b7e9f7] hover:no-underline">
+              <a
+                href="https://xrpscan.com/"
+                className="text-white text-sm sm:text-base whitespace-nowrap transition-all duration-300 ease-in-out no-underline hover:text-[#b7e9f7] hover:no-underline"
+              >
                 XRPSCAN Explorer
               </a>
-              <a href="https://www.xrptoolkit.com/" className="text-white text-sm sm:text-base whitespace-nowrap transition-all duration-300 ease-in-out no-underline hover:text-[#b7e9f7] hover:no-underline">
+              <a
+                href="https://www.xrptoolkit.com/"
+                className="text-white text-sm sm:text-base whitespace-nowrap transition-all duration-300 ease-in-out no-underline hover:text-[#b7e9f7] hover:no-underline"
+              >
                 XRP Toolkit
               </a>
-              <a href="https://xrpl.org/" className="text-white text-sm sm:text-base whitespace-nowrap transition-all duration-300 ease-in-out no-underline hover:text-[#b7e9f7] hover:no-underline">
+              <a
+                href="https://xrpl.org/"
+                className="text-white text-sm sm:text-base whitespace-nowrap transition-all duration-300 ease-in-out no-underline hover:text-[#b7e9f7] hover:no-underline"
+              >
                 Official XRPL Site
               </a>
             </div>
@@ -105,16 +125,28 @@ function Footer() {
               The Xoloitzquintli Collection © 2024. All Rights Reserved.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 md:justify-start">
-              <Link to="/faq" className="text-sm text-[#cdcdcd] no-underline transition-all duration-300 ease-in-out hover:text-[#b7e9f7] hover:no-underline">
+              <Link
+                to="/faq"
+                className="text-sm text-[#cdcdcd] no-underline transition-all duration-300 ease-in-out hover:text-[#b7e9f7] hover:no-underline"
+              >
                 FAQ
               </Link>
-              <Link to="/terms-and-conditions" className="text-sm text-[#cdcdcd] no-underline transition-all duration-300 ease-in-out hover:text-[#b7e9f7] hover:no-underline">
+              <Link
+                to="/terms-and-conditions"
+                className="text-sm text-[#cdcdcd] no-underline transition-all duration-300 ease-in-out hover:text-[#b7e9f7] hover:no-underline"
+              >
                 Terms &amp; Conditions
               </Link>
-              <Link to="/privacy-policy" className="text-sm text-[#cdcdcd] no-underline transition-all duration-300 ease-in-out hover:text-[#b7e9f7] hover:no-underline">
+              <Link
+                to="/privacy-policy"
+                className="text-sm text-[#cdcdcd] no-underline transition-all duration-300 ease-in-out hover:text-[#b7e9f7] hover:no-underline"
+              >
                 Privacy Policy
               </Link>
-              <Link to="/cookie-policy" className="text-sm text-[#cdcdcd] no-underline transition-all duration-300 ease-in-out hover:text-[#b7e9f7] hover:no-underline">
+              <Link
+                to="/cookie-policy"
+                className="text-sm text-[#cdcdcd] no-underline transition-all duration-300 ease-in-out hover:text-[#b7e9f7] hover:no-underline"
+              >
                 Cookie Policy
               </Link>
             </div>
@@ -125,22 +157,49 @@ function Footer() {
             intersectionThreshold={0}
             intersectionRootMargin="0px"
           >
-            <a href="#" title="X (Twitter)" className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#cfd0d4] text-[#cdcdcd] transition-all duration-300 ease-in-out no-underline hover:bg-black/40 hover:text-[#b7e9f7] hover:no-underline" aria-label="X (Twitter)">
+            <a
+              href="https://twitter.com/XoloDojo"
+              target="_blank"
+              title="X (Twitter)"
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#cfd0d4] text-[#cdcdcd] transition-all duration-300 ease-in-out no-underline hover:bg-black/40 hover:text-[#b7e9f7] hover:no-underline"
+              aria-label="X (Twitter)"
+            >
               <FontAwesomeIcon icon={faXTwitter} />
             </a>
-            <a href="#" title="Discord" className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#cfd0d4] text-[#cdcdcd] transition-all duration-300 ease-in-out no-underline hover:bg-black/40 hover:text-[#b7e9f7] hover:no-underline" aria-label="Discord">
+            <a
+              href="https://discord.com/users/XoloDojo"
+              target="_blank"
+              title="Discord"
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#cfd0d4] text-[#cdcdcd] transition-all duration-300 ease-in-out no-underline hover:bg-black/40 hover:text-[#b7e9f7] hover:no-underline"
+              aria-label="Discord"
+            >
               <FontAwesomeIcon icon={faDiscord} />
             </a>
-            <a href="#" title="LinkedIn" className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#cfd0d4] text-[#cdcdcd] transition-all duration-300 ease-in-out no-underline hover:bg-black/40 hover:text-[#b7e9f7] hover:no-underline" aria-label="LinkedIn">
-              <FontAwesomeIcon icon={faLinkedinIn} />
-            </a>
-            <a href="#" title="TikTok" className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#cfd0d4] text-[#cdcdcd] transition-all duration-300 ease-in-out no-underline hover:bg-black/40 hover:text-[#b7e9f7] hover:no-underline" aria-label="TikTok">
+            <a
+              href="https://www.tiktok.com/@XoloDojo"
+              target="_blank"
+              title="TikTok"
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#cfd0d4] text-[#cdcdcd] transition-all duration-300 ease-in-out no-underline hover:bg-black/40 hover:text-[#b7e9f7] hover:no-underline"
+              aria-label="TikTok"
+            >
               <FontAwesomeIcon icon={faTiktok} />
             </a>
-            <a href="#" title="Instagram" className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#cfd0d4] text-[#cdcdcd] transition-all duration-300 ease-in-out no-underline hover:bg-black/40 hover:text-[#b7e9f7] hover:no-underline" aria-label="Instagram">
+            <a
+              href="https://www.instagram.com/XoloDojo"
+              target="_blank"
+              title="Instagram"
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#cfd0d4] text-[#cdcdcd] transition-all duration-300 ease-in-out no-underline hover:bg-black/40 hover:text-[#b7e9f7] hover:no-underline"
+              aria-label="Instagram"
+            >
               <FontAwesomeIcon icon={faInstagram} />
             </a>
-            <a href="#" title="Telegram" className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#cfd0d4] text-[#cdcdcd] transition-all duration-300 ease-in-out no-underline hover:bg-black/40 hover:text-[#b7e9f7] hover:no-underline" aria-label="Telegram">
+            <a
+              href="https://t.me/XoloDojo"
+              target="_blank"
+              title="Telegram"
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#cfd0d4] text-[#cdcdcd] transition-all duration-300 ease-in-out no-underline hover:bg-black/40 hover:text-[#b7e9f7] hover:no-underline"
+              aria-label="Telegram"
+            >
               <FontAwesomeIcon icon={faTelegram} />
             </a>
           </GsapPageContent>
