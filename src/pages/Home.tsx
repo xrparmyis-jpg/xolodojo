@@ -330,7 +330,7 @@ function Home() {
     <>
       <section
         className="relative z-[9] overflow-hidden border-b border-[#36e9e424] bg-cover bg-center bg-no-repeat pt-[210px] pb-0 max-[1199px]:pt-[170px] max-[1199px]:pb-[100px] max-[991px]:pb-20"
-        style={{ backgroundImage: "url('/home/Home.jpg')" }}
+        style={{ backgroundImage: "url('/home/Home2.jpg')" }}
       >
         <GsapPageContent
           className="mt-[150px] h-[320px] w-full max-[1199px]:mt-[50px] max-[1199px]:h-[150px] max-[575px]:h-20 bg-cover bg-center bg-no-repeat"
