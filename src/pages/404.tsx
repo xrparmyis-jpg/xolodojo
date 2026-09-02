@@ -1,7 +1,10 @@
 import GsapPageContent from '../components/GsapPageContent';
+import PageMeta from '../components/PageMeta';
 
 function NotFound() {
   return (
+    <>
+    <PageMeta title="Page Not Found" description="This page wandered off. Head back to XoloDojo." />
     <section
       className="relative border-b border-[#36e9e424] bg-cover bg-center bg-no-repeat pt-16 pb-12 md:pt-30 md:pb-16"
       style={{ backgroundImage: "url('/Pattern.png')" }}
@@ -27,6 +30,7 @@ function NotFound() {
         </div>
       </div>
     </section>
+    </>
   );
 }
 

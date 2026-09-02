@@ -3,6 +3,7 @@ import GsapPageContent from '../components/GsapPageContent';
 import GsapPageHeading from '../components/GsapPageHeading';
 import GsapPageSubHeading from '../components/GsapPageSubHeading';
 import SectionParallaxBlobs from '../components/SectionParallaxBlobs';
+import PageMeta from '../components/PageMeta';
 import { useSectionParallaxOffsets } from '../hooks/useSectionParallaxOffsets';
 
 function Vision() {
@@ -11,6 +12,11 @@ function Vision() {
 
   return (
     <>
+      <PageMeta
+        title="The Vision"
+        description="A member-built global dojo fusing ancient Mesoamerican reverence for the Xoloitzquintli with Web3 — trust, travel, skill-sharing, and genuine shared experiences."
+        image="/vision/Vision.jpg"
+      />
       <section className="relative bg-[url('/Pattern.png')] bg-cover bg-center bg-no-repeat pt-16 pb-4 md:pt-30 border-b border-[#36e9e424]"></section>
       <section
         ref={sectionRef}

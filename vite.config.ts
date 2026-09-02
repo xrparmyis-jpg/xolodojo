@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => {
   const siteOrigin = (env.VITE_SITE_URL || env.VITE_APP_URL || defaultSiteOrigin)
     .trim()
     .replace(/\/$/, '')
-  const ogImagePath = env.VITE_OG_IMAGE_PATH || '/team/Cryptonite.jpg'
+  const ogImagePath = env.VITE_OG_IMAGE_PATH || '/home/Home2.jpg'
   const ogImageUrl = `${siteOrigin}${ogImagePath.startsWith('/') ? '' : '/'}${ogImagePath}`
 
   return {

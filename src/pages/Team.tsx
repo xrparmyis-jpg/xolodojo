@@ -1,5 +1,6 @@
 import GsapPageContent from '../components/GsapPageContent';
 import GsapPageHeading from '../components/GsapPageHeading';
+import PageMeta from '../components/PageMeta';
 import TeamMemberSocialLinks, {
   type TeamMemberSocials,
 } from '../components/TeamMemberSocialLinks';
@@ -88,6 +89,11 @@ function TeamMemberHeading({ member }: { member: TeamMember }) {
 function Team() {
   return (
     <div>
+      <PageMeta
+        title="Meet the Team"
+        description="Cryptonite and RedShadow — the visionary and the artist building The Xoloitzquintli Collection, XoloDojo, and Xglobe on the XRPL."
+        image="/team/XoloCryptonite.jpg"
+      />
       <section className="relative bg-[url('/Pattern.png')] bg-cover bg-center bg-no-repeat pt-16 pb-4 md:pt-30 border-b border-[#36e9e424]">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">

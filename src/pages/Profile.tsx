@@ -39,6 +39,7 @@ import { shouldResumeXamanPkceConnect } from '../utils/oauthCallbackGuards';
 import Button from '../components/Button';
 import GsapPageContent from '../components/GsapPageContent';
 import ModalConfirm from '../components/ModalConfirm';
+import PageMeta from '../components/PageMeta';
 import { useToast } from '../components/ToastProvider';
 import { WalletConnection } from '../components/WalletConnection';
 import {
@@ -360,6 +361,8 @@ function Profile() {
   }
 
   return (
+    <>
+    <PageMeta title="Your Profile" description="Manage your XoloDojo profile, wallets, and Xglobe pins." />
     <section className="relative pt-16 pb-4 md:pt-30 mb-4">
       <div className="container mx-auto max-w-7xl px-4">
         <div className="-mx-4 flex flex-wrap justify-center">
@@ -715,6 +718,7 @@ function Profile() {
         </div>
       </div>
     </section>
+    </>
   );
 }
 

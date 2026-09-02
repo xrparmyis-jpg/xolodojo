@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import GsapPageSubHeading from '../components/GsapPageSubHeading';
+import PageMeta from '../components/PageMeta';
 
 const faqItems = [
   {
@@ -40,6 +41,11 @@ function FAQ() {
 
   return (
     <>
+      <PageMeta
+        title="FAQ"
+        description="Answers about The Xoloitzquintli, the collection, XoloDojo, Xglobe, minting, and joining the token-gated community."
+        image="/faq/Faq.jpg"
+      />
       <section
         className="relative border-b border-[#36e9e424] bg-cover bg-center bg-no-repeat pt-16 pb-4 md:pt-[7.5rem]"
         style={{ backgroundImage: "url('/Pattern.png')" }}

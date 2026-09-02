@@ -4,10 +4,15 @@ import GsapPageContent from '../components/GsapPageContent';
 import GsapPageSubHeading from '../components/GsapPageSubHeading';
 import { CookieSettingsLink } from '../components/CookieSettingsLink';
 import { ResetCookiePreferencesLink } from '../components/ResetCookiePreferencesLink';
+import PageMeta from '../components/PageMeta';
 
 function CookiePolicy() {
   return (
     <>
+      <PageMeta
+        title="Cookie Policy"
+        description="What cookies and similar technologies XoloDojo uses, and how to manage your preferences."
+      />
       <section className="relative border-b border-[#36e9e424] bg-[url('/Pattern.png')] bg-cover bg-center bg-no-repeat pt-16 pb-4 md:pt-30"></section>
       <section className="relative overflow-hidden bg-[var(--bg)] py-8 lg:py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">

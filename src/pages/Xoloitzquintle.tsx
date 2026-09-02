@@ -3,6 +3,7 @@ import GsapPageHeading from '../components/GsapPageHeading';
 import GsapPageContent from '../components/GsapPageContent';
 import GsapPageSubHeading from '../components/GsapPageSubHeading';
 import SectionParallaxBlobs from '../components/SectionParallaxBlobs';
+import PageMeta from '../components/PageMeta';
 
 import { useSectionParallaxOffsets } from '../hooks/useSectionParallaxOffsets';
 
@@ -12,6 +13,11 @@ function Xoloitzquintli() {
 
   return (
     <>
+      <PageMeta
+        title="The Xoloitzquintli"
+        description="A breed of legacy: the sacred Mesoamerican Xoloitzquintli, its history as a companion and soul guide, and its place at the heart of the collection."
+        image="/xoloitzquintli/Xoloitzquintli.jpg"
+      />
       <section className="relative bg-[url('/Pattern.png')] bg-cover bg-center bg-no-repeat pt-16 pb-4 md:pt-30 border-b border-[#36e9e424]"></section>
       <section
         ref={sectionRef}

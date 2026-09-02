@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 
 import GsapPageContent from '../components/GsapPageContent';
 import GsapPageHeading from '../components/GsapPageHeading';
+import PageMeta from '../components/PageMeta';
 import SectionParallaxBlobs from '../components/SectionParallaxBlobs';
 import CounterSection from '../components/CounterSection';
 import XoloitzquintleSlideshow from '../components/XoloitzquintleSlideshow';
@@ -328,6 +329,10 @@ function Home() {
 
   return (
     <>
+      <PageMeta
+        description="The Xoloitzquintli Collection: ancient legacy, 10,001 unique XRPL NFTs powering a token-gated global community for travel, skill-sharing, and real-world connection."
+        image="/home/Home2.jpg"
+      />
       <section
         className="relative z-[9] overflow-hidden border-b border-[#36e9e424] bg-cover bg-center bg-no-repeat pt-[210px] pb-0 max-[1199px]:pt-[170px] max-[1199px]:pb-[100px] max-[991px]:pb-20"
         style={{ backgroundImage: "url('/home/Home2.jpg')" }}
