@@ -62,7 +62,7 @@ const teamMembers: TeamMember[] = [
       instagram: '#',
       telegram: '#',
     },
-    bio: `Todd, a.k.a. Code, is a seasoned crypto trader with razor-sharp market instincts and hands-on building experience. Fluid in React.js, and battle-tested in high-stakes web development, he's shipped name-brand websites (under NDA) for top players in the space. Now building with the Xolo pack on XRPL, Code delivers the technical backbone for the XoloDojo and Xglobe, turning visionary ideas into seamless, secure, interactive experiences. From smart community tools to immersive interfaces, he ensures the Xglobe runs smoothly, the Xpin connects flawlessly, and the pack thrives in Web3. Code's blend of technical and coding skills is crucial in building a resilient, vibrant community for XoloDojo's future.`,
+    bio: `Todd Nagel, a.k.a. Code, is a seasoned crypto trader with razor-sharp market instincts and hands-on building experience. Fluid in React.js, and battle-tested in high-stakes web development, he's shipped name-brand websites (under NDA) for top players in the space. Now building with the Xolo pack on XRPL, Code delivers the technical backbone for the XoloDojo and Xglobe, turning visionary ideas into seamless, secure, interactive experiences. From smart community tools to immersive interfaces, he ensures the Xglobe runs smoothly, the Xpin connects flawlessly, and the pack thrives in Web3. Code's blend of technical and coding skills is crucial in building a resilient, vibrant community for XoloDojo's future.`,
   },
 ];
 
