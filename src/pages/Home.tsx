@@ -368,7 +368,7 @@ function Home() {
                 Xglobe — a live, token-gated world map where holders connect,
                 collaborate, and build real relationships across the planet.
                 Fused with degen pride and the spirit of community, the mint is
-                next. Lock in and be ready when we flip the switch.
+                launching 11/11/2026. Lock in and be ready when we flip the switch.
               </p>
             </>
           </GsapPageContent>

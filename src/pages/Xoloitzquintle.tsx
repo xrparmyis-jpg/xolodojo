@@ -64,7 +64,7 @@ function Xoloitzquintli() {
               <GsapPageContent as="p" className="mb-4" delay={0.04}>
                 Picture this: the Aztec cosmos is basically a chaotic family
                 reunion that never ends. At the center? The ultimate twin
-                duo—Quetzalcoatl, the chill, feathered-serpent genius of windg,
+                duo—Quetzalcoatl, the chill, feathered-serpent genius of wind,
                 wisdom, creation, and &quot;let&apos;s make everything
                 better,&quot; and his rowdy, dog-headed brother Xolotl, the
                 lightning-fast trickster god of fire, transformation,
