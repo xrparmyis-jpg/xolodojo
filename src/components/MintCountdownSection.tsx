@@ -5,9 +5,9 @@ import GsapPageContent from './GsapPageContent';
  * When the mint countdown reaches zero (ISO 8601 with explicit offset).
  * Same absolute instant for every user — not interpreted in the viewer’s local zone.
  *
- * Nov 11, 2026, 12:01 AM in US Pacific (PST, −08:00).
+ * Dec 12, 2026, 12:01 AM in US Pacific (PST, −08:00).
  */
-export const MINT_COUNTDOWN_END_ISO = '2026-11-11T00:01:00-08:00';
+export const MINT_COUNTDOWN_END_ISO = '2026-12-12T00:01:00-08:00';
 
 /** Opens from “Mint Now” after the countdown completes. */
 export const MINT_LIVE_URL = 'https://xrpl.cafe';
