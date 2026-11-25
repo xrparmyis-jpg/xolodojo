@@ -70,19 +70,31 @@
     function rememberLayer(l) { saved.push({ kind: "layer", obj: l, visible: l.visible, locked: l.locked }); }
     function rememberItem(it) { saved.push({ kind: "item", obj: it, hidden: it.hidden, locked: it.locked }); }
     function restore() {
-        // reverse order: children first, parents last
-        for (var i = saved.length - 1; i >= 0; i--) {
-            var s = saved[i];
+        var i, s;
+        // 1. Illustrator won't let you change objects on a hidden or locked layer
+        //    ("Target layer cannot be modified"), so open every layer up first
+        for (i = 0; i < saved.length; i++) {
+            s = saved[i];
+            if (s.kind !== "layer") continue;
+            try { s.obj.locked = false; s.obj.visible = true; } catch (e) { log("restore warning: " + e); }
+        }
+        // 2. restore objects while their layers are still editable
+        for (i = 0; i < saved.length; i++) {
+            s = saved[i];
+            if (s.kind !== "item") continue;
             try {
-                if (s.kind === "layer") {
-                    s.obj.locked = false;
-                    s.obj.visible = s.visible;
-                    s.obj.locked = s.locked;
-                } else {
-                    s.obj.locked = false;
-                    s.obj.hidden = s.hidden;
-                    s.obj.locked = s.locked;
-                }
+                s.obj.locked = false;
+                s.obj.hidden = s.hidden;
+                s.obj.locked = s.locked;
+            } catch (e) { log("restore warning: " + e); }
+        }
+        // 3. restore layers in reverse order: sublayers first, parents last
+        for (i = saved.length - 1; i >= 0; i--) {
+            s = saved[i];
+            if (s.kind !== "layer") continue;
+            try {
+                s.obj.visible = s.visible;
+                s.obj.locked = s.locked;
             } catch (e) { log("restore warning: " + e); }
         }
     }
@@ -115,7 +127,11 @@
         if (skip(L.name)) continue;
 
         var cat = { layer: L, kind: "layers", traits: [], allSubs: [] };
+        // a layer must be unlocked AND visible before anything on it can be changed,
+        // otherwise Illustrator throws "Target layer cannot be modified" (#8705).
+        // restore() puts the original visibility/lock back afterwards.
         L.locked = false;
+        L.visible = true;
 
         if (L.layers.length > 0) {
             for (var j = 0; j < L.layers.length; j++) {
