@@ -31,7 +31,7 @@
 (function () {
     var CONFIG = {
         TARGET_SIZE_PX: 2000,        // output width in px (height follows artboard ratio). 0 = native (1pt = 1px)
-        TEST_LIMIT_PER_CATEGORY: 2,  // quick test run: export only N traits per category. 0 = export everything
+        TEST_LIMIT_PER_CATEGORY: 0,  // quick test run: export only N traits per category. 0 = export everything
         DRY_RUN: false,              // true = write manifest.csv only, no PNGs
         SKIP_PREFIXES: ["_", "-", "."],
         INCLUDE_HIDDEN_TRAITS: true, // export traits even if they're currently hidden
@@ -282,7 +282,10 @@
     restore();
 
     var secs = Math.round((new Date().getTime() - started) / 1000);
-    var done = (CONFIG.DRY_RUN ? "Dry run complete. " : "Done! ") + exported + " PNGs in " + secs + "s\n" + outRoot.fsName;
+    var allTraits = 0;
+    for (var c1 = 0; c1 < cats.length; c1++) allTraits += cats[c1].traits.length;
+    var done = (CONFIG.DRY_RUN ? "Dry run complete. " : "Done! ") + exported + " PNGs in " + secs + "s\n" + outRoot.fsName +
+        "\n\nTotal traits: " + allTraits + " across " + cats.length + " categories";
     if (warnings.length) done += "\n\nWarnings:\n  " + warnings.slice(0, 15).join("\n  ") + (warnings.length > 15 ? "\n  ..." : "");
     log(done);
     alert(done);
